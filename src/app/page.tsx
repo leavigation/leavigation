@@ -63,6 +63,7 @@ interface WeekInfo {
   jobProtected: boolean;
   protectedByFmla: boolean;
   protectedByState: boolean;
+  protectedByCfra: boolean;
   payPercent: number;
   streams: WeekStream[];
   note: string;
@@ -555,7 +556,7 @@ function buildTimeline(options: {
       : 0;
 
   const totalWeeks = Math.max(
-    14,
+    22,
     preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2
   );
   const statePaidWeeks = preBirthWeeks + disabilityWeeks + bondingWeeks;
@@ -567,7 +568,8 @@ function buildTimeline(options: {
   const fmlaWeeks = hasFmla ? FMLA.weeksProtected : 0;
 
   if ((code === "CA" || code === "NY" || code === "NJ" || code === "RI") && preBirthWeeks > 0) {
-    const pflStartWeek = preBirthWeeks + disabilityWeeks + 1;
+    const lastSdiWeek = preBirthWeeks + disabilityWeeks;
+    const pflStartWeek = lastSdiWeek + 1;
     const pflEndWeek = pflStartWeek + bondingWeeks - 1;
     const birthWeek = preBirthWeeks + 1;
     const leaveStartDate = new Date(dueDate + "T00:00:00");
@@ -590,12 +592,12 @@ function buildTimeline(options: {
       if (weekNumber <= preBirthWeeks) {
         streams.push("State SDI");
         if (hasStd) streams.push("Short‑term disability");
-      } else if (weekNumber <= preBirthWeeks + disabilityWeeks) {
+      } else if (weekNumber <= lastSdiWeek) {
         streams.push("State SDI");
         if (hasStd) streams.push("Short‑term disability");
       }
 
-      if (weekNumber >= pflStartWeek && weekNumber <= pflEndWeek) {
+      if (weekNumber >= pflStartWeek && weekNumber <= pflEndWeek && !streams.includes("State SDI")) {
         streams.push("State PFL");
       }
 
@@ -745,6 +747,7 @@ function buildTimeline(options: {
         jobProtected,
         protectedByFmla,
         protectedByState: pdlProtected || stateBondingProtected,
+        protectedByCfra: stateBondingProtected,
         payPercent,
         streams,
         note,
@@ -839,6 +842,11 @@ function buildTimeline(options: {
     const protectedByFmla = hasFmla && weekNumber <= fmlaWeeks;
     const protectedByState =
       state.stateProtection?.available && weekNumber <= stateProtectedWeeks;
+    const protectedByCfra =
+      (code === "CA" || code === "NY" || code === "NJ") &&
+      state.stateProtection?.available &&
+      weekNumber > disabilityWeeks &&
+      weekNumber <= disabilityWeeks + 12;
     const jobProtected = protectedByFmla || protectedByState;
 
     let note = "";
@@ -899,6 +907,7 @@ function buildTimeline(options: {
       jobProtected,
       protectedByFmla,
       protectedByState,
+      protectedByCfra,
       payPercent,
       streams,
       note,
@@ -1173,7 +1182,7 @@ export default function Home() {
 
   const displayTimeline = useMemo(() => {
     if (!timeline || timeline.length === 0) return timeline;
-    return buildTimeline({
+    const result = buildTimeline({
       stateCode: state || "DEFAULT",
       city: city || "",
       dueDate,
@@ -1186,6 +1195,7 @@ export default function Home() {
       caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
       caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
     });
+    return result;
   }, [
     timeline,
     strategy,
@@ -1489,7 +1499,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {step === 2 && (console.log('showRecentMoverQuestion:', step, state, dueDate, PAID_LEAVE_STATES.includes(state), isDueDateWithin6Months(dueDate)), null)}
                 {showRecentMoverQuestion && (
                   <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
                     <div className="text-sm font-medium text-slate-700">
@@ -1852,7 +1861,7 @@ export default function Home() {
             </div>
           )}
 
-          {step === 6 && timeline && (
+          {step === 6 && (displayTimeline ?? timeline) && (
             <div className="flex flex-col gap-6">
               {/* 2. Header + action buttons */}
                 <div>
@@ -1910,6 +1919,10 @@ export default function Home() {
                   <span className="h-3 w-3 rounded-full bg-slate-300" />
                   <span>Gray: this leave type is not active</span>
                 </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-teal-800">
+                  <span className="h-3 w-3 rounded-full bg-teal-400" />
+                  <span>Teal: Short‑term disability row (employer/personal)</span>
+                </div>
               </div>
 
               {/* Gantt-style timeline */}
@@ -1917,15 +1930,32 @@ export default function Home() {
                 <div className="text-xs font-medium text-slate-700">Leave types over time</div>
                 <div className="overflow-x-auto">
                   <div className="inline-block min-w-full rounded-xl border border-slate-200 bg-white p-3">
+                    {(() => {
+                      const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const birthColumnIndex = Math.max(
+                        0,
+                        activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
+                      );
+                      const isPreBirthCol = (i: number) => i < birthColumnIndex;
+                      const isBirthDividerCol = (i: number) => i === birthColumnIndex;
+                      return (
+                        <>
                     <div className="grid auto-cols-[minmax(2.5rem,1fr)] grid-flow-col gap-1 text-[10px] text-slate-500">
                       <div className="col-span-1 text-[11px] font-medium text-slate-600">
                         Type
                       </div>
-                      {((displayTimeline ?? timeline) as WeekInfo[]).map((w) => (
+                      {activeTimeline.map((w, index) => (
                         <div
                           key={`head-${w.weekNumber}`}
-                          className="flex flex-col items-center justify-center"
+                          className={`flex flex-col items-center justify-center min-h-[3rem] ${
+                            isPreBirthCol(index) ? "bg-indigo-50" : ""
+                          } ${isBirthDividerCol(index) ? "border-l-4 border-slate-700 pl-0.5" : ""}`}
                         >
+                          {isBirthDividerCol(index) && (
+                            <div className="text-[10px] font-bold text-slate-700 mb-0.5">
+                              👶 BIRTH
+                            </div>
+                          )}
                           {w.birthRelativeWeek !== undefined ? (
                             <>
                               <div className="text-[11px] font-semibold text-slate-700">
@@ -1943,65 +1973,131 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
+                        </>
+                      );
+                    })()}
 
-                    {(["FMLA", "State SDI", "State PFL", "Employer leave", "Short‑term disability"] as WeekStream[]).map(
-                      (stream) => (
+                    {(() => {
+                      const stateLeave = getStateLeave((state || "DEFAULT").toUpperCase());
+                      const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const birthColIdx = Math.max(0, activeTimeline.findIndex((w) => w.birthRelativeWeek === 1));
+                      const recoveryWeeks =
+                        birthType === "c-section"
+                          ? (stateLeave.sdi?.weeksDurationCsection ?? 8)
+                          : (stateLeave.sdi?.weeksDurationVaginal ?? 6);
+                      const disabilityWeeks = stateLeave.sdi?.available ? recoveryWeeks : 0;
+                      const preBirthWeeks =
+                        (state === "CA" &&
+                          (caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended"))
+                          ? Math.min(20, Math.max(1, parseInt(caPreBirthWeeks, 10) || 4))
+                          : 0;
+                      const pdlEndWeek = preBirthWeeks + disabilityWeeks;
+                      const pflStartWeek = pdlEndWeek + 1;
+                      const streamRows: (WeekStream | "PDL")[] =
+                        state === "CA"
+                          ? ["FMLA", "PDL", "State SDI", "State PFL", "Employer leave", "Short‑term disability"]
+                          : ["FMLA", "State SDI", "State PFL", "Employer leave", "Short‑term disability"];
+                      return streamRows.map((stream) => (
                         <div
                           key={stream}
                           className="mt-1 grid auto-cols-[minmax(2.5rem,1fr)] grid-flow-col gap-1 text-[10px]"
                         >
-                          <div className="pr-2 text-right font-medium text-slate-600">
+                          <div
+                            className="pr-2 text-right font-medium text-slate-600"
+                            title={
+                              stream === "State SDI"
+                                ? "State disability insurance (e.g. CA SDI). Paid by the state during disability/recovery."
+                                : stream === "Short‑term disability"
+                                  ? "Employer or private short‑term disability. Often tops up state SDI or covers the 7‑day waiting period."
+                                  : undefined
+                            }
+                          >
                             {stream}
                           </div>
-                          {((displayTimeline ?? timeline) as WeekInfo[]).map((week) => {
-                            const isActive = week.streams.includes(stream);
-                            const hasPay = week.payPercent > 0 && isActive;
+                          {activeTimeline.map((week, index) => {
+                            const isPdlRow = stream === "PDL";
+                            const isCfraBoundaryWeek = state === "CA" && week.weekNumber === pflStartWeek;
+                            const isPdlActive = isPdlRow && week.weekNumber <= pdlEndWeek;
+                            const isActive = isPdlRow ? isPdlActive : (stream === "State PFL" ? week.streams.includes("State PFL") && !week.streams.includes("State SDI") : week.streams.includes(stream as WeekStream));
+                            const hasPay = week.payPercent > 0 && (isPdlRow ? false : isActive);
+                            const isStdRow = stream === "Short‑term disability";
+                            const preBirthTint = index < birthColIdx ? "bg-indigo-50" : "";
+                            const birthDividerBorder = index === birthColIdx ? "border-l-4 border-slate-700" : "";
                             let color =
                               "bg-slate-100 border border-slate-200 text-slate-500";
 
-                            if (isActive) {
+                            if (isPdlRow) {
+                              color = isPdlActive
+                                ? "bg-emerald-400/70 border border-emerald-500 text-emerald-950"
+                                : "bg-slate-100 border border-slate-200 text-slate-500";
+                            } else if (isActive) {
                               if (hasPay && week.jobProtected) {
-                                color =
-                                  "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
+                                color = isStdRow
+                                  ? "bg-teal-400/70 border border-teal-500 text-teal-950"
+                                  : "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
                               } else if (hasPay && !week.jobProtected) {
-                                color =
-                                  "bg-amber-300/80 border border-amber-500 text-amber-950";
+                                color = isStdRow
+                                  ? "bg-teal-300/80 border border-teal-500 text-teal-950"
+                                  : "bg-amber-300/80 border border-amber-500 text-amber-950";
                               } else if (!hasPay && week.jobProtected) {
-                                color =
-                                  "bg-orange-300/80 border border-orange-500 text-orange-950";
+                                color = isStdRow
+                                  ? "bg-teal-200/80 border border-teal-400 text-teal-900"
+                                  : "bg-orange-300/80 border border-orange-500 text-orange-950";
                               } else {
-                                color =
-                                  "bg-rose-300/80 border border-rose-500 text-rose-950";
+                                color = isStdRow
+                                  ? "bg-teal-200/80 border border-teal-400 text-teal-900"
+                                  : "bg-rose-300/80 border border-rose-500 text-rose-950";
                               }
                             }
+
+                            const cfraBoundaryClass = isCfraBoundaryWeek
+                              ? "border-l-2 border-sky-600"
+                              : "";
+                            const cfraBoundaryTitle = isCfraBoundaryWeek
+                              ? "PDL ends → CFRA bonding begins. File PFL claim now."
+                              : undefined;
 
                             return (
                               <button
                                 type="button"
                                 key={`${stream}-${week.weekNumber}`}
                                 onClick={() => setSelectedWeek(week.weekNumber)}
+                                title={cfraBoundaryTitle ?? (isPdlRow && isPdlActive ? "Job protection only; pay from SDI row" : undefined)}
                                 className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${
-                                  week.birthRelativeWeek === 1
+                                  index < birthColIdx && !isActive ? preBirthTint : ""
+                                } ${index < birthColIdx && isActive ? "ring-1 ring-inset ring-indigo-200/50" : ""} ${
+                                  week.birthRelativeWeek === 1 && !isCfraBoundaryWeek && index !== birthColIdx
                                     ? "border-l-2 border-slate-400"
                                     : ""
-                                } ${week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 ? "bg-indigo-50" : ""} ${
+                                } ${birthDividerBorder} ${cfraBoundaryClass} ${week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 && !isPdlRow ? "bg-indigo-50" : ""} ${
                                   week.isPast ? "opacity-60" : ""
                                 }`}
                               >
-                                {week.birthRelativeWeek ?? week.weekNumber}
+                                {isPdlRow && isPdlActive ? (
+                                  <span className="flex flex-col items-center leading-tight">
+                                    <span>{week.birthRelativeWeek ?? week.weekNumber}</span>
+                                    {week.streams.includes("State SDI") && (
+                                      <span className="text-[8px] opacity-80">{week.payPercent}%</span>
+                                    )}
+                                  </span>
+                                ) : (
+                                  week.birthRelativeWeek ?? week.weekNumber
+                                )}
                               </button>
                             );
                           })}
                         </div>
-                      )
-                    )}
+                      ));
+                    })()}
 
-                    {/* State Job Protection row: green weeks 1–12 (FMLA), then green/red based on hasProtectionBeyondFMLA */}
+                    {/* State Job Protection (CFRA) row: uses week.protectedByCfra — only CFRA bonding weeks, not PDL */}
                     {(() => {
                       const stateLeave = getStateLeave((state || "DEFAULT").toUpperCase());
-                      const extraWeeks = stateLeave.hasProtectionBeyondFMLA && stateLeave.stateProtectionLaws?.[0]
-                        ? stateLeave.stateProtectionLaws[0].weeksBeyondFMLA
-                        : 0;
+                      const protectionTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const birthColIdx = Math.max(0, protectionTimeline.findIndex((w) => w.birthRelativeWeek === 1));
+                      const cfraWeeks = protectionTimeline.filter((w) => w.protectedByCfra);
+                      const cfraStartWeek = cfraWeeks.length > 0 ? Math.min(...cfraWeeks.map((w) => w.weekNumber)) : Infinity;
+                      const cfraEndWeek = cfraWeeks.length > 0 ? Math.max(...cfraWeeks.map((w) => w.weekNumber)) : 0;
                       const primaryLaw = stateLeave.stateProtectionLaws?.[0];
                       const lawHeader = (() => {
                         if (!primaryLaw) return "State job protection";
@@ -2009,31 +2105,33 @@ export default function Home() {
                         const acronym = m?.[1] || primaryLaw.name;
                         return acronym;
                       })();
-                      const stateProtectionEndWeek = 12 + extraWeeks;
                       return (
                         <div className="mt-1 grid auto-cols-[minmax(2.5rem,1fr)] grid-flow-col gap-1 text-[10px]">
                           <div className="pr-2 text-right font-medium text-slate-600">
                             {lawHeader}
                           </div>
-                          {((displayTimeline ?? timeline) as WeekInfo[]).map((week) => {
-                            const isProtected =
-                              week.weekNumber <= 12 ||
-                              (stateLeave.hasProtectionBeyondFMLA && week.weekNumber <= stateProtectionEndWeek);
+                          {protectionTimeline.map((week, index) => {
+                            const isProtected = week.protectedByCfra;
+                            const isAfterCfraEnd = cfraEndWeek > 0 && week.weekNumber > cfraEndWeek;
                             const color = isProtected
                               ? "bg-emerald-400/70 border border-emerald-500 text-emerald-950"
-                              : "bg-rose-300/80 border border-rose-500 text-rose-950";
+                              : isAfterCfraEnd
+                                ? "bg-rose-300/80 border border-rose-500 text-rose-950"
+                                : "bg-slate-100 border border-slate-200 text-slate-600";
+                            const preBirthTint = index < birthColIdx ? "bg-indigo-50" : "";
+                            const birthDividerBorder = index === birthColIdx ? "border-l-4 border-slate-700" : "";
                             return (
                               <button
                                 type="button"
                                 key={`state-protection-${week.weekNumber}`}
                                 onClick={() => setSelectedWeek(week.weekNumber)}
                                 className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${
-                                  week.birthRelativeWeek === 1
-                                    ? "border-l-2 border-slate-400"
-                                    : ""
-                                } ${week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 ? "bg-indigo-50" : ""} ${
-                                  week.isPast ? "opacity-60" : ""
-                                }`}
+                                  index < birthColIdx && !isProtected ? preBirthTint : ""
+                                } ${index < birthColIdx && isProtected ? "ring-1 ring-inset ring-indigo-200/50" : ""} ${
+                                  week.birthRelativeWeek === 1 && index !== birthColIdx ? "border-l-2 border-slate-400" : ""
+                                } ${birthDividerBorder} ${
+                                  week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 ? "bg-indigo-50" : ""
+                                } ${week.isPast ? "opacity-60" : ""}`}
                               >
                                 {week.birthRelativeWeek ?? week.weekNumber}
                               </button>
