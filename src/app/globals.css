@@ -24,3 +24,109 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Print-only content: hidden on screen, visible when printing */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Reduce empty white space below content */
+  html,
+  body,
+  main {
+    height: auto !important;
+  }
+  .min-h-screen {
+    min-height: 0 !important;
+  }
+
+  /*
+   * Page setup: landscape, tight margins.
+   * The localhost:3000 URL in the print footer is controlled by the browser, not the app.
+   * Users should uncheck "Headers and Footers" in the browser print dialog to hide it.
+   */
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+
+  /* Gantt container: scale to fit all weeks on one landscape page */
+  .gantt-container {
+    transform-origin: top left !important;
+    width: 100% !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    /* Scale down so full timeline fits on one page (adjust if needed for more/fewer weeks) */
+    transform: scale(0.55) !important;
+  }
+
+  .gantt-print-area {
+    width: 100% !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Row labels (first column): keep visible in print */
+  .gantt-print-area .grid > *:first-child {
+    height: 20px !important;
+    min-height: 20px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+  }
+
+  /* Week cells only: hide numbers/percentages so only background color prints */
+  .gantt-print-area .grid > *:not(:first-child),
+  .gantt-print-area .grid > *:not(:first-child) * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .gantt-print-area .grid > *:not(:first-child) {
+    height: 20px !important;
+    min-height: 20px !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+  }
+
+  .gantt-print-area .grid > div {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Legend: force background colors and borders to print; compact single row */
+  .legend-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+    flex-direction: row !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .legend-container > div {
+    display: contents !important;
+  }
+  .legend-container .legend-bubble,
+  .legend-container .legend-bubble * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Fallback: ensure legend bubble borders print (border matches fill so color shows even if bg suppressed) */
+  .legend-container .legend-bubble {
+    border-width: 2px !important;
+    border-style: solid !important;
+  }
+}

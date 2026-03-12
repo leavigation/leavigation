@@ -1215,7 +1215,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-10">
-        <header className="mb-8">
+        <header className="no-print mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Leavigation
           </h1>
@@ -1225,7 +1225,7 @@ export default function Home() {
           </p>
         </header>
 
-        <section className="mb-4">
+        <section className="no-print mb-4">
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-sky-400 transition-all"
@@ -1863,6 +1863,10 @@ export default function Home() {
 
           {step === 6 && (displayTimeline ?? timeline) && (
             <div className="flex flex-col gap-6">
+              <div className="print-only border-b border-slate-200 pb-2 mb-4">
+                <div className="font-bold text-lg">My Leavigation Leave Plan</div>
+                <div className="text-sm text-slate-600">{new Date().toLocaleDateString(undefined, { dateStyle: "long" })}</div>
+              </div>
               {/* 2. Header + action buttons */}
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">
@@ -1875,7 +1879,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center justify-end gap-2 text-xs">
+                <div className="no-print mt-2 flex flex-wrap items-center justify-end gap-2 text-xs">
                   <button
                     type="button"
                     onClick={handleDownloadPdf}
@@ -1893,47 +1897,47 @@ export default function Home() {
                 </div>
 
               {shareMessage && (
-                <div className="rounded-xl bg-sky-50 px-4 py-2 text-xs text-sky-900">
+                <div className="no-print rounded-xl bg-sky-50 px-4 py-2 text-xs text-sky-900">
                   {shareMessage}
                 </div>
               )}
 
-              <div className="flex flex-col gap-2 text-xs">
+              <div className="legend-container flex flex-col gap-2 text-xs">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-[11px] font-semibold text-slate-700">Summary row colors:</span>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
-                    <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-emerald-800 print:bg-emerald-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-emerald-400 bg-emerald-400 print:bg-emerald-400" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Green: paid &amp; job‑protected</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-800">
-                    <span className="h-3 w-3 rounded-full bg-amber-400" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-800 print:bg-amber-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-amber-400 bg-amber-400 print:bg-amber-400" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Yellow: paid but not protected</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-orange-800">
-                    <span className="h-3 w-3 rounded-full bg-orange-400" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-orange-800 print:bg-orange-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-orange-400 bg-orange-400 print:bg-orange-400" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Orange: unpaid but protected</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-rose-800">
-                    <span className="h-3 w-3 rounded-full bg-rose-400" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-rose-800 print:bg-rose-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-rose-400 bg-rose-400 print:bg-rose-400" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Red: unpaid &amp; not protected</span>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-[11px] font-semibold text-slate-700">Individual row colors:</span>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-blue-800">
-                    <span className="h-3 w-3 rounded-full bg-blue-400" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-blue-800 print:bg-blue-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-blue-400 bg-blue-400 print:bg-blue-400" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Blue: paid &amp; job‑protected</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-purple-800">
-                    <span className="h-3 w-3 rounded-full bg-purple-400" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-purple-800 print:bg-purple-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-purple-400 bg-purple-400 print:bg-purple-400" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Purple: job‑protected only (unpaid)</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-green-800">
-                    <span className="h-3 w-3 rounded-full bg-green-300" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-green-800 print:bg-green-50">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-green-400 bg-green-300 print:bg-green-300" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Light green: paid only (no job protection)</span>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
-                    <span className="h-3 w-3 rounded-full bg-slate-300" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700 print:bg-slate-100">
+                    <span className="legend-bubble h-3 w-3 rounded-full border-2 border-slate-400 bg-slate-300 print:bg-slate-300" style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }} />
                     <span>Gray: this leave type is not active</span>
                   </div>
                 </div>
@@ -1942,7 +1946,7 @@ export default function Home() {
               {/* Gantt-style timeline */}
               <div className="space-y-3">
                 <div className="text-xs font-medium text-slate-700">Leave types over time</div>
-                <div className="overflow-x-auto">
+                <div className="gantt-container gantt-print-area overflow-x-auto">
                   <div className="inline-block min-w-full rounded-xl border border-slate-200 bg-white p-3">
                     {(() => {
                       const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
@@ -2186,7 +2190,7 @@ export default function Home() {
                               <span className="flex flex-col items-center leading-tight">
                                 <span>{week.birthRelativeWeek ?? week.weekNumber}</span>
                                 {week.streams.includes("State SDI") && (
-                                  <span className="text-[8px] opacity-80">{week.payPercent}%</span>
+                                  <span className="no-print text-[8px] opacity-80">{week.payPercent}%</span>
                                 )}
                               </span>
                             ) : (
@@ -2300,7 +2304,7 @@ export default function Home() {
         </section>
 
         {step === 6 && (
-          <div className="mt-6 space-y-3">
+          <div className="no-print mt-6 space-y-3">
             <button
               type="button"
               onClick={handleStartOver}
@@ -2311,7 +2315,7 @@ export default function Home() {
           </div>
         )}
 
-        <footer className="mt-6 flex items-center justify-between">
+        <footer className="no-print mt-6 flex items-center justify-between">
           <button
             type="button"
             onClick={handleBack}
