@@ -1898,30 +1898,44 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-3 text-xs">
-                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
-                  <span className="h-3 w-3 rounded-full bg-emerald-400" />
-                  <span>Green: paid &amp; job‑protected</span>
+              <div className="flex flex-col gap-2 text-xs">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-[11px] font-semibold text-slate-700">Summary row colors:</span>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-emerald-800">
+                    <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                    <span>Green: paid &amp; job‑protected</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-800">
+                    <span className="h-3 w-3 rounded-full bg-amber-400" />
+                    <span>Yellow: paid but not protected</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-orange-800">
+                    <span className="h-3 w-3 rounded-full bg-orange-400" />
+                    <span>Orange: unpaid but protected</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-rose-800">
+                    <span className="h-3 w-3 rounded-full bg-rose-400" />
+                    <span>Red: unpaid &amp; not protected</span>
+                  </div>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-800">
-                  <span className="h-3 w-3 rounded-full bg-amber-400" />
-                  <span>Yellow: paid but not protected</span>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-orange-800">
-                  <span className="h-3 w-3 rounded-full bg-orange-400" />
-                  <span>Orange: unpaid but protected</span>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-rose-800">
-                  <span className="h-3 w-3 rounded-full bg-rose-400" />
-                  <span>Red: unpaid &amp; not protected</span>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
-                  <span className="h-3 w-3 rounded-full bg-slate-300" />
-                  <span>Gray: this leave type is not active</span>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-teal-800">
-                  <span className="h-3 w-3 rounded-full bg-teal-400" />
-                  <span>Teal: Short‑term disability row (employer/personal)</span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-[11px] font-semibold text-slate-700">Individual row colors:</span>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-blue-800">
+                    <span className="h-3 w-3 rounded-full bg-blue-400" />
+                    <span>Blue: paid &amp; job‑protected</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-purple-800">
+                    <span className="h-3 w-3 rounded-full bg-purple-400" />
+                    <span>Purple: job‑protected only (unpaid)</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-green-800">
+                    <span className="h-3 w-3 rounded-full bg-green-300" />
+                    <span>Light green: paid only (no job protection)</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-700">
+                    <span className="h-3 w-3 rounded-full bg-slate-300" />
+                    <span>Gray: this leave type is not active</span>
+                  </div>
                 </div>
               </div>
 
@@ -1932,48 +1946,172 @@ export default function Home() {
                   <div className="inline-block min-w-full rounded-xl border border-slate-200 bg-white p-3">
                     {(() => {
                       const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
-                      const birthColumnIndex = Math.max(
+                      const birthColIdx = Math.max(
                         0,
                         activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
                       );
-                      const isPreBirthCol = (i: number) => i < birthColumnIndex;
-                      const isBirthDividerCol = (i: number) => i === birthColumnIndex;
+                      const preWeeks = activeTimeline.slice(0, birthColIdx);
+                      const postWeeks = activeTimeline.slice(birthColIdx);
+                      const showBirthDivider = preWeeks.length > 0;
+                      const gridStyle = showBirthDivider
+                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
+                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
                       return (
                         <>
-                    <div className="grid auto-cols-[minmax(2.5rem,1fr)] grid-flow-col gap-1 text-[10px] text-slate-500">
-                      <div className="col-span-1 text-[11px] font-medium text-slate-600">
+                    <div className="grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
+                      <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden">
                         Type
                       </div>
-                      {activeTimeline.map((w, index) => (
-                        <div
-                          key={`head-${w.weekNumber}`}
-                          className={`flex flex-col items-center justify-center min-h-[3rem] ${
-                            isPreBirthCol(index) ? "bg-indigo-50" : ""
-                          } ${isBirthDividerCol(index) ? "border-l-4 border-slate-700 pl-0.5" : ""}`}
-                        >
-                          {isBirthDividerCol(index) && (
-                            <div className="text-[10px] font-bold text-slate-700 mb-0.5">
+                      {showBirthDivider ? (
+                        <>
+                          {preWeeks.map((w) => (
+                            <div
+                              key={`head-pre-${w.weekNumber}`}
+                              className="flex flex-col items-center justify-center min-h-[3rem] bg-indigo-50"
+                            >
+                              {w.birthRelativeWeek !== undefined ? (
+                                <>
+                                  <div className="text-[11px] font-semibold text-slate-700">
+                                    W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
+                                  </div>
+                                  {w.startDateLabel && (
+                                    <div className="mt-0.5 text-[9px] text-slate-400">
+                                      {w.startDateLabel}
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>W{w.weekNumber}</>
+                              )}
+                            </div>
+                          ))}
+                          <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 min-h-[3rem] self-stretch" aria-hidden>
+                            <div className="text-[10px] font-bold text-slate-700 whitespace-nowrap">
                               👶 BIRTH
                             </div>
-                          )}
-                          {w.birthRelativeWeek !== undefined ? (
-                            <>
-                              <div className="text-[11px] font-semibold text-slate-700">
-                                W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
-                              </div>
-                              {w.startDateLabel && (
-                                <div className="mt-0.5 text-[9px] text-slate-400">
-                                  {w.startDateLabel}
-                                </div>
+                            <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                          </div>
+                          {postWeeks.map((w) => (
+                            <div
+                              key={`head-post-${w.weekNumber}`}
+                              className="flex flex-col items-center justify-center min-h-[3rem]"
+                            >
+                              {w.birthRelativeWeek !== undefined ? (
+                                <>
+                                  <div className="text-[11px] font-semibold text-slate-700">
+                                    W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
+                                  </div>
+                                  {w.startDateLabel && (
+                                    <div className="mt-0.5 text-[9px] text-slate-400">
+                                      {w.startDateLabel}
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>W{w.weekNumber}</>
                               )}
-                            </>
-                          ) : (
-                            <>W{w.weekNumber}</>
-                          )}
-                        </div>
-                      ))}
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        activeTimeline.map((w) => (
+                          <div
+                            key={`head-${w.weekNumber}`}
+                            className="flex flex-col items-center justify-center min-h-[3rem]"
+                          >
+                            {w.birthRelativeWeek !== undefined ? (
+                              <>
+                                <div className="text-[11px] font-semibold text-slate-700">
+                                  W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
+                                </div>
+                                {w.startDateLabel && (
+                                  <div className="mt-0.5 text-[9px] text-slate-400">
+                                    {w.startDateLabel}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <>W{w.weekNumber}</>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                         </>
+                      );
+                    })()}
+
+                    {/* Summary row: overall weekly status (uses original green/yellow/orange/red palette) */}
+                    {(() => {
+                      const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const birthColIdx = Math.max(
+                        0,
+                        activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
+                      );
+                      const preWeeks = activeTimeline.slice(0, birthColIdx);
+                      const postWeeks = activeTimeline.slice(birthColIdx);
+                      const showBirthDivider = preWeeks.length > 0;
+                      const gridStyle = showBirthDivider
+                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
+                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
+                      const getSummaryColor = (week: WeekInfo) => {
+                        const hasPay = week.payPercent > 0;
+                        const isProtected = week.jobProtected;
+                        if (hasPay && isProtected) {
+                          return "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
+                        }
+                        if (hasPay && !isProtected) {
+                          return "bg-amber-300/80 border border-amber-500 text-amber-950";
+                        }
+                        if (!hasPay && isProtected) {
+                          return "bg-orange-300/80 border border-orange-500 text-orange-950";
+                        }
+                        return "bg-rose-300/80 border border-rose-500 text-rose-950";
+                      };
+                      return (
+                        <div className="mt-2 border-y border-slate-300 py-1 grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
+                          <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-semibold text-[11px] text-slate-700 flex items-center overflow-hidden">
+                            Summary
+                          </div>
+                          {showBirthDivider ? (
+                            <>
+                              {preWeeks.map((week) => (
+                                <button
+                                  key={`summary-pre-${week.weekNumber}`}
+                                  type="button"
+                                  onClick={() => setSelectedWeek(week.weekNumber)}
+                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} bg-indigo-50 ${week.isPast ? "opacity-60" : ""}`}
+                                >
+                                  {week.birthRelativeWeek ?? week.weekNumber}
+                                </button>
+                              ))}
+                              <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-9 self-stretch" aria-hidden>
+                                <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                              </div>
+                              {postWeeks.map((week) => (
+                                <button
+                                  key={`summary-post-${week.weekNumber}`}
+                                  type="button"
+                                  onClick={() => setSelectedWeek(week.weekNumber)}
+                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${week.isPast ? "opacity-60" : ""}`}
+                                >
+                                  {week.birthRelativeWeek ?? week.weekNumber}
+                                </button>
+                              ))}
+                            </>
+                          ) : (
+                            activeTimeline.map((week) => (
+                              <button
+                                key={`summary-${week.weekNumber}`}
+                                type="button"
+                                onClick={() => setSelectedWeek(week.weekNumber)}
+                                className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${week.isPast ? "opacity-60" : ""}`}
+                              >
+                                {week.birthRelativeWeek ?? week.weekNumber}
+                              </button>
+                            ))
+                          )}
+                        </div>
                       );
                     })()}
 
@@ -1981,6 +2119,12 @@ export default function Home() {
                       const stateLeave = getStateLeave((state || "DEFAULT").toUpperCase());
                       const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const birthColIdx = Math.max(0, activeTimeline.findIndex((w) => w.birthRelativeWeek === 1));
+                      const preWeeks = activeTimeline.slice(0, birthColIdx);
+                      const postWeeks = activeTimeline.slice(birthColIdx);
+                      const showBirthDivider = preWeeks.length > 0;
+                      const gridStyle = showBirthDivider
+                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
+                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
                       const recoveryWeeks =
                         birthType === "c-section"
                           ? (stateLeave.sdi?.weeksDurationCsection ?? 8)
@@ -1997,13 +2141,68 @@ export default function Home() {
                         state === "CA"
                           ? ["FMLA", "PDL", "State SDI", "State PFL", "Employer leave", "Short‑term disability"]
                           : ["FMLA", "State SDI", "State PFL", "Employer leave", "Short‑term disability"];
+                      const renderStreamCell = (week: WeekInfo, isPreBirth: boolean, stream: WeekStream | "PDL") => {
+                        const isPdlRow = stream === "PDL";
+                        const isCfraBoundaryWeek = state === "CA" && week.weekNumber === pflStartWeek;
+                        const isPdlActive = isPdlRow && week.weekNumber <= pdlEndWeek;
+                        const isActive = isPdlRow ? isPdlActive : (stream === "State PFL" ? week.streams.includes("State PFL") && !week.streams.includes("State SDI") : week.streams.includes(stream as WeekStream));
+                        let color = "bg-slate-100 border border-slate-200 text-slate-500";
+
+                        if (isActive) {
+                          const isProtected = week.jobProtected;
+                          const hasPay = !isPdlRow && week.payPercent > 0;
+
+                          if (hasPay && isProtected) {
+                            color = "bg-blue-400/70 border border-blue-500 text-blue-950";
+                          } else if (!hasPay && isProtected) {
+                            color = "bg-purple-400/70 border border-purple-500 text-purple-950";
+                          } else if (hasPay && !isProtected) {
+                            color = "bg-green-300/70 border border-green-400 text-green-950";
+                          }
+                        }
+
+                        if (isPdlRow && isPdlActive) {
+                          color = "bg-purple-400/70 border border-purple-500 text-purple-950";
+                        }
+
+                        const cfraBoundaryClass = isCfraBoundaryWeek ? "border-l-2 border-sky-600" : "";
+                        const cfraBoundaryTitle = isCfraBoundaryWeek
+                          ? "PDL ends → CFRA bonding begins. File PFL claim now."
+                          : undefined;
+
+                        return (
+                          <button
+                            type="button"
+                            key={`${stream}-${week.weekNumber}`}
+                            onClick={() => setSelectedWeek(week.weekNumber)}
+                            title={cfraBoundaryTitle ?? (isPdlRow && isPdlActive ? "Job protection only; pay from SDI row" : undefined)}
+                            className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${
+                              isPreBirth && !isActive ? "bg-indigo-50" : ""
+                            } ${isPreBirth && isActive ? "ring-1 ring-inset ring-indigo-200/50" : ""} ${cfraBoundaryClass} ${
+                              week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 && !isPdlRow ? "bg-indigo-50" : ""
+                            } ${week.isPast ? "opacity-60" : ""}`}
+                          >
+                            {isPdlRow && isPdlActive ? (
+                              <span className="flex flex-col items-center leading-tight">
+                                <span>{week.birthRelativeWeek ?? week.weekNumber}</span>
+                                {week.streams.includes("State SDI") && (
+                                  <span className="text-[8px] opacity-80">{week.payPercent}%</span>
+                                )}
+                              </span>
+                            ) : (
+                              week.birthRelativeWeek ?? week.weekNumber
+                            )}
+                          </button>
+                        );
+                      };
                       return streamRows.map((stream) => (
                         <div
                           key={stream}
-                          className="mt-1 grid auto-cols-[minmax(2.5rem,1fr)] grid-flow-col gap-1 text-[10px]"
+                          className="mt-1 grid grid-flow-col gap-1 text-[10px]"
+                          style={gridStyle}
                         >
                           <div
-                            className="pr-2 text-right font-medium text-slate-600"
+                            className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden"
                             title={
                               stream === "State SDI"
                                 ? "State disability insurance (e.g. CA SDI). Paid by the state during disability/recovery."
@@ -2014,78 +2213,17 @@ export default function Home() {
                           >
                             {stream}
                           </div>
-                          {activeTimeline.map((week, index) => {
-                            const isPdlRow = stream === "PDL";
-                            const isCfraBoundaryWeek = state === "CA" && week.weekNumber === pflStartWeek;
-                            const isPdlActive = isPdlRow && week.weekNumber <= pdlEndWeek;
-                            const isActive = isPdlRow ? isPdlActive : (stream === "State PFL" ? week.streams.includes("State PFL") && !week.streams.includes("State SDI") : week.streams.includes(stream as WeekStream));
-                            const hasPay = week.payPercent > 0 && (isPdlRow ? false : isActive);
-                            const isStdRow = stream === "Short‑term disability";
-                            const preBirthTint = index < birthColIdx ? "bg-indigo-50" : "";
-                            const birthDividerBorder = index === birthColIdx ? "border-l-4 border-slate-700" : "";
-                            let color =
-                              "bg-slate-100 border border-slate-200 text-slate-500";
-
-                            if (isPdlRow) {
-                              color = isPdlActive
-                                ? "bg-emerald-400/70 border border-emerald-500 text-emerald-950"
-                                : "bg-slate-100 border border-slate-200 text-slate-500";
-                            } else if (isActive) {
-                              if (hasPay && week.jobProtected) {
-                                color = isStdRow
-                                  ? "bg-teal-400/70 border border-teal-500 text-teal-950"
-                                  : "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
-                              } else if (hasPay && !week.jobProtected) {
-                                color = isStdRow
-                                  ? "bg-teal-300/80 border border-teal-500 text-teal-950"
-                                  : "bg-amber-300/80 border border-amber-500 text-amber-950";
-                              } else if (!hasPay && week.jobProtected) {
-                                color = isStdRow
-                                  ? "bg-teal-200/80 border border-teal-400 text-teal-900"
-                                  : "bg-orange-300/80 border border-orange-500 text-orange-950";
-                              } else {
-                                color = isStdRow
-                                  ? "bg-teal-200/80 border border-teal-400 text-teal-900"
-                                  : "bg-rose-300/80 border border-rose-500 text-rose-950";
-                              }
-                            }
-
-                            const cfraBoundaryClass = isCfraBoundaryWeek
-                              ? "border-l-2 border-sky-600"
-                              : "";
-                            const cfraBoundaryTitle = isCfraBoundaryWeek
-                              ? "PDL ends → CFRA bonding begins. File PFL claim now."
-                              : undefined;
-
-                            return (
-                              <button
-                                type="button"
-                                key={`${stream}-${week.weekNumber}`}
-                                onClick={() => setSelectedWeek(week.weekNumber)}
-                                title={cfraBoundaryTitle ?? (isPdlRow && isPdlActive ? "Job protection only; pay from SDI row" : undefined)}
-                                className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${
-                                  index < birthColIdx && !isActive ? preBirthTint : ""
-                                } ${index < birthColIdx && isActive ? "ring-1 ring-inset ring-indigo-200/50" : ""} ${
-                                  week.birthRelativeWeek === 1 && !isCfraBoundaryWeek && index !== birthColIdx
-                                    ? "border-l-2 border-slate-400"
-                                    : ""
-                                } ${birthDividerBorder} ${cfraBoundaryClass} ${week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 && !isPdlRow ? "bg-indigo-50" : ""} ${
-                                  week.isPast ? "opacity-60" : ""
-                                }`}
-                              >
-                                {isPdlRow && isPdlActive ? (
-                                  <span className="flex flex-col items-center leading-tight">
-                                    <span>{week.birthRelativeWeek ?? week.weekNumber}</span>
-                                    {week.streams.includes("State SDI") && (
-                                      <span className="text-[8px] opacity-80">{week.payPercent}%</span>
-                                    )}
-                                  </span>
-                                ) : (
-                                  week.birthRelativeWeek ?? week.weekNumber
-                                )}
-                              </button>
-                            );
-                          })}
+                          {showBirthDivider ? (
+                            <>
+                              {preWeeks.map((week) => renderStreamCell(week, true, stream))}
+                              <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-7 self-stretch" aria-hidden>
+                                <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                              </div>
+                              {postWeeks.map((week) => renderStreamCell(week, false, stream))}
+                            </>
+                          ) : (
+                            activeTimeline.map((week) => renderStreamCell(week, false, stream))
+                          )}
                         </div>
                       ));
                     })()}
@@ -2095,9 +2233,12 @@ export default function Home() {
                       const stateLeave = getStateLeave((state || "DEFAULT").toUpperCase());
                       const protectionTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const birthColIdx = Math.max(0, protectionTimeline.findIndex((w) => w.birthRelativeWeek === 1));
-                      const cfraWeeks = protectionTimeline.filter((w) => w.protectedByCfra);
-                      const cfraStartWeek = cfraWeeks.length > 0 ? Math.min(...cfraWeeks.map((w) => w.weekNumber)) : Infinity;
-                      const cfraEndWeek = cfraWeeks.length > 0 ? Math.max(...cfraWeeks.map((w) => w.weekNumber)) : 0;
+                      const preWeeks = protectionTimeline.slice(0, birthColIdx);
+                      const postWeeks = protectionTimeline.slice(birthColIdx);
+                      const showBirthDivider = preWeeks.length > 0;
+                      const gridStyle = showBirthDivider
+                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
+                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${protectionTimeline.length}, minmax(2.5rem, 1fr))` };
                       const primaryLaw = stateLeave.stateProtectionLaws?.[0];
                       const lawHeader = (() => {
                         if (!primaryLaw) return "State job protection";
@@ -2105,38 +2246,48 @@ export default function Home() {
                         const acronym = m?.[1] || primaryLaw.name;
                         return acronym;
                       })();
+                      const renderCfraCell = (week: WeekInfo, isPreBirth: boolean) => {
+                        const isProtected = week.protectedByCfra;
+                        const hasPay = isProtected && week.payPercent > 0;
+                        let color = "bg-slate-100 border border-slate-200 text-slate-600";
+                        if (isProtected) {
+                          if (hasPay) {
+                            color = "bg-blue-400/70 border border-blue-500 text-blue-950";
+                          } else {
+                            color = "bg-purple-400/70 border border-purple-500 text-purple-950";
+                          }
+                        }
+                        return (
+                          <button
+                            type="button"
+                            key={`state-protection-${week.weekNumber}`}
+                            onClick={() => setSelectedWeek(week.weekNumber)}
+                            className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${
+                              isPreBirth && !isProtected ? "bg-indigo-50" : ""
+                            } ${isPreBirth && isProtected ? "ring-1 ring-inset ring-indigo-200/50" : ""} ${
+                              week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 ? "bg-indigo-50" : ""
+                            } ${week.isPast ? "opacity-60" : ""}`}
+                          >
+                            {week.birthRelativeWeek ?? week.weekNumber}
+                          </button>
+                        );
+                      };
                       return (
-                        <div className="mt-1 grid auto-cols-[minmax(2.5rem,1fr)] grid-flow-col gap-1 text-[10px]">
-                          <div className="pr-2 text-right font-medium text-slate-600">
+                        <div className="mt-1 grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
+                          <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden">
                             {lawHeader}
                           </div>
-                          {protectionTimeline.map((week, index) => {
-                            const isProtected = week.protectedByCfra;
-                            const isAfterCfraEnd = cfraEndWeek > 0 && week.weekNumber > cfraEndWeek;
-                            const color = isProtected
-                              ? "bg-emerald-400/70 border border-emerald-500 text-emerald-950"
-                              : isAfterCfraEnd
-                                ? "bg-rose-300/80 border border-rose-500 text-rose-950"
-                                : "bg-slate-100 border border-slate-200 text-slate-600";
-                            const preBirthTint = index < birthColIdx ? "bg-indigo-50" : "";
-                            const birthDividerBorder = index === birthColIdx ? "border-l-4 border-slate-700" : "";
-                            return (
-                              <button
-                                type="button"
-                                key={`state-protection-${week.weekNumber}`}
-                                onClick={() => setSelectedWeek(week.weekNumber)}
-                                className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${
-                                  index < birthColIdx && !isProtected ? preBirthTint : ""
-                                } ${index < birthColIdx && isProtected ? "ring-1 ring-inset ring-indigo-200/50" : ""} ${
-                                  week.birthRelativeWeek === 1 && index !== birthColIdx ? "border-l-2 border-slate-400" : ""
-                                } ${birthDividerBorder} ${
-                                  week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 ? "bg-indigo-50" : ""
-                                } ${week.isPast ? "opacity-60" : ""}`}
-                              >
-                                {week.birthRelativeWeek ?? week.weekNumber}
-                              </button>
-                            );
-                          })}
+                          {showBirthDivider ? (
+                            <>
+                              {preWeeks.map((week) => renderCfraCell(week, true))}
+                              <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-7 self-stretch" aria-hidden>
+                                <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                              </div>
+                              {postWeeks.map((week) => renderCfraCell(week, false))}
+                            </>
+                          ) : (
+                            protectionTimeline.map((week) => renderCfraCell(week, false))
+                          )}
                         </div>
                       );
                     })()}
