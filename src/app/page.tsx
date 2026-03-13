@@ -1197,6 +1197,13 @@ export function PlanPage() {
   const effectiveCoordination: Coordination =
     employerRequiresConcurrent ? "concurrent" : strategy === "money" ? "sequential" : "concurrent";
 
+  const coordinationForTimeline: Coordination =
+    employerRequiresConcurrent
+      ? "concurrent"
+      : coordination === "concurrent" || coordination === "sequential"
+        ? coordination
+        : "concurrent";
+
   const displayTimeline = useMemo(() => {
     if (!timeline || timeline.length === 0) return timeline;
     const result = buildTimeline({
@@ -1208,14 +1215,14 @@ export function PlanPage() {
       employerLeaveWeeks,
       employerLeavePayPercent,
       stdCoverage,
-      coordination: effectiveCoordination,
+      coordination: coordinationForTimeline,
       caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
       caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
     });
     return result;
   }, [
     timeline,
-    strategy,
+    coordination,
     employerRequiresConcurrent,
     state,
     city,
@@ -1239,6 +1246,13 @@ export function PlanPage() {
     const employerPct = parsePercent(employerLeavePayPercent);
     const employerWks = parseWeeks(employerLeaveWeeks);
     const hasStd = stdCoverage === "yes";
+    const coordinationForEstimator: "concurrent" | "sequential" =
+      employerRequiresConcurrent
+        ? "concurrent"
+        : coordination === "concurrent" || coordination === "sequential"
+          ? coordination
+          : "concurrent";
+    const isConcurrentLike = coordinationForEstimator === "concurrent";
 
     const caWeeklyRate = isCA ? getCAWeeklyBenefit2026(weeklySalary) : 0;
     let sdiPaidWeeks = 0;
@@ -1249,6 +1263,7 @@ export function PlanPage() {
     let pflTotal = 0;
     let employerTotal = 0;
     let stdTotal = 0;
+    let totalLeaveIncomeCapped = 0;
     const weekRows: { weekNumber: number; dateLabel: string; programs: string[]; grossPay: number; pctOfNormal: number }[] = [];
 
     for (const w of activeTimelineForEstimator) {
@@ -1277,13 +1292,14 @@ export function PlanPage() {
         stdPaidWeeks += 1;
         stdTotal += weekStd;
       }
-      const grossPay = weekSdi + weekPfl + weekEmployer + weekStd;
+      const grossPay = Math.min(weekSdi + weekPfl + weekEmployer + weekStd, weeklySalary);
       const pctOfNormal = weeklySalary > 0 ? (grossPay / weeklySalary) * 100 : 0;
       const programs: string[] = [];
       if (w.streams.includes("State SDI") && weekSdi > 0) programs.push(isCA ? "CA SDI" : "State SDI");
       if (w.streams.includes("State PFL")) programs.push(isCA ? "CA PFL" : "State PFL");
       if (w.streams.includes("Employer leave")) programs.push("Employer");
       if (w.streams.includes("Short‑term disability")) programs.push("STD");
+      totalLeaveIncomeCapped += grossPay;
       weekRows.push({
         weekNumber: w.weekNumber,
         dateLabel: w.startDateLabel ?? `Week ${w.weekNumber}`,
@@ -1293,14 +1309,18 @@ export function PlanPage() {
       });
     }
 
-    const totalLeaveIncome = sdiTotal + pflTotal + employerTotal + stdTotal;
-    const totalWeeks = activeTimelineForEstimator.length;
-    const normalIncomeSamePeriod = weeklySalary * totalWeeks;
-    const shortfall = normalIncomeSamePeriod - totalLeaveIncome;
-
     const sdiWeeksForDisplay = activeTimelineForEstimator.filter((w) => w.streams.includes("State SDI")).length;
     const sdiPaidWeeksForDisplay = isCA && sdiWeeksForDisplay > 0 ? sdiWeeksForDisplay - 1 : sdiWeeksForDisplay;
     const sdiWeeklyForDisplay = isCA ? caWeeklyRate : (weeklySalary * 0.7);
+
+    const concurrentBaseWeeks = sdiWeeksForDisplay + pflPaidWeeks;
+    const sequentialBaseWeeks = concurrentBaseWeeks + employerWks;
+    const leaveDurationWeeks = isConcurrentLike ? concurrentBaseWeeks : sequentialBaseWeeks;
+
+    const totalLeaveIncome = totalLeaveIncomeCapped;
+    const totalWeeks = leaveDurationWeeks;
+    const normalIncomeSamePeriod = weeklySalary * totalWeeks;
+    const shortfall = normalIncomeSamePeriod - totalLeaveIncome;
 
     return {
       sdiWeeks: sdiWeeksForDisplay,
@@ -1329,6 +1349,8 @@ export function PlanPage() {
     employerLeavePayPercent,
     employerLeaveWeeks,
     stdCoverage,
+    coordination,
+    employerRequiresConcurrent,
   ]);
 
   return (
@@ -2518,11 +2540,10 @@ export function PlanPage() {
                         <button
                           type="button"
                           onClick={() => setIncomeWeekByWeekOpen(!incomeWeekByWeekOpen)}
-                          className="flex w-full items-center justify-between text-left text-sm font-medium text-slate-700 hover:text-slate-900"
+                          className="rounded-full bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-sky-600"
                           aria-expanded={incomeWeekByWeekOpen}
                         >
-                          <span>Week by week breakdown</span>
-                          <span className="text-slate-500 transition-transform" style={{ transform: incomeWeekByWeekOpen ? "rotate(180deg)" : "none" }}>▾</span>
+                          {incomeWeekByWeekOpen ? "Hide week by week breakdown" : "View the week by week breakdown"}
                         </button>
                         {incomeWeekByWeekOpen && (
                           <div className="mt-2 overflow-x-auto">
