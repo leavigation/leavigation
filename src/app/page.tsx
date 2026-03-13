@@ -17,6 +17,9 @@ const steps = [
   "Results",
 ];
 
+// Set to true to show income/salary input and tax details (step 3) and any results-page estimated total / "Based on $X per week" UI
+const SHOW_INCOME_UI = false;
+
 // States with paid leave programs — show Recent Mover flow when due date within 6 months
 const PAID_LEAVE_STATES = ["CA", "NY", "NJ", "WA", "MA", "CT", "CO", "OR", "RI"];
 const PAYROLL_TAX_CODES: Record<string, string> = {
@@ -958,6 +961,7 @@ export default function Home() {
   const [moverPayrollUpdated, setMoverPayrollUpdated] = useState<MoverPayrollUpdated>("");
   const [moverNotifiedEmployer, setMoverNotifiedEmployer] = useState<MoverNotifiedEmployer>("");
   const [moverBannerResolved, setMoverBannerResolved] = useState(false);
+  const [taxDetailsOpen, setTaxDetailsOpen] = useState(false);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
@@ -1694,6 +1698,7 @@ export default function Home() {
                 </label>
               </div>
 
+              {SHOW_INCOME_UI && (
               <div className="mt-6 border-t border-slate-200 pt-6">
                 <div className="text-sm font-medium text-slate-700">
                   What&apos;s your income?
@@ -1735,7 +1740,64 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
+
+                {/* Tax & benefit cap details — collapsible */}
+                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80">
+                  <button
+                    type="button"
+                    onClick={() => setTaxDetailsOpen(!taxDetailsOpen)}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-100/80 rounded-xl transition"
+                    aria-expanded={taxDetailsOpen}
+                  >
+                    <span>Tax &amp; benefit cap details</span>
+                    <span className="text-slate-500 transition-transform" style={{ transform: taxDetailsOpen ? "rotate(180deg)" : "none" }}>
+                      ▾
+                    </span>
+                  </button>
+                  {taxDetailsOpen && (
+                    <div className="border-t border-slate-200 bg-sky-50/50 px-4 py-4 text-xs text-slate-700 space-y-4 rounded-b-xl">
+                      <div className="font-semibold text-slate-800 text-sm">How your leave income is taxed</div>
+
+                      <div>
+                        <div className="font-medium text-slate-700 mb-1">State SDI &amp; PFL (CA EDD benefits)</div>
+                        <ul className="list-disc list-inside space-y-0.5 text-slate-600">
+                          <li>Gross benefit: 90% of your weekly wages if you earn ≤70% of CA&apos;s average weekly wage ($1,789/week), or 70% if you earn more</li>
+                          <li>2026 maximum: $1,765/week (set by CA EDD annually)</li>
+                          <li>Federal income tax: Taxable — you&apos;ll receive a 1099-G at tax time. Consider setting aside 10–15% or file Form DE 4P with EDD to have federal taxes withheld automatically</li>
+                          <li>California state income tax: Not taxable</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <div className="font-medium text-slate-700 mb-1">Employer leave</div>
+                        <ul className="list-disc list-inside space-y-0.5 text-slate-600">
+                          <li>Paid as regular wages — taxable for both federal and California state income tax</li>
+                          <li>Subject to normal payroll deductions (Social Security, Medicare, etc.)</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <div className="font-medium text-slate-700 mb-1">Short-term disability (STD)</div>
+                        <ul className="list-disc list-inside space-y-0.5 text-slate-600">
+                          <li>If your employer paid the STD premiums: benefits are taxable federally</li>
+                          <li>If YOU paid the STD premiums with after-tax dollars: benefits are generally not taxable</li>
+                          <li>Check with your HR team to confirm how your plan is structured</li>
+                        </ul>
+                      </div>
+
+                      <p className="text-[11px] text-slate-500 leading-snug">
+                        All pay estimates shown in this tool are pre-tax gross amounts. Your actual take-home will be lower after federal withholding. California does not tax SDI/PFL benefits.
+                      </p>
+
+                      <p className="text-[11px] text-slate-500 flex items-start gap-1.5">
+                        <span aria-hidden>⚠️</span>
+                        <span>This is general information only. Consult a tax professional for advice specific to your situation.</span>
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
+              )}
             </div>
           )}
 
@@ -1863,6 +1925,7 @@ export default function Home() {
 
           {step === 6 && (displayTimeline ?? timeline) && (
             <div className="flex flex-col gap-6">
+              {/* When re-adding "Estimated total received", dollar amount, or "Based on $X per week" on results, wrap in SHOW_INCOME_UI */}
               <div className="print-only border-b border-slate-200 pb-2 mb-4">
                 <div className="font-bold text-lg">My Leavigation Leave Plan</div>
                 <div className="text-sm text-slate-600">{new Date().toLocaleDateString(undefined, { dateStyle: "long" })}</div>
@@ -1962,8 +2025,8 @@ export default function Home() {
                         : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
                       return (
                         <>
-                    <div className="grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
-                      <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden">
+                    <div className="gantt-header-row grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
+                      <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden min-h-12">
                         Type
                       </div>
                       {showBirthDivider ? (
@@ -1971,25 +2034,19 @@ export default function Home() {
                           {preWeeks.map((w) => (
                             <div
                               key={`head-pre-${w.weekNumber}`}
-                              className="flex flex-col items-center justify-center min-h-[3rem] bg-indigo-50"
+                              className="flex min-h-12 flex-col items-center justify-center bg-indigo-50 py-1"
                             >
-                              {w.birthRelativeWeek !== undefined ? (
-                                <>
-                                  <div className="text-[11px] font-semibold text-slate-700">
-                                    W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
-                                  </div>
-                                  {w.startDateLabel && (
-                                    <div className="mt-0.5 text-[9px] text-slate-400">
-                                      {w.startDateLabel}
-                                    </div>
-                                  )}
-                                </>
-                              ) : (
-                                <>W{w.weekNumber}</>
+                              <div className="text-[11px] font-semibold text-slate-700 leading-tight">
+                                {w.birthRelativeWeek !== undefined ? `W${w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}` : `W${w.weekNumber}`}
+                              </div>
+                              {w.startDateLabel && (
+                                <div className="mt-0.5 text-[9px] text-slate-500 leading-tight">
+                                  {w.startDateLabel}
+                                </div>
                               )}
                             </div>
                           ))}
-                          <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 min-h-[3rem] self-stretch" aria-hidden>
+                          <div className="flex min-h-12 flex-col items-center justify-start shrink-0 w-4 min-w-4 max-w-4 self-stretch py-1" aria-hidden>
                             <div className="text-[10px] font-bold text-slate-700 whitespace-nowrap">
                               👶 BIRTH
                             </div>
@@ -1998,21 +2055,15 @@ export default function Home() {
                           {postWeeks.map((w) => (
                             <div
                               key={`head-post-${w.weekNumber}`}
-                              className="flex flex-col items-center justify-center min-h-[3rem]"
+                              className="flex min-h-12 flex-col items-center justify-center py-1"
                             >
-                              {w.birthRelativeWeek !== undefined ? (
-                                <>
-                                  <div className="text-[11px] font-semibold text-slate-700">
-                                    W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
-                                  </div>
-                                  {w.startDateLabel && (
-                                    <div className="mt-0.5 text-[9px] text-slate-400">
-                                      {w.startDateLabel}
-                                    </div>
-                                  )}
-                                </>
-                              ) : (
-                                <>W{w.weekNumber}</>
+                              <div className="text-[11px] font-semibold text-slate-700 leading-tight">
+                                {w.birthRelativeWeek !== undefined ? `W${w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}` : `W${w.weekNumber}`}
+                              </div>
+                              {w.startDateLabel && (
+                                <div className="mt-0.5 text-[9px] text-slate-500 leading-tight">
+                                  {w.startDateLabel}
+                                </div>
                               )}
                             </div>
                           ))}
@@ -2021,21 +2072,15 @@ export default function Home() {
                         activeTimeline.map((w) => (
                           <div
                             key={`head-${w.weekNumber}`}
-                            className="flex flex-col items-center justify-center min-h-[3rem]"
+                            className="flex min-h-12 flex-col items-center justify-center py-1"
                           >
-                            {w.birthRelativeWeek !== undefined ? (
-                              <>
-                                <div className="text-[11px] font-semibold text-slate-700">
-                                  W{w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}
-                                </div>
-                                {w.startDateLabel && (
-                                  <div className="mt-0.5 text-[9px] text-slate-400">
-                                    {w.startDateLabel}
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <>W{w.weekNumber}</>
+                            <div className="text-[11px] font-semibold text-slate-700 leading-tight">
+                              {w.birthRelativeWeek !== undefined ? `W${w.birthRelativeWeek > 0 ? w.birthRelativeWeek : w.birthRelativeWeek}` : `W${w.weekNumber}`}
+                            </div>
+                            {w.startDateLabel && (
+                              <div className="mt-0.5 text-[9px] text-slate-500 leading-tight">
+                                {w.startDateLabel}
+                              </div>
                             )}
                           </div>
                         ))

@@ -88,13 +88,24 @@ body {
     line-height: inherit !important;
   }
 
-  /* Week cells only: hide numbers/percentages so only background color prints */
-  .gantt-print-area .grid > *:not(:first-child),
-  .gantt-print-area .grid > *:not(:first-child) * {
+  /* Header row: keep week labels and dates visible in print */
+  .gantt-print-area .gantt-header-row > * {
+    color: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    height: auto !important;
+    min-height: 2.5rem !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .gantt-print-area .grid > *:not(:first-child) {
+
+  /* Week cells only (data rows, not header): hide numbers/percentages so only background color prints */
+  .gantt-print-area .grid:not(.gantt-header-row) > *:not(:first-child),
+  .gantt-print-area .grid:not(.gantt-header-row) > *:not(:first-child) * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .gantt-print-area .grid:not(.gantt-header-row) > *:not(:first-child) {
     height: 20px !important;
     min-height: 20px !important;
     color: transparent !important;
