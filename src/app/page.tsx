@@ -93,6 +93,18 @@ function getWeeklyFromSalary(amountStr: string, frequency: "weekly" | "biweekly"
   return (amt * 12) / 52; // monthly
 }
 
+/** CA EDD 2026: state average weekly wage and max weekly benefit */
+const CA_SAWW_2026 = 1789;
+const CA_MAX_WEEKLY_BENEFIT_2026 = 1765;
+
+/** CA SDI/PFL 2026: weekly benefit before cap. If salary ≤ 70% of SAWW → 90%; else 70%. Capped at CA_MAX_WEEKLY_BENEFIT_2026. */
+function getCAWeeklyBenefit2026(weeklySalary: number): number {
+  if (!Number.isFinite(weeklySalary) || weeklySalary <= 0) return 0;
+  const threshold = 0.7 * CA_SAWW_2026;
+  const rate = weeklySalary <= threshold ? 0.9 : 0.7;
+  return Math.min(weeklySalary * rate, CA_MAX_WEEKLY_BENEFIT_2026);
+}
+
 function getEstimatedTotalWithCaps(
   timeline: WeekInfo[],
   stateCode: string,
@@ -962,6 +974,7 @@ export function PlanPage() {
   const [moverNotifiedEmployer, setMoverNotifiedEmployer] = useState<MoverNotifiedEmployer>("");
   const [moverBannerResolved, setMoverBannerResolved] = useState(false);
   const [taxDetailsOpen, setTaxDetailsOpen] = useState(false);
+  const [incomeWeekByWeekOpen, setIncomeWeekByWeekOpen] = useState(false);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
@@ -1214,6 +1227,108 @@ export function PlanPage() {
     stdCoverage,
     caPreBirthLeave,
     caPreBirthWeeks,
+  ]);
+
+  const activeTimelineForEstimator = (displayTimeline ?? timeline) as WeekInfo[] | null;
+
+  const incomeEstimator = useMemo(() => {
+    if (!activeTimelineForEstimator || activeTimelineForEstimator.length === 0) return null;
+    const weeklySalary = weeklySalaryNum ?? 0;
+    const stateCode = (state || "CA").toUpperCase();
+    const isCA = stateCode === "CA";
+    const employerPct = parsePercent(employerLeavePayPercent);
+    const employerWks = parseWeeks(employerLeaveWeeks);
+    const hasStd = stdCoverage === "yes";
+
+    const caWeeklyRate = isCA ? getCAWeeklyBenefit2026(weeklySalary) : 0;
+    let sdiPaidWeeks = 0;
+    let pflPaidWeeks = 0;
+    let employerPaidWeeks = 0;
+    let stdPaidWeeks = 0;
+    let sdiTotal = 0;
+    let pflTotal = 0;
+    let employerTotal = 0;
+    let stdTotal = 0;
+    const weekRows: { weekNumber: number; dateLabel: string; programs: string[]; grossPay: number; pctOfNormal: number }[] = [];
+
+    for (const w of activeTimelineForEstimator) {
+      let weekSdi = 0;
+      let weekPfl = 0;
+      let weekEmployer = 0;
+      let weekStd = 0;
+      if (w.streams.includes("State SDI")) {
+        const rate = isCA ? (w.weekNumber === 1 ? 0 : getCAWeeklyBenefit2026(weeklySalary)) : (weeklySalary * 0.7);
+        weekSdi = isCA ? (w.weekNumber === 1 ? 0 : caWeeklyRate) : Math.min(rate, 1620); // non-CA fallback cap
+        sdiPaidWeeks += w.weekNumber === 1 ? 0 : 1;
+        sdiTotal += weekSdi;
+      }
+      if (w.streams.includes("State PFL")) {
+        weekPfl = isCA ? caWeeklyRate : Math.min(weeklySalary * 0.7, 1620);
+        pflPaidWeeks += 1;
+        pflTotal += weekPfl;
+      }
+      if (w.streams.includes("Employer leave")) {
+        weekEmployer = weeklySalary * (employerPct / 100);
+        employerPaidWeeks += 1;
+        employerTotal += weekEmployer;
+      }
+      if (w.streams.includes("Short‑term disability")) {
+        weekStd = weeklySalary * 0.6;
+        stdPaidWeeks += 1;
+        stdTotal += weekStd;
+      }
+      const grossPay = weekSdi + weekPfl + weekEmployer + weekStd;
+      const pctOfNormal = weeklySalary > 0 ? (grossPay / weeklySalary) * 100 : 0;
+      const programs: string[] = [];
+      if (w.streams.includes("State SDI") && weekSdi > 0) programs.push(isCA ? "CA SDI" : "State SDI");
+      if (w.streams.includes("State PFL")) programs.push(isCA ? "CA PFL" : "State PFL");
+      if (w.streams.includes("Employer leave")) programs.push("Employer");
+      if (w.streams.includes("Short‑term disability")) programs.push("STD");
+      weekRows.push({
+        weekNumber: w.weekNumber,
+        dateLabel: w.startDateLabel ?? `Week ${w.weekNumber}`,
+        programs,
+        grossPay,
+        pctOfNormal,
+      });
+    }
+
+    const totalLeaveIncome = sdiTotal + pflTotal + employerTotal + stdTotal;
+    const totalWeeks = activeTimelineForEstimator.length;
+    const normalIncomeSamePeriod = weeklySalary * totalWeeks;
+    const shortfall = normalIncomeSamePeriod - totalLeaveIncome;
+
+    const sdiWeeksForDisplay = activeTimelineForEstimator.filter((w) => w.streams.includes("State SDI")).length;
+    const sdiPaidWeeksForDisplay = isCA && sdiWeeksForDisplay > 0 ? sdiWeeksForDisplay - 1 : sdiWeeksForDisplay;
+    const sdiWeeklyForDisplay = isCA ? caWeeklyRate : (weeklySalary * 0.7);
+
+    return {
+      sdiWeeks: sdiWeeksForDisplay,
+      sdiPaidWeeks: sdiPaidWeeksForDisplay,
+      sdiWeekly: sdiWeeklyForDisplay,
+      sdiTotal,
+      pflWeeks: pflPaidWeeks,
+      pflWeekly: isCA ? caWeeklyRate : Math.min(weeklySalary * 0.7, 1620),
+      pflTotal,
+      employerWeeks: employerPaidWeeks,
+      employerWeekly: weeklySalary * (employerPct / 100),
+      employerTotal,
+      stdWeeks: stdPaidWeeks,
+      stdWeekly: weeklySalary * 0.6,
+      stdTotal,
+      totalLeaveIncome,
+      normalIncomeSamePeriod,
+      shortfall,
+      weekRows,
+      totalWeeks,
+    };
+  }, [
+    activeTimelineForEstimator,
+    weeklySalaryNum,
+    state,
+    employerLeavePayPercent,
+    employerLeaveWeeks,
+    stdCoverage,
   ]);
 
   return (
@@ -1698,13 +1813,12 @@ export function PlanPage() {
                 </label>
               </div>
 
-              {SHOW_INCOME_UI && (
               <div className="mt-6 border-t border-slate-200 pt-6">
                 <div className="text-sm font-medium text-slate-700">
-                  What&apos;s your income?
+                  What&apos;s your income? <span className="font-normal text-slate-500">(optional)</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">
-                  We use this to estimate your total leave pay and state benefit caps. You can enter any pay frequency.
+                  We use this to estimate your leave pay breakdown. Leave blank if you prefer not to share.
                 </p>
                 <div className="mt-3 flex flex-wrap items-end gap-4">
                   <div className="flex items-center gap-2">
@@ -1740,8 +1854,7 @@ export function PlanPage() {
                     ))}
                   </div>
                 </div>
-
-                {/* Tax & benefit cap details — collapsible */}
+                {SHOW_INCOME_UI && (
                 <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80">
                   <button
                     type="button"
@@ -1796,8 +1909,8 @@ export function PlanPage() {
                     </div>
                   )}
                 </div>
+                )}
               </div>
-              )}
             </div>
           )}
 
@@ -2332,6 +2445,142 @@ export function PlanPage() {
               </div>
               </div>
               </div>
+
+              {/* Estimated Leave Income card — show prompt if no salary, else breakdown */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <h3 className="text-lg font-semibold text-slate-900">Estimated Leave Income</h3>
+                  {weeklySalaryNum == null || weeklySalaryNum <= 0 ? (
+                    <p className="mt-2 text-sm text-slate-600">
+                      Add your income in Step 4 to see your estimated leave pay breakdown.
+                    </p>
+                  ) : incomeEstimator ? (
+                    <div className="mt-4 space-y-4">
+                      <table className="w-full text-sm">
+                        <tbody className="divide-y divide-slate-100">
+                          {incomeEstimator.sdiTotal > 0 && (
+                            <tr>
+                              <td className="py-2 pr-2 text-slate-700">{(state || "CA").toUpperCase() === "CA" ? "CA SDI" : "State SDI"} (pregnancy disability)</td>
+                              <td className="py-2 text-right font-medium text-slate-900">
+                                {incomeEstimator.sdiPaidWeeks} weeks × ${Math.round(incomeEstimator.sdiWeekly)}/week = ${incomeEstimator.sdiTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                              </td>
+                            </tr>
+                          )}
+                          {incomeEstimator.pflTotal > 0 && (
+                            <tr>
+                              <td className="py-2 pr-2 text-slate-700">{(state || "CA").toUpperCase() === "CA" ? "CA PFL" : "State PFL"} (bonding)</td>
+                              <td className="py-2 text-right font-medium text-slate-900">
+                                {incomeEstimator.pflWeeks} weeks × ${Math.round(incomeEstimator.pflWeekly)}/week = ${incomeEstimator.pflTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                              </td>
+                            </tr>
+                          )}
+                          {incomeEstimator.employerTotal > 0 && (
+                            <tr>
+                              <td className="py-2 pr-2 text-slate-700">Employer leave</td>
+                              <td className="py-2 text-right font-medium text-slate-900">
+                                {incomeEstimator.employerWeeks} weeks × ${Math.round(incomeEstimator.employerWeekly)}/week = ${incomeEstimator.employerTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                              </td>
+                            </tr>
+                          )}
+                          {incomeEstimator.stdTotal > 0 && (
+                            <tr>
+                              <td className="py-2 pr-2 text-slate-700">Short‑term disability</td>
+                              <td className="py-2 text-right font-medium text-slate-900">
+                                {incomeEstimator.stdWeeks} weeks × ${Math.round(incomeEstimator.stdWeekly)}/week = ${incomeEstimator.stdTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                      {incomeEstimator.employerTotal > 0 && (
+                        <p className="text-[11px] text-slate-500">Employer leave: paid as regular wages — federal and CA state taxes apply.</p>
+                      )}
+                      {incomeEstimator.stdTotal > 0 && (
+                        <p className="text-[11px] text-slate-500">STD: tax treatment depends on who paid your premiums — check with HR.</p>
+                      )}
+                      <div className="border-t border-slate-200 pt-3 text-sm">
+                        <div className="flex justify-between py-1">
+                          <span className="text-slate-700">Total estimated gross leave income</span>
+                          <span className="font-semibold text-emerald-700">${incomeEstimator.totalLeaveIncome.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
+                        </div>
+                        <div className="flex justify-between py-1">
+                          <span className="text-slate-700">Your normal gross income for same period</span>
+                          <span className="font-medium text-slate-900">${incomeEstimator.normalIncomeSamePeriod.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
+                        </div>
+                        <div className="flex justify-between py-1">
+                          <span className="text-slate-700">Estimated shortfall</span>
+                          <span className={`font-semibold ${incomeEstimator.shortfall > 0 ? "text-rose-600" : "text-slate-700"}`}>
+                            ${Math.abs(incomeEstimator.shortfall).toLocaleString("en-US", { maximumFractionDigits: 0 })}{incomeEstimator.shortfall > 0 ? " less" : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-200 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => setIncomeWeekByWeekOpen(!incomeWeekByWeekOpen)}
+                          className="flex w-full items-center justify-between text-left text-sm font-medium text-slate-700 hover:text-slate-900"
+                          aria-expanded={incomeWeekByWeekOpen}
+                        >
+                          <span>Week by week breakdown</span>
+                          <span className="text-slate-500 transition-transform" style={{ transform: incomeWeekByWeekOpen ? "rotate(180deg)" : "none" }}>▾</span>
+                        </button>
+                        {incomeWeekByWeekOpen && (
+                          <div className="mt-2 overflow-x-auto">
+                            <table className="w-full min-w-[400px] text-xs">
+                              <thead>
+                                <tr className="border-b border-slate-200 text-slate-600">
+                                  <th className="py-2 text-left font-medium">Week</th>
+                                  <th className="py-2 text-left font-medium">Date</th>
+                                  <th className="py-2 text-left font-medium">Active programs</th>
+                                  <th className="py-2 text-right font-medium">Est. gross pay</th>
+                                  <th className="py-2 text-right font-medium">% of normal</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {incomeEstimator.weekRows.map((row) => (
+                                  <tr
+                                    key={row.weekNumber}
+                                    className={
+                                      row.grossPay === 0
+                                        ? "bg-rose-50/50"
+                                        : row.pctOfNormal < 50
+                                          ? "bg-amber-50/50"
+                                          : ""
+                                    }
+                                  >
+                                    <td className="py-1.5 text-slate-700">{row.weekNumber}</td>
+                                    <td className="py-1.5 text-slate-700">{row.dateLabel}</td>
+                                    <td className="py-1.5 text-slate-600">{row.programs.join(", ") || "—"}</td>
+                                    <td className="py-1.5 text-right font-medium text-slate-900">${row.grossPay.toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
+                                    <td className={`py-1.5 text-right font-medium ${row.grossPay === 0 ? "text-rose-600" : row.pctOfNormal < 50 ? "text-amber-700" : "text-slate-700"}`}>
+                                      {row.pctOfNormal.toFixed(0)}%
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="text-sm text-slate-700">
+                        During your leave you may receive approximately{" "}
+                        <span className="font-semibold text-emerald-700">${incomeEstimator.totalLeaveIncome.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
+                        {" "}out of your normal{" "}
+                        <span className="font-semibold">${incomeEstimator.normalIncomeSamePeriod.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
+                        {incomeEstimator.shortfall > 0 && (
+                          <> — a shortfall of <span className="font-semibold text-rose-600">${incomeEstimator.shortfall.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span></>
+                        )}.
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-snug">
+                        SDI and PFL amounts are gross pre-tax estimates. Your employer leave is taxed as regular income. See tax details for more.
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-snug">
+                        Estimates are based on 2026 CA EDD rates. Actual benefits depend on your base period wages. This is not financial advice.
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
 
             </div>
           )}
