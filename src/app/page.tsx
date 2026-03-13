@@ -920,7 +920,7 @@ function buildTimeline(options: {
   return weeks;
 }
 
-export default function Home() {
+export function PlanPage() {
   const [step, setStep] = useState(0);
 
   const [state, setState] = useState("CA");
@@ -2376,6 +2376,192 @@ export default function Home() {
         </footer>
       </div>
 
+    </main>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-10">
+        <header className="mb-10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold">
+              L
+            </div>
+            <span className="text-lg font-semibold tracking-tight text-slate-900">
+              Leavigation
+            </span>
+          </div>
+          <a
+            href="/plan"
+            className="text-sm font-semibold text-sky-700 hover:text-sky-900"
+          >
+            Build my plan
+          </a>
+        </header>
+
+        <main className="flex-1">
+          {/* Hero */}
+          <section className="mb-12">
+            <div className="rounded-3xl bg-sky-50/60 px-6 py-8 shadow-sm ring-1 ring-sky-100">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
+                Parental leave is two things.{" "}
+                <span className="text-sky-700">Most people only know about one.</span>
+              </h1>
+              <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-700">
+                Understanding how job protection and paid leave work — and how they
+                interact — is the key to planning a leave that actually works for you.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <a
+                  href="/plan"
+                  className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
+                >
+                  Build my leave plan →
+                </a>
+                <p className="text-xs text-slate-500">
+                  Takes about 5–10 minutes. No login required.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 1: Job protection */}
+          <section className="mb-10 space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+              <span className="text-base leading-none">🛡️</span>
+              <span>Job Protection</span>
+            </div>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Job Protection: Your right to come back
+            </h2>
+            <p className="text-sm text-slate-700">
+              Job protection means your employer has to hold your job (or an equivalent
+              role) while you&apos;re on leave. It{" "}
+              <span className="font-semibold">does not</span> mean you get paid. The main
+              federal law is FMLA — 12 weeks of job protection for eligible employees.
+              Some states layer on additional weeks of protection on top of that.
+            </p>
+            <div className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-900 ring-1 ring-amber-200">
+              <p className="font-semibold">
+                Job protection and pay are separate.
+              </p>
+              <p className="mt-1">
+                You can be fully job-protected and still receive no income — or you can
+                be getting paid with no legal right to return to your role.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 2: Paid leave */}
+          <section className="mb-10 space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+              <span className="text-base leading-none">💵</span>
+              <span>Paid Leave</span>
+            </div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Paid Leave: Income while you&apos;re away
+          </h2>
+          <p className="text-sm text-slate-700">
+            Paid leave is the money that shows up while you&apos;re out. It can come
+            from state disability insurance (SDI), state paid family leave (PFL),
+            employer parental leave, and short-term disability (STD). Each has its own
+            start date, duration, and pay rate — and they can stack.
+          </p>
+          <div className="mt-3 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-900 ring-1 ring-emerald-200">
+            <p className="font-semibold">
+              Most people receive pay from 2–3 different programs.
+            </p>
+            <p className="mt-1">
+              Each program has its own forms, deadlines, and rules. The confusing part
+              isn&apos;t any one program — it&apos;s how they overlap.
+            </p>
+          </div>
+        </section>
+
+        {/* Section 3: How they work together */}
+        <section className="mb-12 space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+            <span className="text-base leading-none">🔗</span>
+            <span>Job Protection + Pay</span>
+          </div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            How they work together
+          </h2>
+          <p className="text-sm text-slate-700">
+            In any given week of leave, you might be job-protected but unpaid, paid but
+            not job-protected, both, or neither. The goal is to maximize weeks where
+            you have{" "}
+            <span className="font-semibold">both protection and income.</span> That&apos;s
+            exactly what Leavigation helps you map out.
+          </p>
+
+          {/* 2x2 grid */}
+          <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+            <div className="rounded-xl bg-emerald-50 px-3 py-3 ring-1 ring-emerald-200">
+              <p className="font-semibold text-emerald-900">✅ Protected + Paid</p>
+              <p className="mt-1 text-emerald-900/80">
+                The ideal: your job is protected and money is coming in.
+              </p>
+            </div>
+            <div className="rounded-xl bg-amber-50 px-3 py-3 ring-1 ring-amber-200">
+              <p className="font-semibold text-amber-900">
+                ⚠️ Protected + Unpaid
+              </p>
+              <p className="mt-1 text-amber-900/80">
+                Legally safe, but financially stressful — sometimes a planned gap.
+              </p>
+            </div>
+            <div className="rounded-xl bg-orange-50 px-3 py-3 ring-1 ring-orange-200">
+              <p className="font-semibold text-orange-900">
+                ⚠️ Paid + Unprotected
+              </p>
+              <p className="mt-1 text-orange-900/80">
+                Income without legal protection — often when employer pay extends after
+                laws run out.
+              </p>
+            </div>
+            <div className="rounded-xl bg-rose-50 px-3 py-3 ring-1 ring-rose-200">
+              <p className="font-semibold text-rose-900">
+                ❌ Unprotected + Unpaid
+              </p>
+              <p className="mt-1 text-rose-900/80">
+                The real cliff — no legal protection and no income. Planning helps you
+                avoid landing here by surprise.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section className="mb-6 rounded-2xl bg-white px-5 py-6 shadow-sm ring-1 ring-slate-200">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Ready to map out your leave?
+          </h2>
+          <p className="mt-2 text-sm text-slate-700">
+            Answer a few questions and get a week-by-week breakdown of your job
+            protection and pay — specific to your state, employer, and situation.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a
+              href="/plan"
+              className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
+            >
+              Build my leave plan →
+            </a>
+            <p className="text-xs text-slate-500">
+              You can tweak your answers and re-run the plan anytime.
+            </p>
+          </div>
+          <p className="mt-4 text-[11px] leading-snug text-slate-500">
+            This tool is informational only and not legal or tax advice. Talk to your
+            HR team, a lawyer, or a qualified professional before making decisions
+            about your leave.
+          </p>
+        </section>
+        </main>
+      </div>
     </main>
   );
 }
