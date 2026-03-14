@@ -1144,7 +1144,12 @@ export function PlanPage() {
         caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
       });
       setTimeline(weeks);
-      setStep((s) => s + 1);
+      // When no employer leave, skip step 6 (Coordination) and go straight to Results (step 7)
+      if (noEmployerLeave) {
+        setStep(7);
+      } else {
+        setStep((s) => s + 1);
+      }
       return;
     }
 
