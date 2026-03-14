@@ -1,0 +1,10 @@
+09bcd4f 2026-03-12 22:27:50 -0700 Audrey Utchen fix concurrent vs sequential coordination in Gantt and income estimator
+96d2854 2026-03-12 21:54:43 -0700 Audrey Utchen add income estimator with breakdown by source, week by week table, shortfall
+94e7642 2026-03-12 21:39:29 -0700 Audrey Utchen add landing page, move intake form to /plan
+93bb05c 2026-03-12 18:38:05 -0700 Audrey Utchen reorganize Gantt into job protection and paid leave categories, fix cell colors
+7aa741c 2026-03-12 17:45:58 -0700 Audrey Utchen add week start dates to Gantt header, hide income field for MVP
+3640436 2026-03-12 16:33:25 -0700 Audrey Utchen fix PDF output, print styles, legend bubbles, row labels
+c2b9f79 2026-03-12 16:13:22 -0700 Audrey Utchen redesign Gantt colors, add summary row, fix birth divider
+c7b40dd 2026-03-11 22:52:24 -0700 Audrey Utchen fix CFRA overlap, add PDL row, teal STD row, remove debug logs
+b093616 2026-03-11 22:03:47 -0700 Audrey Utchen simplified CA-only public version
+e61063f 2026-03-11 21:38:24 -0700 Audrey Utchen initial commit

@@ -50,76 +50,26 @@ body {
   }
 
   /*
-   * Page setup: landscape, tight margins.
+   * Page setup: landscape, consistent margins across browsers when printing to PDF.
    * The localhost:3000 URL in the print footer is controlled by the browser, not the app.
    * Users should uncheck "Headers and Footers" in the browser print dialog to hide it.
    */
   @page {
     size: landscape;
-    margin: 1cm;
+    margin: 0.5in;
   }
 
-  /* Gantt container: scale to fit all weeks on one landscape page */
-  .gantt-container {
-    transform-origin: top left !important;
+  /* Results container: full page width, no horizontal scroll in print */
+  .print-results-full-width {
+    max-width: none !important;
     width: 100% !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    /* Scale down so full timeline fits on one page (adjust if needed for more/fewer weeks) */
-    transform: scale(0.55) !important;
+    overflow: hidden !important;
   }
 
-  .gantt-print-area {
-    width: 100% !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Row labels (first column): keep visible in print */
-  .gantt-print-area .grid > *:first-child {
-    height: 20px !important;
-    min-height: 20px !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    color: inherit !important;
-    font-size: inherit !important;
-    line-height: inherit !important;
-  }
-
-  /* Header row: keep week labels and dates visible in print */
-  .gantt-print-area .gantt-header-row > * {
-    color: inherit !important;
-    font-size: inherit !important;
-    line-height: inherit !important;
-    height: auto !important;
-    min-height: 2.5rem !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Week cells only (data rows, not header): hide numbers/percentages so only background color prints */
-  .gantt-print-area .grid:not(.gantt-header-row) > *:not(:first-child),
-  .gantt-print-area .grid:not(.gantt-header-row) > *:not(:first-child) * {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .gantt-print-area .grid:not(.gantt-header-row) > *:not(:first-child) {
-    height: 20px !important;
-    min-height: 20px !important;
-    color: transparent !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
-  }
-
-  .gantt-print-area .grid > div {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Legend: force background colors and borders to print; compact single row */
+  /* Tighten spacing between legend and Gantt in print */
   .legend-container {
+    margin-bottom: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 0.25rem !important;
@@ -135,9 +85,125 @@ body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  /* Fallback: ensure legend bubble borders print (border matches fill so color shows even if bg suppressed) */
   .legend-container .legend-bubble {
     border-width: 2px !important;
     border-style: solid !important;
+  }
+
+  /* Section header cells (JOB PROTECTION / PAID LEAVE): no wrap in print */
+  .gantt-category-header > div {
+    white-space: nowrap !important;
+  }
+
+  /* Gantt: full page width, no overflow; reduce bottom spacing */
+  .gantt-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    margin-bottom: 8px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .gantt-print-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .gantt-print-area > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Gantt grid: 100% width, columns forced to fit (label 60px + flexible week columns) */
+  .gantt-print-area .gantt-grid {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: 60px repeat(35, minmax(0, 1fr)) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* All Gantt grid cells: allow shrink so columns fit */
+  .gantt-print-area .gantt-grid > * {
+    min-width: 0 !important;
+  }
+
+  /* Gantt column headers: 6px font so text fits */
+  .gantt-print-area .gantt-header-row {
+    font-size: 6px !important;
+    line-height: 1.15 !important;
+  }
+  .gantt-print-area .gantt-header-row > * {
+    color: inherit !important;
+    font-size: 6px !important;
+    line-height: 1.15 !important;
+    min-height: 18px !important;
+    height: 18px !important;
+    padding: 0 2px !important;
+    min-width: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .gantt-print-area .gantt-header-row .gantt-label-col {
+    min-width: 60px !important;
+    max-width: 60px !important;
+    width: 60px !important;
+    font-size: 6px !important;
+  }
+
+  /* Gantt row label column (Type, FMLA, PDL, etc.): 60px in print */
+  .gantt-print-area .gantt-grid > *:first-child {
+    min-width: 60px !important;
+    max-width: 60px !important;
+    width: 60px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    font-size: 7px !important;
+    line-height: 1.15 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: inherit !important;
+  }
+
+  /* Gantt data cells: compact height, min-width unset so columns distribute evenly */
+  .gantt-print-area .gantt-grid:not(.gantt-header-row) > * {
+    height: 18px !important;
+    min-height: 18px !important;
+  }
+  .gantt-print-area .gantt-grid:not(.gantt-header-row) > *:not(:first-child),
+  .gantt-print-area .gantt-grid:not(.gantt-header-row) > *:not(:first-child) * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .gantt-print-area .gantt-grid:not(.gantt-header-row) > *:not(:first-child) {
+    height: 18px !important;
+    min-height: 18px !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    min-width: 0 !important;
+  }
+
+  .gantt-print-area .gantt-grid > div {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Birth divider column: narrow in print */
+  .gantt-print-area .gantt-grid .shrink-0.w-4 {
+    min-width: 0.5rem !important;
+    width: 0.5rem !important;
+    max-width: 0.5rem !important;
+  }
+
+  /* Page break before income estimator so Gantt is page 1, estimator page 2; reduce top spacing */
+  .income-estimator-print-section {
+    page-break-before: always;
+    margin-top: 8px !important;
   }
 }

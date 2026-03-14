@@ -11,6 +11,7 @@ const steps = [
   "Basics",
   "Birth & Recovery",
   "Legal & Employer",
+  "Your Income",
   "Employer Leave Details",
   "Short‑term Disability",
   "Coordination",
@@ -85,11 +86,12 @@ function parsePercent(value: string): number {
 }
 
 /** Convert salary amount + frequency to weekly equivalent. Returns null if invalid. */
-function getWeeklyFromSalary(amountStr: string, frequency: "weekly" | "biweekly" | "monthly"): number | null {
+function getWeeklyFromSalary(amountStr: string, frequency: "weekly" | "biweekly" | "monthly" | "annually"): number | null {
   const amt = parseFloat(amountStr.replace(/[^0-9.]/g, ""));
   if (!Number.isFinite(amt) || amt <= 0) return null;
   if (frequency === "weekly") return amt;
   if (frequency === "biweekly") return (amt * 24) / 52; // 2x per month = 24 pay periods/year
+  if (frequency === "annually") return amt / 52;
   return (amt * 12) / 52; // monthly
 }
 
@@ -947,7 +949,7 @@ export function PlanPage() {
   const [coordination, setCoordination] = useState<Coordination>("");
   const [timeline, setTimeline] = useState<WeekInfo[] | null>(null);
   const [salaryAmount, setSalaryAmount] = useState("");
-  const [salaryFrequency, setSalaryFrequency] = useState<"weekly" | "biweekly" | "monthly">("monthly");
+  const [salaryFrequency, setSalaryFrequency] = useState<"weekly" | "biweekly" | "monthly" | "annually">("monthly");
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [showFeedbackBox, setShowFeedbackBox] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -1004,7 +1006,7 @@ export function PlanPage() {
   const progressPercent = ((step + 1) / steps.length) * 100;
 
   function handleDownloadPdf() {
-    // Simple approach: use browser print-to-PDF
+    console.log("[Print] salaryAmount:", salaryAmount, "salaryFrequency:", salaryFrequency, "weeklySalaryNum:", weeklySalaryNum);
     if (typeof window !== "undefined") {
       window.print();
     }
@@ -1125,7 +1127,7 @@ export function PlanPage() {
 
   function handleNext() {
     const noEmployerLeave = employerLeaveOffered === "no";
-    const isPenultimateStep = noEmployerLeave ? step === 4 : step === steps.length - 2;
+    const isPenultimateStep = noEmployerLeave ? step === 5 : step === steps.length - 2;
 
     if (isPenultimateStep) {
       const weeks = buildTimeline({
@@ -1146,13 +1148,8 @@ export function PlanPage() {
       return;
     }
 
-    if (step === 2 && noEmployerLeave) {
-      setStep(4);
-      return;
-    }
-
-    if (step === 4 && noEmployerLeave) {
-      setStep(6);
+    if (step === 3 && noEmployerLeave) {
+      setStep(5);
       return;
     }
 
@@ -1164,12 +1161,12 @@ export function PlanPage() {
   function handleBack() {
     const noEmployerLeave = employerLeaveOffered === "no";
     if (noEmployerLeave) {
-      if (step === 4) {
-        setStep(2);
+      if (step === 5) {
+        setStep(3);
         return;
       }
-      if (step === 6) {
-        setStep(4);
+      if (step === 7) {
+        setStep(5);
         return;
       }
     }
@@ -1355,7 +1352,7 @@ export function PlanPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-10">
+      <div className="plan-page-container mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10 print:max-w-none print:px-2">
         <header className="no-print mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Leavigation
@@ -1795,7 +1792,53 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 3 && employerLeaveOffered !== "no" && (
+          {step === 3 && (
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">
+                What is your current salary?
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Used to estimate your leave income. Optional — skip if you prefer not to share.
+              </p>
+              <div className="mt-6 flex flex-wrap items-end gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500">$</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={50}
+                    placeholder="0"
+                    value={salaryAmount}
+                    onChange={(e) => setSalaryAmount(e.target.value)}
+                    className="w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
+                  />
+                </div>
+                <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+                  {[
+                    { value: "weekly" as const, label: "Weekly" },
+                    { value: "biweekly" as const, label: "2×/month" },
+                    { value: "monthly" as const, label: "Monthly" },
+                    { value: "annually" as const, label: "Annually" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSalaryFrequency(opt.value)}
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                        salaryFrequency === opt.value
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && employerLeaveOffered !== "no" && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 Employer parental leave details
@@ -1834,109 +1877,10 @@ export function PlanPage() {
                   </div>
                 </label>
               </div>
-
-              <div className="mt-6 border-t border-slate-200 pt-6">
-                <div className="text-sm font-medium text-slate-700">
-                  What&apos;s your income? <span className="font-normal text-slate-500">(optional)</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-500">
-                  We use this to estimate your leave pay breakdown. Leave blank if you prefer not to share.
-                </p>
-                <div className="mt-3 flex flex-wrap items-end gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-500">$</span>
-                    <input
-                      type="number"
-                      min={0}
-                      step={50}
-                      placeholder="0"
-                      value={salaryAmount}
-                      onChange={(e) => setSalaryAmount(e.target.value)}
-                      className="w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
-                    />
-                  </div>
-                  <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1">
-                    {[
-                      { value: "weekly" as const, label: "Weekly" },
-                      { value: "biweekly" as const, label: "2×/month" },
-                      { value: "monthly" as const, label: "Monthly" },
-                    ].map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setSalaryFrequency(opt.value)}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                          salaryFrequency === opt.value
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {SHOW_INCOME_UI && (
-                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80">
-                  <button
-                    type="button"
-                    onClick={() => setTaxDetailsOpen(!taxDetailsOpen)}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-100/80 rounded-xl transition"
-                    aria-expanded={taxDetailsOpen}
-                  >
-                    <span>Tax &amp; benefit cap details</span>
-                    <span className="text-slate-500 transition-transform" style={{ transform: taxDetailsOpen ? "rotate(180deg)" : "none" }}>
-                      ▾
-                    </span>
-                  </button>
-                  {taxDetailsOpen && (
-                    <div className="border-t border-slate-200 bg-sky-50/50 px-4 py-4 text-xs text-slate-700 space-y-4 rounded-b-xl">
-                      <div className="font-semibold text-slate-800 text-sm">How your leave income is taxed</div>
-
-                      <div>
-                        <div className="font-medium text-slate-700 mb-1">State SDI &amp; PFL (CA EDD benefits)</div>
-                        <ul className="list-disc list-inside space-y-0.5 text-slate-600">
-                          <li>Gross benefit: 90% of your weekly wages if you earn ≤70% of CA&apos;s average weekly wage ($1,789/week), or 70% if you earn more</li>
-                          <li>2026 maximum: $1,765/week (set by CA EDD annually)</li>
-                          <li>Federal income tax: Taxable — you&apos;ll receive a 1099-G at tax time. Consider setting aside 10–15% or file Form DE 4P with EDD to have federal taxes withheld automatically</li>
-                          <li>California state income tax: Not taxable</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <div className="font-medium text-slate-700 mb-1">Employer leave</div>
-                        <ul className="list-disc list-inside space-y-0.5 text-slate-600">
-                          <li>Paid as regular wages — taxable for both federal and California state income tax</li>
-                          <li>Subject to normal payroll deductions (Social Security, Medicare, etc.)</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <div className="font-medium text-slate-700 mb-1">Short-term disability (STD)</div>
-                        <ul className="list-disc list-inside space-y-0.5 text-slate-600">
-                          <li>If your employer paid the STD premiums: benefits are taxable federally</li>
-                          <li>If YOU paid the STD premiums with after-tax dollars: benefits are generally not taxable</li>
-                          <li>Check with your HR team to confirm how your plan is structured</li>
-                        </ul>
-                      </div>
-
-                      <p className="text-[11px] text-slate-500 leading-snug">
-                        All pay estimates shown in this tool are pre-tax gross amounts. Your actual take-home will be lower after federal withholding. California does not tax SDI/PFL benefits.
-                      </p>
-
-                      <p className="text-[11px] text-slate-500 flex items-start gap-1.5">
-                        <span aria-hidden>⚠️</span>
-                        <span>This is general information only. Consult a tax professional for advice specific to your situation.</span>
-                      </p>
-                    </div>
-                  )}
-                </div>
-                )}
-              </div>
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 Short-term disability
@@ -1982,7 +1926,7 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 5 && employerLeaveOffered !== "no" && (
+          {step === 6 && employerLeaveOffered !== "no" && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 How does your leave stack?
@@ -2058,8 +2002,8 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 6 && (displayTimeline ?? timeline) && (
-            <div className="flex flex-col gap-6">
+          {step === 7 && (displayTimeline ?? timeline) && (
+            <div className="print-results-full-width flex w-full flex-col gap-6">
               {/* When re-adding "Estimated total received", dollar amount, or "Based on $X per week" on results, wrap in SHOW_INCOME_UI */}
               <div className="print-only border-b border-slate-200 pb-2 mb-4">
                 <div className="font-bold text-lg">My Leavigation Leave Plan</div>
@@ -2138,12 +2082,14 @@ export function PlanPage() {
               </div>
 
               {/* Gantt-style timeline */}
-              <div className="space-y-3">
+              <div className="w-full space-y-3">
                 <div className="text-xs font-medium text-slate-700">Leave types over time</div>
-                <div className="gantt-container gantt-print-area overflow-x-auto">
-                  <div className="inline-block min-w-full rounded-xl border border-slate-200 bg-white p-3">
+                <div className="gantt-container gantt-print-area w-full overflow-x-auto">
+                  <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-3">
                     {(() => {
-                      const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
+                      const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
                       const birthColIdx = Math.max(
                         0,
                         activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
@@ -2156,8 +2102,8 @@ export function PlanPage() {
                         : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
                       return (
                         <>
-                    <div className="gantt-header-row grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
-                      <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden min-h-12">
+                    <div className="gantt-header-row gantt-grid grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
+                      <div className="gantt-label-col min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden min-h-12">
                         Type
                       </div>
                       {showBirthDivider ? (
@@ -2223,7 +2169,9 @@ export function PlanPage() {
 
                     {/* Summary row: overall weekly status (uses original green/yellow/orange/red palette) */}
                     {(() => {
-                      const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
+                      const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
                       const birthColIdx = Math.max(
                         0,
                         activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
@@ -2249,7 +2197,7 @@ export function PlanPage() {
                         return "bg-rose-300/80 border border-rose-500 text-rose-950";
                       };
                       return (
-                        <div className="mt-2 border-y border-slate-300 py-1 grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
+                        <div className="mt-2 border-y border-slate-300 py-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
                           <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-semibold text-[11px] text-slate-700 flex items-center overflow-hidden">
                             Summary
                           </div>
@@ -2297,7 +2245,9 @@ export function PlanPage() {
 
                     {(() => {
                       const stateLeave = getStateLeave((state || "DEFAULT").toUpperCase());
-                      const activeTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
+                      const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
+                      const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
                       const birthColIdx = Math.max(0, activeTimeline.findIndex((w) => w.birthRelativeWeek === 1));
                       const preWeeks = activeTimeline.slice(0, birthColIdx);
                       const postWeeks = activeTimeline.slice(birthColIdx);
@@ -2398,20 +2348,27 @@ export function PlanPage() {
                           </button>
                         );
                       };
-                      const CategoryHeader = ({ label }: { label: string }) => (
-                        <div className="mt-2 first:mt-0 grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
+                      const CategoryHeader = ({ label, printLabel }: { label: string; printLabel?: string }) => (
+                        <div className="mt-2 first:mt-0 gantt-grid grid grid-flow-col gap-1 text-[10px] gantt-category-header" style={gridStyle}>
                           <div className="py-1.5 px-2 bg-slate-200/60 font-bold uppercase text-slate-700 text-[10px] rounded-md" style={{ gridColumn: "1 / -1" }}>
-                            {label}
+                            {printLabel != null ? (
+                              <>
+                                <span className="no-print">{label}</span>
+                                <span className="print-only">{printLabel}</span>
+                              </>
+                            ) : (
+                              label
+                            )}
                           </div>
                         </div>
                       );
                       return streamRows.flatMap((stream, index) => {
                         const elements: React.ReactNode[] = [];
-                        if (index === 0) elements.push(<CategoryHeader key="job-protection" label="JOB PROTECTION" />);
+                        if (index === 0) elements.push(<CategoryHeader key="job-protection" label="JOB PROTECTION" printLabel="JOB PROT." />);
                         if (stream === "State SDI") elements.push(<CategoryHeader key="paid-leave" label="PAID LEAVE" />);
                         if (stream === "CFRA") {
                           elements.push(
-                            <div key="CFRA" className="mt-1 grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
+                            <div key="CFRA" className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
                               <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden">
                                 {cfraLawHeader}
                               </div>
@@ -2432,7 +2389,7 @@ export function PlanPage() {
                           elements.push(
                             <div
                               key={stream}
-                              className="mt-1 grid grid-flow-col gap-1 text-[10px]"
+                              className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]"
                               style={gridStyle}
                             >
                               <div
@@ -2468,14 +2425,16 @@ export function PlanPage() {
               </div>
               </div>
 
-              {/* Estimated Leave Income card — show prompt if no salary, else breakdown */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              {/* Estimated Leave Income card — always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
+              <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <h3 className="text-lg font-semibold text-slate-900">Estimated Leave Income</h3>
-                  {weeklySalaryNum == null || weeklySalaryNum <= 0 ? (
+                  <div className={weeklySalaryNum != null && weeklySalaryNum > 0 ? "hidden" : ""}>
                     <p className="mt-2 text-sm text-slate-600">
                       Add your income in Step 4 to see your estimated leave pay breakdown.
                     </p>
-                  ) : incomeEstimator ? (
+                  </div>
+                  <div className={weeklySalaryNum != null && weeklySalaryNum > 0 ? "" : "hidden"}>
+                    {incomeEstimator ? (
                     <div className="mt-4 space-y-4">
                       <table className="w-full text-sm">
                         <tbody className="divide-y divide-slate-100">
@@ -2600,14 +2559,17 @@ export function PlanPage() {
                         Estimates are based on 2026 CA EDD rates. Actual benefits depend on your base period wages. This is not financial advice.
                       </p>
                     </div>
-                  ) : null}
+                    ) : (
+                      <p className="mt-4 text-sm text-slate-600">Estimated leave income based on your timeline and salary.</p>
+                    )}
+                  </div>
                 </div>
 
             </div>
           )}
         </section>
 
-        {step === 6 && (
+        {step === 7 && (
           <div className="no-print mt-6 space-y-3">
             <button
               type="button"
@@ -2633,7 +2595,7 @@ export function PlanPage() {
             Back
           </button>
 
-          {step < 6 && (
+          {step < 7 && (
             <button
               type="button"
               onClick={handleNext}
@@ -2653,7 +2615,7 @@ export function PlanPage() {
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-10">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
         <header className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold">
