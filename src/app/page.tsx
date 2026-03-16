@@ -2456,6 +2456,12 @@ export function PlanPage() {
               </div>
               </div>
 
+              {/* SF PPLO explanatory note */}
+              {city === "San Francisco" && (
+                <p className="mt-2 text-xs text-slate-500 px-1">
+                  * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
+                </p>
+              )}
               {/* Estimated Leave Income card — always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
               <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <h3 className="text-lg font-semibold text-slate-900">Estimated Leave Income</h3>
