@@ -54,6 +54,7 @@ type WeekStream =
   | "FMLA"
   | "State SDI"
   | "State PFL"
+  | "SF PPLO"
   | "Employer leave"
   | "Short‑term disability";
 
@@ -849,6 +850,7 @@ function buildTimeline(options: {
       streams.includes("State PFL")
     ) {
       payPercent = 100;
+      streams.push("SF PPLO");
     }
 
     const stateProtectedWeeks =
@@ -2291,7 +2293,7 @@ export function PlanPage() {
                       const pflStartWeek = pdlEndWeek + 1;
                       const streamRows: (WeekStream | "PDL" | "CFRA")[] =
                         state === "CA"
-                          ? ["FMLA", "PDL", "CFRA", "State SDI", "State PFL", "Employer leave", "Short‑term disability"]
+                          ? ["FMLA", "PDL", "CFRA", "State SDI", "State PFL", ...(city === "San Francisco" ? ["SF PPLO" as WeekStream] : []), "Employer leave", "Short‑term disability"]
                           : ["FMLA", "CFRA", "State SDI", "State PFL", "Employer leave", "Short‑term disability"];
                       const primaryLaw = stateLeave.stateProtectionLaws?.[0];
                       const cfraLawHeader = (() => {
