@@ -938,7 +938,7 @@ export function PlanPage() {
   const [step, setStep] = useState(0);
 
   const [state, setState] = useState("CA");
-  const [city, setCity] = useState("San Francisco");
+  const [city, setCity] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [birthType, setBirthType] = useState<"vaginal" | "c-section" | "">("");
   const [fmlaEligible, setFmlaEligible] = useState<"yes" | "no" | "unsure" | "">("");
