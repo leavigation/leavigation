@@ -1015,7 +1015,7 @@ export function PlanPage() {
   function handleStartOver() {
     setStep(0);
     setState("CA");
-    setCity("San Francisco");
+    setCity("");
     setDueDate("");
     setBirthType("");
     setFmlaEligible("");
@@ -1406,6 +1406,23 @@ export function PlanPage() {
                     <option value="CA">California</option>
                   </select>
                 </label>
+
+                {state === "CA" && (
+                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 shadow-sm">
+                    <input
+                      type="checkbox"
+                      checked={city === "San Francisco"}
+                      onChange={(e) =>
+                        setCity(e.target.checked ? "San Francisco" : "")
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-400"
+                    />
+                    <span className="text-sm text-slate-700">
+                      I work in <span className="font-medium">San Francisco</span>{" "}
+                      <span className="text-slate-400">(unlocks SF Paid Parental Leave Ordinance supplement)</span>
+                    </span>
+                  </label>
+                )}
 
                 {hasPreBirthOption && (
                   <>
