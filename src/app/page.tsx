@@ -1296,13 +1296,20 @@ export function PlanPage() {
         stdPaidWeeks += 1;
         stdTotal += weekStd;
       }
-      const grossPay = Math.min(weekSdi + weekPfl + weekEmployer + weekStd, weeklySalary);
+      // SF PPLO tops up PFL to 100% of weekly salary
+      let weekSfPplo = 0;
+      if (w.streams.includes("SF PPLO")) {
+        const baseWithoutPplo = Math.min(weekSdi + weekPfl + weekEmployer + weekStd, weeklySalary);
+        weekSfPplo = Math.max(0, weeklySalary - baseWithoutPplo);
+      }
+      const grossPay = Math.min(weekSdi + weekPfl + weekEmployer + weekStd + weekSfPplo, weeklySalary);
       const pctOfNormal = weeklySalary > 0 ? (grossPay / weeklySalary) * 100 : 0;
       const programs: string[] = [];
       if (w.streams.includes("State SDI") && weekSdi > 0) programs.push(isCA ? "CA SDI" : "State SDI");
       if (w.streams.includes("State PFL")) programs.push(isCA ? "CA PFL" : "State PFL");
       if (w.streams.includes("Employer leave")) programs.push("Employer");
       if (w.streams.includes("Short‑term disability")) programs.push("STD");
+      if (w.streams.includes("SF PPLO") && weekSfPplo > 0) programs.push("SF PPLO");
       totalLeaveIncomeCapped += grossPay;
       weekRows.push({
         weekNumber: w.weekNumber,
