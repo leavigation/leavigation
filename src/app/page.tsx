@@ -979,6 +979,7 @@ export function PlanPage() {
   const [moverBannerResolved, setMoverBannerResolved] = useState(false);
   const [taxDetailsOpen, setTaxDetailsOpen] = useState(false);
   const [incomeWeekByWeekOpen, setIncomeWeekByWeekOpen] = useState(false);
+  const [stdExplainerOpen, setStdExplainerOpen] = useState(false);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
@@ -1920,21 +1921,29 @@ export function PlanPage() {
                 Short-term disability can sometimes cover part of your income
                 during medical recovery.
               </p>
-              <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-xs text-sky-900 space-y-2">
-                <p><span className="font-semibold">What is short-term disability (STD)?</span> STD is private insurance — separate from California SDI — that pays a portion of your salary if you can't work due to a medical condition, including pregnancy and childbirth recovery.</p>
-                <p><span className="font-semibold">How is it different from CA SDI?</span> CA SDI is a state program everyone pays into via payroll taxes. STD is an additional employer-provided or privately purchased benefit. Some employers offer both — they often work together to fill income gaps.</p>
-                <p><span className="font-semibold">Why it matters:</span> CA SDI has a 7-day unpaid waiting period. If you have STD, it often covers that first unpaid week automatically. STD typically pays 60% of your salary and runs during your medical recovery period (6 weeks for vaginal birth, 8 weeks for C-section).</p>
-                <p><span className="font-semibold">Not sure?</span> Check your employee benefits portal, your offer letter benefits summary, or ask your HR team. Search for "short-term disability" or "income protection."</p>
-              </div>
-
               <div className="mt-6 space-y-6">
                 <div>
-                  <div className="text-sm font-medium text-slate-700">
-                    Do you have short-term disability coverage?
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-slate-700">Do you have short-term disability coverage?</span>
+                    <button
+                      type="button"
+                      onClick={() => setStdExplainerOpen((v) => !v)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-1 text-xs text-sky-700 border border-sky-200 hover:bg-sky-100 transition"
+                    >
+                      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sky-600 text-white text-[9px] font-semibold">i</span>
+                      What&apos;s this?
+                    </button>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    This might be through your employer or a separate plan you
-                    purchased.
+                  {stdExplainerOpen && (
+                    <div className="mt-2 border-l-2 border-sky-300 bg-sky-50 rounded-r-xl px-4 py-3 text-xs text-slate-700 space-y-2">
+                      <p><span className="font-semibold">Short-term disability (STD)</span> is private insurance — separate from California SDI — that pays a portion of your salary when you can&apos;t work due to a medical condition, including pregnancy and childbirth recovery.</p>
+                      <p>There are 2 ways you might have it: (1) your employer includes it as part of your benefits package, or (2) you purchased a policy independently through a private insurer.</p>
+                      <p>CA SDI is mandatory — everyone in California pays into it via payroll taxes. STD is optional and not universal. If you have STD, it typically pays 60% of your salary and often covers the first unpaid week of CA SDI (the 7-day waiting period).</p>
+                      <p><span className="font-semibold">Not sure?</span> Check your benefits portal, your offer letter, or ask HR directly. Search for &quot;short-term disability&quot; or &quot;income protection.&quot;</p>
+                    </div>
+                  )}
+                  <p className="mt-2 text-xs text-slate-500">
+                    This might be through your employer or a separate plan you purchased.
                   </p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     {[
