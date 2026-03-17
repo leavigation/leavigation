@@ -2298,10 +2298,47 @@ export function PlanPage() {
                           : 0;
                       const pdlEndWeek = preBirthWeeks + disabilityWeeks;
                       const pflStartWeek = pdlEndWeek + 1;
-                      const streamRows: (WeekStream | "PDL" | "CFRA")[] =
-                        state === "CA"
-                          ? ["FMLA", "PDL", "CFRA", "State SDI", "State PFL", ...(city === "San Francisco" ? ["SF PPLO" as WeekStream] : []), "Employer leave", "Short‑term disability"]
-                          : ["FMLA", "CFRA", "State SDI", "State PFL", "Employer leave", "Short‑term disability"];
+                      const excludedRows: string[] = [];
+                      const streamRows: (WeekStream | "PDL" | "CFRA")[] = (() => {
+                        const rows: (WeekStream | "PDL" | "CFRA")[] = [];
+                        const hasFmlaEligible = fmlaEligible === "yes";
+                        const hasEmployer = parseFloat(employerLeaveWeeks) > 0;
+                        const hasStdCoverage = stdCoverage === "yes";
+                        const isSF = city === "San Francisco";
+                        const isCA = state === "CA";
+
+                        if (hasFmlaEligible) {
+                          rows.push("FMLA");
+                        } else {
+                          excludedRows.push("FMLA (not eligible)");
+                        }
+
+                        if (isCA) {
+                          rows.push("PDL");
+                          rows.push("CFRA");
+                        } else {
+                          rows.push("CFRA");
+                        }
+
+                        rows.push("State SDI");
+                        rows.push("State PFL");
+
+                        if (isSF) rows.push("SF PPLO" as WeekStream);
+
+                        if (hasEmployer) {
+                          rows.push("Employer leave");
+                        } else {
+                          excludedRows.push("Employer leave (none provided)");
+                        }
+
+                        if (hasStdCoverage) {
+                          rows.push("Short‑term disability");
+                        } else {
+                          excludedRows.push("Short-term disability (not selected)");
+                        }
+
+                        return rows;
+                      })();
                       const primaryLaw = stateLeave.stateProtectionLaws?.[0];
                       const cfraLawHeader = (() => {
                         if (!primaryLaw) return "State job protection";
@@ -2393,75 +2430,83 @@ export function PlanPage() {
                           </div>
                         </div>
                       );
-                      return streamRows.flatMap((stream, index) => {
-                        const elements: React.ReactNode[] = [];
-                        if (index === 0) elements.push(<CategoryHeader key="job-protection" label="JOB PROTECTION" printLabel="JOB PROT." />);
-                        if (stream === "State SDI") elements.push(<CategoryHeader key="paid-leave" label="PAID LEAVE" />);
-                        if (stream === "CFRA") {
-                          elements.push(
-                            <div key="CFRA" className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
-                              <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden">
-                                {cfraLawHeader}
-                              </div>
-                              {showBirthDivider ? (
-                                <>
-                                  {preWeeks.map((week) => renderCfraCell(week, true))}
-                                  <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-7 self-stretch" aria-hidden>
-                                    <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                      return (
+                        <>
+                          {streamRows.flatMap((stream, index) => {
+                            const elements: React.ReactNode[] = [];
+                            if (index === 0) elements.push(<CategoryHeader key="job-protection" label="JOB PROTECTION" printLabel="JOB PROT." />);
+                            if (stream === "State SDI") elements.push(<CategoryHeader key="paid-leave" label="PAID LEAVE" />);
+                            if (stream === "CFRA") {
+                              elements.push(
+                                <div key="CFRA" className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
+                                  <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden">
+                                    {cfraLawHeader}
                                   </div>
-                                  {postWeeks.map((week) => renderCfraCell(week, false))}
-                                </>
-                              ) : (
-                                activeTimeline.map((week) => renderCfraCell(week, false))
-                              )}
-                            </div>
-                          );
-                        } else {
-                          elements.push(
-                            <div
-                              key={stream}
-                              className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]"
-                              style={gridStyle}
-                            >
-                              <div
-                                className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden"
-                                title={
-                                  stream === "State SDI"
-                                    ? "State disability insurance (e.g. CA SDI). Paid by the state during disability/recovery."
-                                    : stream === "Short‑term disability"
-                                      ? "Employer or private short‑term disability. Often tops up state SDI or covers the 7‑day waiting period."
-                                      : undefined
-                                }
-                              >
-                                {stream}
-                              </div>
-                              {showBirthDivider ? (
-                                <>
-                                  {preWeeks.map((week) => renderStreamCell(week, true, stream))}
-                                  <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-7 self-stretch" aria-hidden>
-                                    <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                                  {showBirthDivider ? (
+                                    <>
+                                      {preWeeks.map((week) => renderCfraCell(week, true))}
+                                      <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-7 self-stretch" aria-hidden>
+                                        <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                                      </div>
+                                      {postWeeks.map((week) => renderCfraCell(week, false))}
+                                    </>
+                                  ) : (
+                                    activeTimeline.map((week) => renderCfraCell(week, false))
+                                  )}
+                                </div>
+                              );
+                            } else {
+                              elements.push(
+                                <div
+                                  key={stream}
+                                  className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]"
+                                  style={gridStyle}
+                                >
+                                  <div
+                                    className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden"
+                                    title={
+                                      stream === "State SDI"
+                                        ? "State disability insurance (e.g. CA SDI). Paid by the state during disability/recovery."
+                                        : stream === "Short‑term disability"
+                                          ? "Employer or private short‑term disability. Often tops up state SDI or covers the 7‑day waiting period."
+                                          : undefined
+                                    }
+                                  >
+                                    {stream}
                                   </div>
-                                  {postWeeks.map((week) => renderStreamCell(week, false, stream))}
-                                </>
-                              ) : (
-                                activeTimeline.map((week) => renderStreamCell(week, false, stream))
-                              )}
-                            </div>
-                          );
-                        }
-                        return elements;
-                      });
+                                  {showBirthDivider ? (
+                                    <>
+                                      {preWeeks.map((week) => renderStreamCell(week, true, stream))}
+                                      <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-7 self-stretch" aria-hidden>
+                                        <div className="flex-1 min-h-0 w-0 border-l-2 border-dashed border-slate-600 self-stretch" />
+                                      </div>
+                                      {postWeeks.map((week) => renderStreamCell(week, false, stream))}
+                                    </>
+                                  ) : (
+                                    activeTimeline.map((week) => renderStreamCell(week, false, stream))
+                                  )}
+                                </div>
+                              );
+                            }
+                            return elements;
+                          })}
+                          {city === "San Francisco" && (
+                            <p className="mt-2 text-xs text-slate-500 px-1">
+                              * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
+                            </p>
+                          )}
+                          {excludedRows.length > 0 && (
+                            <p className="mt-1 text-xs text-slate-400 px-1">
+                              † Not shown: {excludedRows.join(", ")}. These rows are hidden because they do not apply to your situation.
+                            </p>
+                          )}
+                        </>
+                      );
                     })()}
               </div>
               </div>
               </div>
 
-              {/* SF PPLO explanatory note */}
-              {city === "San Francisco" && (
-                <p className="mt-2 text-xs text-slate-500 px-1">
-                  * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
-                </p>
-              )}
               {/* Estimated Leave Income card — always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
               <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <h3 className="text-lg font-semibold text-slate-900">Estimated Leave Income</h3>
