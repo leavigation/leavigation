@@ -2112,6 +2112,12 @@ export function PlanPage() {
                 </div>
               </div>
 
+              {/* SDI waiting period note */}
+              {state === "CA" && (
+                <p className="mt-2 text-xs text-slate-500 px-1">
+                  ‡ California SDI has a 7-day unpaid waiting period. The first week of disability leave will appear orange (unpaid but protected) in the summary row. SDI payments begin in week 2.
+                </p>
+              )}
               {/* Gantt-style timeline */}
               <div className="w-full space-y-3">
                 <div className="text-xs font-medium text-slate-700">Leave types over time</div>
