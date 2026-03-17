@@ -1827,7 +1827,7 @@ export function PlanPage() {
           {step === 3 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
-                What is your current salary?
+                What is your current pre-tax salary?
               </h2>
               <p className="mt-2 text-sm text-slate-600">
                 Used to estimate your leave income. Optional — skip if you prefer not to share.
