@@ -1920,6 +1920,12 @@ export function PlanPage() {
                 Short-term disability can sometimes cover part of your income
                 during medical recovery.
               </p>
+              <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-xs text-sky-900 space-y-2">
+                <p><span className="font-semibold">What is short-term disability (STD)?</span> STD is private insurance — separate from California SDI — that pays a portion of your salary if you can't work due to a medical condition, including pregnancy and childbirth recovery.</p>
+                <p><span className="font-semibold">How is it different from CA SDI?</span> CA SDI is a state program everyone pays into via payroll taxes. STD is an additional employer-provided or privately purchased benefit. Some employers offer both — they often work together to fill income gaps.</p>
+                <p><span className="font-semibold">Why it matters:</span> CA SDI has a 7-day unpaid waiting period. If you have STD, it often covers that first unpaid week automatically. STD typically pays 60% of your salary and runs during your medical recovery period (6 weeks for vaginal birth, 8 weeks for C-section).</p>
+                <p><span className="font-semibold">Not sure?</span> Check your employee benefits portal, your offer letter benefits summary, or ask your HR team. Search for "short-term disability" or "income protection."</p>
+              </div>
 
               <div className="mt-6 space-y-6">
                 <div>
