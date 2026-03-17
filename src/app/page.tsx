@@ -866,7 +866,7 @@ function buildTimeline(options: {
       state.stateProtection?.available &&
       weekNumber > disabilityWeeks &&
       weekNumber <= disabilityWeeks + 12;
-    const jobProtected = protectedByFmla || protectedByState;
+    const jobProtected = protectedByFmla || protectedByState || protectedByCfra;
 
     let note = "";
     if (weekNumber === 1) {
