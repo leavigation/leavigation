@@ -47,8 +47,8 @@ export default function RootLayout({
                 </nav>
               </div>
               <div className="text-right text-[10px] leading-snug text-slate-500">
+                <p>Information accurate as of March 2026. Laws and benefit rates change — always verify with your employer and a qualified professional.</p>
                 <p>This tool provides general information only and does not constitute legal, financial, or employment advice.</p>
-                <p>Laws change frequently — always verify with your employer and a qualified professional.</p>
               </div>
             </div>
           </footer>
