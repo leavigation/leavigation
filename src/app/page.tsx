@@ -943,7 +943,9 @@ export function PlanPage() {
   const [city, setCity] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [birthType, setBirthType] = useState<"vaginal" | "c-section" | "">("");
-  const [fmlaEligible, setFmlaEligible] = useState<"yes" | "no" | "unsure" | "">("");
+  // FMLA eligibility hidden — tool currently scoped to full-time employees
+  // Re-enable when expanding to part-time, contractor, and self-employed flows
+  const [fmlaEligible, setFmlaEligible] = useState<"yes" | "no" | "unsure" | "">("yes");
   const [employerLeaveOffered, setEmployerLeaveOffered] = useState<"yes" | "no" | "unsure" | "">("");
   const [employerLeaveWeeks, setEmployerLeaveWeeks] = useState("");
   const [employerLeavePayPercent, setEmployerLeavePayPercent] = useState("");
@@ -1574,66 +1576,13 @@ export function PlanPage() {
               </p>
 
               <div className="mt-6 space-y-6">
+                {/* FMLA ELIGIBILITY QUESTION — hidden for now, tool is scoped to full-time employees
+                    TODO: Re-enable when expanding to part-time, contractor, and self-employed flows
+                    When re-enabling, also re-activate employment start date input (queue item 6d)
                 <div>
-                  <div className="text-sm font-medium text-slate-700">
-                    Are you FMLA eligible?
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    FMLA is a federal law that can protect your job during
-                    unpaid leave if certain conditions are met.
-                  </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    {[
-                      { value: "yes", label: "Yes" },
-                      { value: "no", label: "No" },
-                      { value: "unsure", label: "Not sure" },
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() =>
-                          setFmlaEligible(option.value as "yes" | "no" | "unsure")
-                        }
-                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
-                          fmlaEligible === option.value
-                            ? "border-sky-400 bg-sky-50 text-sky-900"
-                            : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                  {fmlaEligible === "unsure" && (
-                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
-                      <p className="font-semibold text-slate-800">FMLA eligibility basics</p>
-                      <ul className="mt-1 list-inside list-disc space-y-0.5">
-                        <li>You work for an employer with at least 50 employees within 75 miles.</li>
-                        <li>You've worked for this employer for at least 12 months (not necessarily in a row).</li>
-                        <li>You've worked at least 1,250 hours for this employer in the past 12 months.</li>
-                      </ul>
-                      <p className="mt-2 text-slate-600">
-                        If all three apply to you, you&apos;re likely FMLA eligible.
-                      </p>
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setFmlaEligible("yes")}
-                          className="rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700"
-                        >
-                          Yes, I meet these
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setFmlaEligible("no")}
-                          className="rounded-full bg-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-800 hover:bg-slate-300"
-                        >
-                          No, I don&apos;t
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  ... FMLA question JSX here ...
                 </div>
+                */}
 
                 <div>
                   <div className="text-sm font-medium text-slate-700">
