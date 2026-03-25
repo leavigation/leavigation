@@ -2968,6 +2968,20 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Email capture — Beehiiv */}
+        <section className="mb-6 rounded-2xl bg-sky-50 px-5 py-6 shadow-sm ring-1 ring-sky-100">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Not in California? We&apos;re expanding.
+          </h2>
+          <p className="mt-2 text-sm text-slate-700">
+            Leavigation currently supports California. Enter your email to get notified when we add your state.
+          </p>
+          <div className="mt-4">
+            <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
+            <iframe src="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" className="beehiiv-embed" data-test-id="beehiiv-embed" frameBorder={0} scrolling="no" style={{ width: "100%", maxWidth: "560px", height: "200px", margin: 0, backgroundColor: "transparent", boxShadow: "none", borderRadius: 0 }}></iframe>
+          </div>
+        </section>
+
         {/* Bottom CTA */}
         <section className="mb-6 rounded-2xl bg-white px-5 py-6 shadow-sm ring-1 ring-slate-200">
           <h2 className="text-lg font-semibold text-slate-900">
