@@ -1128,6 +1128,22 @@ export function PlanPage() {
       });
   }
 
+  function handleSubmitFeedback() {
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+    const templateId = "template_w5tr1j9";
+    if (!serviceId || !publicKey) return;
+    const templateParams = {
+      q1: feedbackQ1 || "(skipped)",
+      q2: feedbackQ2Text || "(skipped)",
+      q3: feedbackQ3 || "(skipped)",
+      q4: feedbackQ4 || "(skipped)",
+      q5: feedbackQ5 || "(skipped)",
+      submitted_at: new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
+    };
+    emailjs.send(serviceId, templateId, templateParams, { publicKey });
+  }
+
   function closeEmailModal() {
     setShowEmailModal(false);
     setEmailSendStatus("idle");
@@ -2736,6 +2752,7 @@ export function PlanPage() {
                     </div>
                     <button type="button"
                       onClick={() => {
+                        handleSubmitFeedback();
                         setFeedbackSubmitted(true);
                         setTimeout(() => setFeedbackDone(true), 3000);
                       }}
