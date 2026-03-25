@@ -958,6 +958,16 @@ export function PlanPage() {
   const [showFeedbackBox, setShowFeedbackBox] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [feedbackStep, setFeedbackStep] = useState(1);
+  const [feedbackQ1, setFeedbackQ1] = useState("");
+  const [feedbackQ2, setFeedbackQ2] = useState("");
+  const [feedbackQ3, setFeedbackQ3] = useState("");
+  const [feedbackQ4, setFeedbackQ4] = useState("");
+  const [feedbackQ5, setFeedbackQ5] = useState("");
+  const [feedbackQ2Text, setFeedbackQ2Text] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackDone, setFeedbackDone] = useState(false);
 
   const weeklySalaryNum = getWeeklyFromSalary(salaryAmount, salaryFrequency);
   const hasSalaryInput = weeklySalaryNum != null && weeklySalaryNum > 0;
@@ -1129,6 +1139,18 @@ export function PlanPage() {
     const timer = window.setTimeout(() => closeEmailModal(), 5000);
     return () => window.clearTimeout(timer);
   }, [showEmailModal, emailSendStatus]);
+
+  useEffect(() => {
+    if (step === 7) {
+      const timer = setTimeout(() => setFeedbackVisible(true), 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setFeedbackVisible(false);
+      setFeedbackStep(1);
+      setFeedbackSubmitted(false);
+      setFeedbackDone(false);
+    }
+  }, [step]);
 
   function handleNext() {
     const noEmployerLeave = employerLeaveOffered === "no";
@@ -2620,6 +2642,115 @@ export function PlanPage() {
             </div>
           )}
         </section>
+
+        {/* Feedback floating card */}
+        {step === 7 && feedbackVisible && !feedbackDone && (
+          <div className="no-print fixed bottom-6 right-6 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-slate-800">Quick feedback</span>
+              <button
+                type="button"
+                onClick={() => setFeedbackDone(true)}
+                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            {feedbackSubmitted ? (
+              <div className="text-center py-3">
+                <div className="text-2xl mb-2">🙏</div>
+                <p className="text-sm font-medium text-slate-800">Thank you!</p>
+                <p className="text-xs text-slate-500 mt-1">Your feedback helps us improve.</p>
+              </div>
+            ) : (
+              <>
+                {feedbackStep === 1 && (
+                  <>
+                    <p className="text-xs text-slate-600 mb-3">Did this help you understand your parental leave?</p>
+                    <div className="flex flex-col gap-2">
+                      {["Yes, exactly what I needed", "Somewhat — still have questions", "Didn't apply to my situation", "Just exploring"].map((opt) => (
+                        <button key={opt} type="button"
+                          onClick={() => { setFeedbackQ1(opt); setFeedbackStep(2); }}
+                          className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ1 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {feedbackStep === 2 && (
+                  <>
+                    <p className="text-xs text-slate-600 mb-2">What&apos;s the one thing you wished this showed you? <span className="text-slate-400">(optional)</span></p>
+                    <textarea
+                      value={feedbackQ2Text}
+                      onChange={(e) => setFeedbackQ2Text(e.target.value)}
+                      placeholder="Type anything..."
+                      className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 text-slate-800 resize-none h-16 mb-3"
+                    />
+                    <button type="button" onClick={() => setFeedbackStep(3)}
+                      className="w-full text-xs font-medium rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 hover:bg-slate-100 transition">
+                      Next →
+                    </button>
+                  </>
+                )}
+                {feedbackStep === 3 && (
+                  <>
+                    <p className="text-xs text-slate-600 mb-3">How much do you trust the information shown?</p>
+                    <div className="flex flex-col gap-2">
+                      {["Very much — I'd use this to plan my leave", "Somewhat — I'd verify with HR or an attorney", "Not sure"].map((opt) => (
+                        <button key={opt} type="button"
+                          onClick={() => { setFeedbackQ3(opt); setFeedbackStep(4); }}
+                          className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ3 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {feedbackStep === 4 && (
+                  <>
+                    <p className="text-xs text-slate-600 mb-3">Would you pay for a version with a week-by-week action checklist and filing deadlines?</p>
+                    <div className="flex flex-col gap-2">
+                      {["Yes — I'd pay $10–20", "Yes — I'd pay $20–50", "Maybe, depends on price", "No — free only"].map((opt) => (
+                        <button key={opt} type="button"
+                          onClick={() => { setFeedbackQ4(opt); setFeedbackStep(5); }}
+                          className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ4 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {feedbackStep === 5 && (
+                  <>
+                    <p className="text-xs text-slate-600 mb-3">Would you share this with someone planning leave?</p>
+                    <div className="flex flex-col gap-2 mb-3">
+                      {["Yes, I already have or will", "Maybe", "No"].map((opt) => (
+                        <button key={opt} type="button"
+                          onClick={() => setFeedbackQ5(opt)}
+                          className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ5 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                    <button type="button"
+                      onClick={() => {
+                        setFeedbackSubmitted(true);
+                        setTimeout(() => setFeedbackDone(true), 3000);
+                      }}
+                      className="w-full text-xs font-semibold rounded-xl bg-sky-500 text-white px-3 py-2 hover:bg-sky-600 transition">
+                      Submit feedback
+                    </button>
+                  </>
+                )}
+                <div className="mt-3 text-right text-[10px] text-slate-400">
+                  Q{feedbackStep} of 5
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {step === 7 && (
           <div className="no-print mt-6 space-y-3">
