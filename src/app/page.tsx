@@ -1132,13 +1132,7 @@ export function PlanPage() {
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
     const templateId = "template_w5tr1j9";
-    console.log("[Feedback] serviceId:", serviceId);
-    console.log("[Feedback] publicKey:", publicKey);
-    console.log("[Feedback] templateId:", templateId);
-    if (!serviceId || !publicKey) {
-      console.error("[Feedback] Missing EmailJS env vars — aborting");
-      return;
-    }
+    if (!serviceId || !publicKey) return;
     const templateParams = {
       q1: feedbackQ1 || "(skipped)",
       q2: feedbackQ2Text || "(skipped)",
@@ -1147,10 +1141,9 @@ export function PlanPage() {
       q5: feedbackQ5 || "(skipped)",
       submitted_at: new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
     };
-    console.log("[Feedback] Sending:", templateParams);
     emailjs.send(serviceId, templateId, templateParams, { publicKey })
-      .then(() => console.log("[Feedback] Sent successfully"))
-      .catch((err) => console.error("[Feedback] Send error:", err));
+      .then(() => {})
+      .catch(() => {});
   }
 
   function closeEmailModal() {
