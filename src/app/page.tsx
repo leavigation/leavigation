@@ -2070,6 +2070,22 @@ export function PlanPage() {
 
           {step === 7 && (displayTimeline ?? timeline) && (
             <div className="print-results-full-width flex w-full flex-col gap-6">
+              {/* Condensed assumptions reminder — visible on screen and in PDF */}
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
+                <span className="text-amber-500">⚠</span>
+                <span className="font-semibold text-amber-900">Results are based on these assumptions:</span>
+                <span>Full-time CA W-2 employee</span>
+                <span className="text-amber-300">·</span>
+                <span>Paid into CA SDI in last 18 months</span>
+                <span className="text-amber-300">·</span>
+                <span>Employed 12+ months</span>
+                <span className="text-amber-300">·</span>
+                <span>Employer 5+ employees</span>
+                <span className="text-amber-300">·</span>
+                <span>Birthing parent</span>
+                <span className="text-amber-300">·</span>
+                <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit CA EDD →</a>
+              </div>
               {/* When re-adding "Estimated total received", dollar amount, or "Based on $X per week" on results, wrap in SHOW_INCOME_UI */}
               <div className="print-only border-b border-slate-200 pb-2 mb-4">
                 <div className="font-bold text-lg">My Leavigation Leave Plan</div>
