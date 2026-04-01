@@ -968,6 +968,7 @@ export function PlanPage() {
   const [feedbackQ2Text, setFeedbackQ2Text] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackDone, setFeedbackDone] = useState(false);
+  const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
 
   const weeklySalaryNum = getWeeklyFromSalary(salaryAmount, salaryFrequency);
   const hasSalaryInput = weeklySalaryNum != null && weeklySalaryNum > 0;
@@ -1419,6 +1420,36 @@ export function PlanPage() {
             benefits, and employer policies stack up week by week.
           </p>
         </header>
+
+        {/* Assumptions disclaimer — shown until acknowledged */}
+        {!assumptionsAcknowledged && (
+          <section className="no-print mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 text-amber-500 text-lg leading-none">⚠</div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-900">This tool is currently designed for:</p>
+                <ul className="mt-2 space-y-1 text-xs text-amber-800">
+                  <li>✓ W-2 employees currently employed full-time in California</li>
+                  <li>✓ Birthing parents (pregnant women)</li>
+                  <li>✓ People who have paid into CA SDI within the last 18 months</li>
+                  <li>✓ Employees who have worked for their current employer for at least 12 months</li>
+                  <li>✓ Employers with 5 or more employees</li>
+                </ul>
+                <p className="mt-3 text-xs text-amber-700">
+                  If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage.{" "}
+                  <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Visit CA EDD directly</a> for the most complete information.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setAssumptionsAcknowledged(true)}
+                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition"
+                >
+                  This applies to me — continue →
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="no-print mb-4">
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
