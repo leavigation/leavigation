@@ -1034,7 +1034,7 @@ export function PlanPage() {
     setCity("");
     setDueDate("");
     setBirthType("");
-    setFmlaEligible("");
+    setFmlaEligible("yes");
     setEmployerLeaveOffered("");
     setEmployerLeaveWeeks("");
     setEmployerLeavePayPercent("");
@@ -1312,7 +1312,7 @@ export function PlanPage() {
     let employerTotal = 0;
     let stdTotal = 0;
     let totalLeaveIncomeCapped = 0;
-    const weekRows: { weekNumber: number; dateLabel: string; programs: string[]; grossPay: number; pctOfNormal: number }[] = [];
+    const weekRows: { weekNumber: number; dateLabel: string; programs: string[]; grossPay: number; pctOfNormal: number; sources: { label: string; amount: number; pct: number }[] }[] = [];
 
     for (const w of activeTimelineForEstimator) {
       let weekSdi = 0;
@@ -1355,12 +1355,19 @@ export function PlanPage() {
       if (w.streams.includes("Short‑term disability")) programs.push("STD");
       if (w.streams.includes("SF PPLO") && weekSfPplo > 0) programs.push("SF PPLO");
       totalLeaveIncomeCapped += grossPay;
+      const sources: { label: string; amount: number; pct: number }[] = [];
+      if (weekSdi > 0) sources.push({ label: isCA ? "CA SDI" : "State SDI", amount: weekSdi, pct: grossPay > 0 ? Math.round((weekSdi / grossPay) * 100) : 0 });
+      if (weekPfl > 0) sources.push({ label: isCA ? "CA PFL" : "State PFL", amount: weekPfl, pct: grossPay > 0 ? Math.round((weekPfl / grossPay) * 100) : 0 });
+      if (weekEmployer > 0) sources.push({ label: "Employer", amount: weekEmployer, pct: grossPay > 0 ? Math.round((weekEmployer / grossPay) * 100) : 0 });
+      if (weekStd > 0) sources.push({ label: "STD", amount: weekStd, pct: grossPay > 0 ? Math.round((weekStd / grossPay) * 100) : 0 });
+      if (weekSfPplo > 0) sources.push({ label: "SF PPLO", amount: weekSfPplo, pct: grossPay > 0 ? Math.round((weekSfPplo / grossPay) * 100) : 0 });
       weekRows.push({
         weekNumber: w.weekNumber,
         dateLabel: w.startDateLabel ?? `Week ${w.weekNumber}`,
         programs,
         grossPay,
         pctOfNormal,
+        sources,
       });
     }
 
@@ -2650,7 +2657,7 @@ export function PlanPage() {
                                 <tr className="border-b border-slate-200 text-slate-600">
                                   <th className="py-2 text-left font-medium">Week</th>
                                   <th className="py-2 text-left font-medium">Date</th>
-                                  <th className="py-2 text-left font-medium">Active programs</th>
+                                  <th className="py-2 text-left font-medium">Funding breakdown</th>
                                   <th className="py-2 text-right font-medium">Est. gross pay</th>
                                   <th className="py-2 text-right font-medium">% of normal</th>
                                 </tr>
@@ -2669,7 +2676,22 @@ export function PlanPage() {
                                   >
                                     <td className="py-1.5 text-slate-700">{row.weekNumber}</td>
                                     <td className="py-1.5 text-slate-700">{row.dateLabel}</td>
-                                    <td className="py-1.5 text-slate-600">{row.programs.join(", ") || "—"}</td>
+                                    <td className="py-1.5 text-slate-600">
+                                      {row.sources.length === 0 ? "—" : (
+                                        <div className="flex flex-col gap-1">
+                                          {row.sources.map((s) => (
+                                            <div key={s.label} className="flex items-center gap-1.5">
+                                              <span className="text-slate-500 w-14 shrink-0 text-[10px]">{s.label}</span>
+                                              <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                                <div className="h-full rounded-full bg-sky-400" style={{ width: `${s.pct}%` }} />
+                                              </div>
+                                              <span className="text-slate-700 font-medium text-[10px] w-6 text-right">{s.pct}%</span>
+                                              <span className="text-slate-500 text-[10px] w-14 text-right">${Math.round(s.amount).toLocaleString("en-US")}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </td>
                                     <td className="py-1.5 text-right font-medium text-slate-900">${row.grossPay.toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
                                     <td className={`py-1.5 text-right font-medium ${row.grossPay === 0 ? "text-rose-600" : row.pctOfNormal < 50 ? "text-amber-700" : "text-slate-700"}`}>
                                       {row.pctOfNormal.toFixed(0)}%
