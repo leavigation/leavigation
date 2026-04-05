@@ -562,7 +562,8 @@ function buildTimeline(options: {
       : state.sdi.weeksDurationVaginal || getRecoveryWeeks(birthType);
   const employerWeeks = parseWeeks(employerLeaveWeeks);
   const employerPercent = parsePercent(employerLeavePayPercent);
-  const hasStd = stdCoverage === "yes";
+  const hasStd = false; // STD removed from calculations — policy details vary too much by employer. Coming soon.
+  const userHasStd = stdCoverage === "yes"; // preserved for future use
   const hasFmla = fmlaEligible === "yes";
   const disabilityWeeks = state.sdi.available ? recoveryWeeks : 0;
   const bondingWeeks = state.pfl.available ? state.pfl.weeksDuration || 0 : 0;
@@ -1441,6 +1442,7 @@ export function PlanPage() {
                   <li>✓ People who have paid into CA SDI within the last 18 months</li>
                   <li>✓ Employees who have worked for their current employer for at least 12 months</li>
                   <li>✓ Employers with 5 or more employees</li>
+                  <li>⚠ Short-term disability (STD) coverage is not yet factored into income estimates — STD policies vary significantly by employer. This feature is coming soon.</li>
                 </ul>
                 <p className="mt-3 text-xs text-amber-700">
                   If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage.{" "}
@@ -2090,6 +2092,8 @@ export function PlanPage() {
                 <span>Employer 5+ employees</span>
                 <span className="text-amber-300">·</span>
                 <span>Birthing parent</span>
+                <span className="text-amber-300">·</span>
+                <span>STD not yet included in estimates</span>
                 <span className="text-amber-300">·</span>
                 <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit CA EDD →</a>
               </div>
