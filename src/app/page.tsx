@@ -2195,7 +2195,7 @@ export function PlanPage() {
               <div className="w-full space-y-3">
                 <div className="text-xs font-medium text-slate-700">Leave types over time</div>
                 <div className="gantt-container gantt-print-area w-full overflow-x-auto">
-                  <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="w-max min-w-full rounded-xl border border-slate-200 bg-white p-3">
                     {(() => {
                       const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
