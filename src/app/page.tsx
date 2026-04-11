@@ -574,12 +574,18 @@ function buildTimeline(options: {
       ? Math.min(20, Math.max(1, parseInt(caPreBirthWeeksStr, 10) || 4))
       : 0;
 
-  const totalWeeks = Math.max(
-    22,
-    preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2
-  );
   const statePaidWeeks = preBirthWeeks + disabilityWeeks + bondingWeeks;
   const employerConcurrent = coordination === "concurrent" || coordination === "unsure" || coordination === "";
+  const cfraExtension = (code === "CA" || code === "NY" || code === "NJ") ? 12 : 0;
+  const jobProtectionEnd = preBirthWeeks + disabilityWeeks + cfraExtension;
+  const paidLeaveEnd = preBirthWeeks + disabilityWeeks + bondingWeeks + (employerConcurrent ? 0 : employerWeeks);
+  const concurrentEmployerEnd = employerConcurrent ? preBirthWeeks + employerWeeks : 0;
+  const totalWeeks = Math.max(
+    jobProtectionEnd,
+    paidLeaveEnd,
+    concurrentEmployerEnd,
+    preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2
+  );
   const employerStartWeek = employerConcurrent ? 1 : statePaidWeeks + 1;
   const employerEndWeek = employerConcurrent ? employerWeeks : statePaidWeeks + employerWeeks;
   const weeks: WeekInfo[] = [];
