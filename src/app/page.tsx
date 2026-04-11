@@ -2412,7 +2412,7 @@ export function PlanPage() {
                         }
 
                         if (hasStdCoverage) {
-                          rows.push("Short‑term disability");
+                          excludedRows.push("Short-term disability (coming soon — not yet included in estimates)");
                         } else {
                           excludedRows.push("Short-term disability (not selected)");
                         }
