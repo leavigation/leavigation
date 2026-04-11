@@ -2109,6 +2109,19 @@ export function PlanPage() {
                 <span className="text-amber-300">·</span>
                 <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit CA EDD →</a>
               </div>
+              {/* FMLA cliff warning — show when pre-birth leave causes FMLA to exhaust before PDL ends */}
+              {fmlaEligible === "yes" &&
+                state === "CA" &&
+                (caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended") && (
+                <div className="no-print flex items-start gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-orange-900">
+                  <span className="mt-0.5 text-orange-500 text-base leading-none shrink-0">⚠️</span>
+                  <div>
+                    <p className="font-semibold text-orange-900">Your FMLA protection ends earlier than you might expect.</p>
+                    <p className="mt-1 text-orange-800">Because you're taking leave before your due date, your 12-week FMLA clock starts now — not at birth. Your federal job protection ends 12 weeks from your first day of leave, which may be before your pregnancy disability leave (PDL) ends. California's PDL and CFRA will continue to protect your job after FMLA ends, but it's important to know the federal protection ends early.</p>
+                  </div>
+                </div>
+              )}
+
               {/* When re-adding "Estimated total received", dollar amount, or "Based on $X per week" on results, wrap in SHOW_INCOME_UI */}
               <div className="print-only border-b border-slate-200 pb-2 mb-4">
                 <div className="font-bold text-lg">My Leavigation Leave Plan</div>
