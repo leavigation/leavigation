@@ -1037,6 +1037,7 @@ export function PlanPage() {
 
   function handleStartOver() {
     setStep(0);
+    setAssumptionsAcknowledged(false);
     setState("CA");
     setCity("");
     setDueDate("");
