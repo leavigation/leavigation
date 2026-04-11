@@ -1285,7 +1285,12 @@ export function PlanPage() {
     caPreBirthWeeks,
   ]);
 
-  const activeTimelineForEstimator = (displayTimeline ?? timeline) as WeekInfo[] | null;
+  const activeTimelineForEstimator = useMemo(() => {
+    const full = (displayTimeline ?? timeline) as WeekInfo[] | null;
+    if (!full || full.length === 0) return full;
+    const lastActiveWeek = Math.max(0, ...full.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
+    return full.filter((w) => w.weekNumber <= lastActiveWeek);
+  }, [displayTimeline, timeline]);
 
   const incomeEstimator = useMemo(() => {
     if (!activeTimelineForEstimator || activeTimelineForEstimator.length === 0) return null;
