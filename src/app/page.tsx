@@ -1391,9 +1391,8 @@ export function PlanPage() {
     const concurrentBaseWeeks = sdiWeeksForDisplay + pflPaidWeeks;
     const sequentialBaseWeeks = concurrentBaseWeeks + employerWks;
     const leaveDurationWeeks = isConcurrentLike ? concurrentBaseWeeks : sequentialBaseWeeks;
-
     const totalLeaveIncome = totalLeaveIncomeCapped;
-    const totalWeeks = leaveDurationWeeks;
+    const totalWeeks = activeTimelineForEstimator.length;
     const normalIncomeSamePeriod = weeklySalary * totalWeeks;
     const shortfall = normalIncomeSamePeriod - totalLeaveIncome;
 
@@ -2043,7 +2042,7 @@ export function PlanPage() {
                           : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
                       }`}
                     >
-                      At the same time
+                      At the same time (concurrent)
                     </button>
                     <button
                       type="button"
@@ -2054,7 +2053,7 @@ export function PlanPage() {
                           : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
                       }`}
                     >
-                      One after another
+                      One after another (sequential)
                     </button>
                     <button
                       type="button"
