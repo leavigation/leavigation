@@ -2213,7 +2213,7 @@ export function PlanPage() {
                       return (
                         <>
                     <div className="gantt-header-row gantt-grid grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
-                      <div className="gantt-label-col min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden min-h-12">
+                      <div className="gantt-label-col min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden min-h-12 sticky left-0 bg-white z-10">
                         Type
                       </div>
                       {showBirthDivider ? (
@@ -2308,7 +2308,7 @@ export function PlanPage() {
                       };
                       return (
                         <div className="mt-2 border-y border-slate-300 py-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
-                          <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-semibold text-[11px] text-slate-700 flex items-center overflow-hidden">
+                          <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-semibold text-[11px] text-slate-700 flex items-center overflow-hidden sticky left-0 bg-white z-10">
                             Summary
                           </div>
                           {showBirthDivider ? (
@@ -2518,7 +2518,7 @@ export function PlanPage() {
                             if (stream === "CFRA") {
                               elements.push(
                                 <div key="CFRA" className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
-                                  <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden">
+                                  <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden sticky left-0 bg-white z-10">
                                     {cfraLawHeader}
                                   </div>
                                   {showBirthDivider ? (
@@ -2542,7 +2542,7 @@ export function PlanPage() {
                                   style={gridStyle}
                                 >
                                   <div
-                                    className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden"
+                                    className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-medium text-slate-600 flex items-center overflow-hidden sticky left-0 bg-white z-10"
                                     title={
                                       stream === "State SDI"
                                         ? "State disability insurance (e.g. CA SDI). Paid by the state during disability/recovery."
