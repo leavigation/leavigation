@@ -695,6 +695,7 @@ function buildTimeline(options: {
         streams.includes("State PFL")
       ) {
         payPercent = 100;
+        streams.push("SF PPLO");
       }
 
       const protectedByFmla = hasFmla && weekNumber <= 12;
