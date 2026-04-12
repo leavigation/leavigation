@@ -2136,6 +2136,29 @@ export function PlanPage() {
                     answers and high‑level rules from state and federal
                     programs. It is not legal or financial advice.
                   </p>
+                  {(() => {
+                    const tl = (displayTimeline ?? timeline) as WeekInfo[] | null;
+                    if (!tl || tl.length === 0) return null;
+                    const lastActive = Math.max(0, ...tl.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
+                    if (lastActive === 0) return null;
+                    const fullyPaidWeeks = tl.filter((w) => w.weekNumber <= lastActive && w.payPercent >= 95).length;
+                    return (
+                      <div className="mt-4 flex flex-wrap gap-4">
+                        <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-50 px-6 py-3 ring-1 ring-slate-200">
+                          <span className="text-3xl font-bold text-slate-900">🎉 {lastActive}</span>
+                          <span className="mt-1 text-xs font-medium text-slate-500">total leave weeks</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center rounded-2xl bg-emerald-50 px-6 py-3 ring-1 ring-emerald-200">
+                          <span className="text-3xl font-bold text-emerald-700">{fullyPaidWeeks}</span>
+                          <span className="mt-1 text-xs font-medium text-emerald-600">fully paid weeks</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center rounded-2xl bg-rose-50 px-6 py-3 ring-1 ring-rose-200">
+                          <span className="text-3xl font-bold text-rose-600">{lastActive - fullyPaidWeeks}</span>
+                          <span className="mt-1 text-xs font-medium text-rose-400">weeks at reduced or no pay</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="no-print mt-2 flex flex-wrap items-center justify-end gap-2 text-xs">
