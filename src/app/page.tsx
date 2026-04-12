@@ -1375,7 +1375,7 @@ export function PlanPage() {
       if (weekStd > 0) sources.push({ label: "STD", amount: weekStd, pct: grossPay > 0 ? Math.round((weekStd / grossPay) * 100) : 0 });
       if (weekSfPplo > 0) sources.push({ label: "SF PPLO", amount: weekSfPplo, pct: grossPay > 0 ? Math.round((weekSfPplo / grossPay) * 100) : 0 });
       weekRows.push({
-        weekNumber: w.weekNumber,
+        weekNumber: w.birthRelativeWeek ?? w.weekNumber,
         dateLabel: w.startDateLabel ?? `Week ${w.weekNumber}`,
         programs,
         grossPay,
