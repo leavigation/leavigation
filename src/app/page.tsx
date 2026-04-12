@@ -2511,9 +2511,11 @@ export function PlanPage() {
                               color = "bg-emerald-50 border border-emerald-300 text-emerald-800";
                             } else {
                               const hasPay = week.payPercent > 0;
+                              const employerPayPct = parseFloat(employerLeavePayPercent) || 0;
+                              const streamHasPay = stream === "Employer leave" ? employerPayPct > 0 : hasPay;
                               if (stream === "State SDI" && isActive) {
                                 color = "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
-                              } else if (hasPay) {
+                              } else if (streamHasPay) {
                                 color = "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
                               } else {
                                 color = "bg-emerald-100/70 border border-emerald-300 text-emerald-900";
