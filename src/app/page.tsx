@@ -2630,6 +2630,11 @@ export function PlanPage() {
                               † Not shown: {excludedRows.join(", ")}. These rows are hidden because they do not apply to your situation.
                             </p>
                           )}
+                          {parseFloat(employerLeavePayPercent) === 0 && parseFloat(employerLeaveWeeks) > 0 && (
+                            <p className="mt-1 text-xs text-slate-400 px-1">
+                              ‡‡ Your employer leave is shown in a lighter shade because it provides job protection only — no additional pay during these weeks.
+                            </p>
+                          )}
                         </>
                       );
                     })()}
