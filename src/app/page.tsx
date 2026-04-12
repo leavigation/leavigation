@@ -1323,6 +1323,8 @@ export function PlanPage() {
     let stdPaidWeeks = 0;
     let sdiTotal = 0;
     let pflTotal = 0;
+    let sfPploTotal = 0;
+    let sfPploWeeks = 0;
     let employerTotal = 0;
     let stdTotal = 0;
     let totalLeaveIncomeCapped = 0;
@@ -1359,6 +1361,10 @@ export function PlanPage() {
       if (w.streams.includes("SF PPLO")) {
         const baseWithoutPplo = Math.min(weekSdi + weekPfl + weekEmployer + weekStd, weeklySalary);
         weekSfPplo = Math.max(0, weeklySalary - baseWithoutPplo);
+        if (weekSfPplo > 0) {
+          sfPploTotal += weekSfPplo;
+          sfPploWeeks += 1;
+        }
       }
       const grossPay = Math.min(weekSdi + weekPfl + weekEmployer + weekStd + weekSfPplo, weeklySalary);
       const pctOfNormal = weeklySalary > 0 ? (grossPay / weeklySalary) * 100 : 0;
@@ -1402,6 +1408,8 @@ export function PlanPage() {
       sdiPaidWeeks: sdiPaidWeeksForDisplay,
       sdiWeekly: sdiWeeklyForDisplay,
       sdiTotal,
+      sfPploTotal,
+      sfPploWeeks,
       pflWeeks: pflPaidWeeks,
       pflWeekly: isCA ? caWeeklyRate : Math.min(weeklySalary * 0.7, 1620),
       pflTotal,
@@ -2653,6 +2661,14 @@ export function PlanPage() {
                               <td className="py-2 pr-2 text-slate-700">{(state || "CA").toUpperCase() === "CA" ? "CA PFL" : "State PFL"} (bonding)</td>
                               <td className="py-2 text-right font-medium text-slate-900">
                                 {incomeEstimator.pflWeeks} weeks × ${Math.round(incomeEstimator.pflWeekly)}/week = ${incomeEstimator.pflTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                              </td>
+                            </tr>
+                          )}
+                          {incomeEstimator.sfPploTotal > 0 && (
+                            <tr>
+                              <td className="py-2 pr-2 text-slate-700">SF PPLO top-up</td>
+                              <td className="py-2 text-right font-medium text-slate-900">
+                                {incomeEstimator.sfPploWeeks} weeks × ${Math.round(incomeEstimator.sfPploTotal / incomeEstimator.sfPploWeeks)}/week = ${incomeEstimator.sfPploTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                               </td>
                             </tr>
                           )}
