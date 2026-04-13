@@ -9,7 +9,7 @@ export default function WhyLeavigationPage() {
   ];
 
   return (
-    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #EDE8FD 0%, #FDE8EF 50%, #FEF6D0 100%)" }}>
+    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)" }}>
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="mb-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700 ring-1 ring-purple-200">

@@ -1,6 +1,6 @@
 export default function AboutPage() {
   return (
-    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #FDE8EF 0%, #EDE8FD 50%, #E0F0FF 100%)" }}>
+    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)" }}>
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="mb-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-3 py-1 text-xs font-medium text-pink-700 ring-1 ring-pink-200">

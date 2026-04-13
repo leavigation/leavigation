@@ -42,7 +42,7 @@ export default function RootLayout({
         <script type="text/javascript" async src="https://subscribe-forms.beehiiv.com/attribution.js"></script>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-slate-900`}
       >
         <div className="flex min-h-screen flex-col">
           <NavBar />

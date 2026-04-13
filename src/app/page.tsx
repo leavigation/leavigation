@@ -1437,7 +1437,7 @@ export function PlanPage() {
   ]);
 
   return (
-    <main className="min-h-screen text-slate-900" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 50%, #FEF6D0 100%)" }}>
+    <main className="min-h-screen text-slate-900" style={{ background: "#F8FAFC" }}>
       <div className="plan-page-container mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10 print:max-w-none print:px-2">
         <header className="no-print mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -2964,7 +2964,7 @@ export function PlanPage() {
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen text-slate-900" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)", minHeight: "100vh" }}>
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
         <header className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
