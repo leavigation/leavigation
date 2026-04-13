@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import NavBar from "./components/NavBar";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900`}
       >
         <div className="flex min-h-screen flex-col">
+          <NavBar />
           <div className="flex-1">{children}</div>
           <footer className="no-print border-t border-slate-200 bg-white/90 px-4 py-3 text-xs text-slate-600">
             <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 text-[11px] sm:text-xs">
