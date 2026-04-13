@@ -10,15 +10,34 @@ export default function AboutPage() {
             Built by a mom, for moms.
           </h1>
           <p className="mt-4 text-lg text-slate-600">
-            Leavigation started with one frustrating experience — and a spreadsheet.
+            Leavigation started with one frustrating experience — and a lot of wasted hours.
           </p>
         </div>
 
         <div className="space-y-8 text-slate-700">
+
+          {/* Founder card */}
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <img
+                src="/audrey-headshot.jpg"
+                alt="Audrey, founder of Leavigation"
+                className="h-32 w-32 rounded-full object-cover ring-4 ring-sky-100 shrink-0"
+              />
+              <div>
+                <p className="text-base font-semibold text-slate-900 mb-1">Audrey</p>
+                <p className="text-xs text-slate-500 mb-3">Founder, Leavigation · San Francisco, CA</p>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  Mom, tech professional, and the person who spent way too many hours trying to figure out her own maternity leave so you don&apos;t have to.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <h2 className="text-lg font-semibold text-slate-900 mb-3">The problem I couldn&apos;t solve</h2>
             <p className="text-sm leading-relaxed">
-              When I started planning my own maternity leave, I had no idea what I was doing. I went back and forth with HR for weeks trying to figure out how FMLA, California SDI, PFL, and my employer leave all worked together. Nobody could give me a clear, complete answer — not HR, not my doctor, not the EDD website. And I&apos;m an engineer at a major tech company. I can figure things out. But this was genuinely confusing.
+              When I was planning my own maternity leave, I had no idea what I was doing. I went back and forth with HR for weeks trying to figure out how FMLA, SDI, PFL, and my employer leave all worked together. Nobody could give me a clear answer. And I work in tech — I&apos;m used to quickly solving problems. But this was genuinely confusing and I wasted hours and hours researching and learning everything I could about leave. And if it was confusing for me and many of my tech friends, then I knew it would be confusing for every other mom out there, too.
             </p>
           </div>
 
@@ -30,21 +49,22 @@ export default function AboutPage() {
           </div>
 
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900 mb-3">Who we are</h2>
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">Where we are today</h2>
             <p className="text-sm leading-relaxed">
-              Leavigation is an early-stage product built by a solo founder based in San Francisco. We&apos;re currently focused on California, with plans to expand to other states. We believe every parent deserves to understand their rights — and that the information shouldn&apos;t be locked behind a law firm or an HR department.
+              Leavigation launched in April 2026. We&apos;re currently focused on California — one of the most complex and generous parental leave states in the country — with plans to expand. We&apos;re actively building, listening to users, and improving every week. This is a product built in spare time, driven entirely by feedback from real moms.
             </p>
           </div>
 
           <div className="rounded-2xl bg-amber-50 p-6 ring-1 ring-amber-200">
-            <h2 className="text-lg font-semibold text-amber-900 mb-3">We&apos;re just getting started</h2>
-            <p className="text-sm leading-relaxed text-amber-800">
-              Leavigation launched in April 2026. We&apos;re actively building, listening to users, and improving every week. If you have feedback, a story to share, or want to get involved — we&apos;d love to hear from you.
+            <h2 className="text-lg font-semibold text-amber-900 mb-3">Have feedback or a story to share?</h2>
+            <p className="text-sm leading-relaxed text-amber-800 mb-4">
+              Every message gets read personally. If you tried the tool, have a suggestion, or just want to share your leave story — reach out.
             </p>
-            <a href="mailto:leavigation@gmail.com" className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition">
+            <a href="mailto:leavigation@gmail.com" className="inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition">
               Get in touch →
             </a>
           </div>
+
         </div>
       </div>
     </main>
