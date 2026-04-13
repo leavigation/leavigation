@@ -1437,7 +1437,7 @@ export function PlanPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen text-slate-900" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 50%, #FEF6D0 100%)" }}>
       <div className="plan-page-container mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10 print:max-w-none print:px-2">
         <header className="no-print mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -2986,7 +2986,7 @@ export default function LandingPage() {
         <main className="flex-1">
           {/* Hero */}
           <section className="mb-12">
-            <div className="rounded-3xl bg-gradient-to-br from-pink-50 via-purple-50 to-yellow-50 px-6 py-8 shadow-sm ring-1 ring-pink-100">
+            <div className="rounded-3xl bg-white/70 px-6 py-8 shadow-sm ring-1 ring-pink-100">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
                 Parental leave is two things.{" "}
                 <span className="text-pink-600">Most people only know about one.</span>
