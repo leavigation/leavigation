@@ -2968,7 +2968,7 @@ export default function LandingPage() {
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
         <header className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-sm font-bold">
+            <div className="h-8 w-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold">
               L
             </div>
             <span className="text-lg font-semibold tracking-tight text-slate-900">
@@ -2977,7 +2977,7 @@ export default function LandingPage() {
           </div>
           <a
             href="/plan"
-            className="text-sm font-semibold text-sky-700 hover:text-sky-900"
+            className="text-sm font-semibold text-pink-600 hover:text-pink-900"
           >
             Build my plan
           </a>
@@ -2986,10 +2986,10 @@ export default function LandingPage() {
         <main className="flex-1">
           {/* Hero */}
           <section className="mb-12">
-            <div className="rounded-3xl bg-sky-50/60 px-6 py-8 shadow-sm ring-1 ring-sky-100">
+            <div className="rounded-3xl bg-gradient-to-br from-pink-50 via-purple-50 to-yellow-50 px-6 py-8 shadow-sm ring-1 ring-pink-100">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
                 Parental leave is two things.{" "}
-                <span className="text-sky-700">Most people only know about one.</span>
+                <span className="text-pink-600">Most people only know about one.</span>
               </h1>
               <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-700">
                 Understanding how job protection and paid leave work — and how they
@@ -2998,7 +2998,7 @@ export default function LandingPage() {
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <a
                   href="/plan"
-                  className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
+                  className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500"
                 >
                   Build my leave plan →
                 </a>
@@ -3011,7 +3011,7 @@ export default function LandingPage() {
 
           {/* Section 1: Job protection */}
           <section className="mb-10 space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
               <span className="text-base leading-none">🛡️</span>
               <span>Job Protection</span>
             </div>
@@ -3038,7 +3038,7 @@ export default function LandingPage() {
 
           {/* Section 2: Paid leave */}
           <section className="mb-10 space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
               <span className="text-base leading-none">💵</span>
               <span>Paid Leave</span>
             </div>
@@ -3064,7 +3064,7 @@ export default function LandingPage() {
 
         {/* Section 3: How they work together */}
         <section className="mb-12 space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+          <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
             <span className="text-base leading-none">🔗</span>
             <span>Job Protection + Pay</span>
           </div>
@@ -3117,7 +3117,7 @@ export default function LandingPage() {
         </section>
 
         {/* Email capture — Beehiiv */}
-        <section className="mb-6 rounded-2xl bg-sky-50 px-5 py-6 shadow-sm ring-1 ring-sky-100">
+        <section className="mb-6 rounded-2xl bg-blue-50 px-5 py-6 shadow-sm ring-1 ring-blue-100">
           <h2 className="text-lg font-semibold text-slate-900">
             Not in California? We&apos;re expanding.
           </h2>
@@ -3142,7 +3142,7 @@ export default function LandingPage() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <a
               href="/plan"
-              className="inline-flex items-center justify-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
+              className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500"
             >
               Build my leave plan →
             </a>
