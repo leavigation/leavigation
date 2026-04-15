@@ -103,7 +103,7 @@ export default function WhyLeavigationPage() {
               <tr>
                 <th className="bg-white px-5 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide w-48">Feature</th>
                 {cols.map((col) => (
-                  <th key={col.key} className={`px-5 py-4 text-center text-sm font-semibold ${col.highlight ? "bg-pink-400 text-white" : "bg-white text-slate-700"}`}>
+                  <th key={col.key} className={`px-5 py-4 text-center text-sm font-semibold ${col.highlight ? "bg-pink-400 text-white" : "bg-white text-slate-700"}`} style={col.highlight ? { boxShadow: "inset 0 0 0 2px #f9a8d4" } : {}}>
                     {col.highlight && <div className="text-xs font-normal opacity-80 mb-0.5">⭐ Our pick</div>}
                     {col.label}
                   </th>
@@ -117,7 +117,7 @@ export default function WhyLeavigationPage() {
                   {cols.map((col) => {
                     const val = row[col.key as keyof typeof row] as { check: boolean; note: string };
                     return (
-                      <td key={col.key} className={`px-5 py-4 text-center align-top ${col.highlight ? "bg-pink-50/30" : ""}`}>
+                      <td key={col.key} className={`px-5 py-4 text-center align-top ${col.highlight ? "bg-pink-100" : ""}`}>
                         <div className="flex flex-col items-center gap-1">
                           <span className={`text-lg ${val.check ? "text-emerald-500" : "text-rose-400"}`}>
                             {val.check ? "✓" : "✕"}
