@@ -10,8 +10,8 @@ const US_STATES = [{ code: "CA", name: "California" }];
 const steps = [
   "Basics",
   "Birth & Recovery",
-  "Legal & Employer",
   "Your Income",
+  "Legal & Employer",
   "Employer Leave Details",
   "Short‑term Disability",
   "Coordination",
@@ -1001,13 +1001,14 @@ export function PlanPage() {
   const [taxDetailsOpen, setTaxDetailsOpen] = useState(false);
   const [incomeWeekByWeekOpen, setIncomeWeekByWeekOpen] = useState(false);
   const [stdExplainerOpen, setStdExplainerOpen] = useState(false);
+  const [sdiExplainerOpen, setSdiExplainerOpen] = useState(false);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
   const showPreBirthNote = state && !PRE_BIRTH_STATES.includes(state);
 
   const showRecentMoverQuestion =
-    step === 2 &&
+    step === 3 &&
     PAID_LEAVE_STATES.includes(state) &&
     (!dueDate || isDueDateWithin6Months(dueDate));
   const moverEligibilityResult: MoverEligibilityResult | null =
@@ -1208,8 +1209,8 @@ export function PlanPage() {
       return;
     }
 
-    if (step === 3 && noEmployerLeave) {
-      setStep(5);
+    if (step === 4 && noEmployerLeave) {
+      setStep(6);
       return;
     }
 
@@ -1221,12 +1222,12 @@ export function PlanPage() {
   function handleBack() {
     const noEmployerLeave = employerLeaveOffered === "no";
     if (noEmployerLeave) {
-      if (step === 5) {
-        setStep(3);
+      if (step === 6) {
+        setStep(4);
         return;
       }
       if (step === 7) {
-        setStep(5);
+        setStep(6);
         return;
       }
     }
@@ -1665,7 +1666,7 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 Legal protections and company policies
@@ -1873,14 +1874,22 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 2 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 What is your current pre-tax salary?
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Used to estimate your leave income. Optional — skip if you prefer not to share.
+                Used to estimate your SDI, PFL, and employer leave income. Optional — skip if you prefer not to share.
               </p>
+
+              {/* Max benefit callout */}
+              <div className="mt-4 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
+                <span className="mt-0.5 shrink-0 text-sky-400">ℹ</span>
+                <div className="flex-1">
+                  <span className="font-semibold">Earning $91,780+/year?</span> You&apos;ll receive the maximum CA state benefit of <span className="font-semibold">$1,765/week</span> — but we still need your actual salary to calculate SF PPLO accurately.
+                </div>
+              </div>
               <div className="mt-6 flex flex-wrap items-end gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-500">$</span>
@@ -1915,6 +1924,26 @@ export function PlanPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+              {/* SDI calculation explainer */}
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={() => setSdiExplainerOpen((v) => !v)}
+                  className="flex items-center gap-2 text-xs font-medium text-sky-700 hover:text-sky-900 transition"
+                >
+                  <span className={`transition-transform ${sdiExplainerOpen ? "rotate-90" : ""}`}>▶</span>
+                  How does CA SDI calculate my benefit?
+                </button>
+                {sdiExplainerOpen && (
+                  <div className="mt-3 rounded-xl border-l-4 border-sky-300 bg-sky-50 px-4 py-3 text-xs text-sky-900 space-y-2">
+                    <p><span className="font-semibold">CA SDI uses your highest-earning quarter</span> from your base period (roughly the 12 months before your claim) — not your current salary. If you recently changed jobs or had a gap in employment, your benefit may be lower than expected.</p>
+                    <p><span className="font-semibold">Benefit rate:</span> If your weekly wage is <span className="font-semibold">$1,252 or less</span> (70% of the 2026 SAWW), you receive <span className="font-semibold">90%</span> of your weekly wage. Above that threshold, you receive <span className="font-semibold">70%</span> of your weekly wage.</p>
+                    <p><span className="font-semibold">Maximum benefit:</span> $1,765/week (2026 cap). You hit this cap at roughly $91,780/year.</p>
+                    <p><span className="font-semibold">Waiting period:</span> CA SDI has a 7-day unpaid waiting period. Week 1 of disability pays $0 unless your employer or STD policy covers it.</p>
+                    <p className="text-sky-700 italic">This tool uses your current salary as a proxy. For the most accurate estimate, use your base period wages.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
