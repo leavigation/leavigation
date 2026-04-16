@@ -975,6 +975,10 @@ export function PlanPage() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackDone, setFeedbackDone] = useState(false);
   const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   const weeklySalaryNum = getWeeklyFromSalary(salaryAmount, salaryFrequency);
   const hasSalaryInput = weeklySalaryNum != null && weeklySalaryNum > 0;
@@ -1135,6 +1139,49 @@ export function PlanPage() {
         setEmailSendStatus("error");
         setEmailError(err?.text || "Failed to send. Check your EmailJS setup and try again.");
       });
+  }
+
+  async function handleChatSubmit() {
+    if (!chatInput.trim() || chatLoading) return;
+    const userMessage = chatInput.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setChatLoading(true);
+
+    const tl = (displayTimeline ?? timeline) as WeekInfo[] | null;
+    const lastActive = tl ? Math.max(0, ...tl.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0))) : 0;
+    const fullyPaid = tl ? tl.filter((w) => w.weekNumber <= lastActive && w.payPercent >= 95).length : 0;
+
+    const planContext = tl ? [
+      `State: California`,
+      `Birth type: ${birthType || "not specified"}`,
+      `Pre-birth leave: ${caPreBirthLeave === "yes_standard" ? "Yes, standard (<=4 weeks)" : caPreBirthLeave === "yes_extended" ? `Yes, extended (${caPreBirthWeeks} weeks)` : "None"}`,
+      `SF PPLO: ${city === "San Francisco" ? "Yes" : "No"}`,
+      `Employer leave: ${employerLeaveOffered === "yes" ? `Yes — ${employerLeaveWeeks} weeks at ${employerLeavePayPercent}%, ${coordination || "coordination not set"}` : employerLeaveOffered === "no" ? "None" : "Unsure"}`,
+      `Total leave weeks: ${lastActive}`,
+      `Fully paid weeks: ${fullyPaid}`,
+      weeklySalaryNum ? `Weekly salary: $${Math.round(weeklySalaryNum)}` : "Salary: not provided",
+      incomeEstimator ? `Estimated total leave income: $${Math.round(incomeEstimator.totalLeaveIncome).toLocaleString()}` : "",
+      incomeEstimator ? `Estimated shortfall: $${Math.round(incomeEstimator.shortfall).toLocaleString()}` : "",
+    ].filter(Boolean).join("\n") : "";
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMessage,
+          planContext,
+          history: chatMessages.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const data = await res.json();
+      setChatMessages((prev) => [...prev, { role: "assistant", content: data.answer || data.error || "Sorry, something went wrong." }]);
+    } catch {
+      setChatMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't connect. Please try again." }]);
+    } finally {
+      setChatLoading(false);
+    }
   }
 
   function handleSubmitFeedback() {
@@ -2871,6 +2918,132 @@ export function PlanPage() {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* AI Chat Assistant */}
+        {step === 5 && (displayTimeline ?? timeline) && (
+          <div className="no-print mt-8">
+            <div className="rounded-2xl border border-purple-200 bg-white shadow-sm overflow-hidden">
+              {/* Chat header */}
+              <button
+                type="button"
+                onClick={() => setChatOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">AI</div>
+                  <div className="text-left">
+                    <div className="text-sm font-semibold text-slate-900">Ask Leavigation AI</div>
+                    <div className="text-xs text-slate-500">Get instant answers about your leave plan — powered by AI, verified for accuracy</div>
+                  </div>
+                </div>
+                <span className={`text-slate-400 transition-transform ${chatOpen ? "rotate-180" : ""}`}>▼</span>
+              </button>
+
+              {chatOpen && (
+                <div className="flex flex-col">
+                  {/* Suggested questions */}
+                  {chatMessages.length === 0 && (
+                    <div className="px-5 py-4 border-b border-slate-100">
+                      <p className="text-xs text-slate-500 mb-3">Suggested questions:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "When should I file my SDI claim?",
+                          "What happens if I take leave before my due date?",
+                          "How does my employer leave interact with SDI?",
+                          "What is the FMLA cliff?",
+                          "When does CFRA start?",
+                        ].map((q) => (
+                          <button
+                            key={q}
+                            type="button"
+                            onClick={() => {
+                              setChatInput(q);
+                              setChatMessages([]);
+                            }}
+                            className="rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs text-purple-700 hover:bg-purple-100 transition"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Messages */}
+                  {chatMessages.length > 0 && (
+                    <div className="px-5 py-4 space-y-4 max-h-96 overflow-y-auto border-b border-slate-100">
+                      {chatMessages.map((msg, i) => (
+                        <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === "user" ? "bg-purple-500 text-white rounded-br-sm" : "bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-sm"}`}>
+                            {msg.role === "assistant" ? (
+                              <div className="space-y-2">
+                                {msg.content.split("\n").map((line, j) => {
+                                  if (line.startsWith("Sources:")) return <div key={j} className="mt-3 pt-3 border-t border-slate-200 text-xs font-semibold text-slate-500">{line}</div>;
+                                  if (line.startsWith("• ") && line.includes("http")) {
+                                    const parts = line.replace("• ", "").split(" — ");
+                                    return (
+                                      <div key={j} className="text-xs">
+                                        <span className="text-slate-600">• {parts[0]} — </span>
+                                        <a href={parts[1]} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">{parts[1]}</a>
+                                      </div>
+                                    );
+                                  }
+                                  return line ? <p key={j} className="leading-relaxed">{line}</p> : <br key={j} />;
+                                })}
+                              </div>
+                            ) : msg.content}
+                          </div>
+                        </div>
+                      ))}
+                      {chatLoading && (
+                        <div className="flex justify-start">
+                          <div className="bg-slate-50 border border-slate-200 rounded-2xl rounded-bl-sm px-4 py-3">
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <div className="flex gap-1">
+                                <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                                <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                                <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                              </div>
+                              Verifying answer...
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Input */}
+                  <div className="px-5 py-4 flex gap-3 items-end">
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleChatSubmit();
+                        }
+                      }}
+                      placeholder="Ask anything about your leave plan or CA leave law..."
+                      className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 resize-none outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition"
+                      rows={2}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleChatSubmit}
+                      disabled={chatLoading || !chatInput.trim()}
+                      className="rounded-xl bg-purple-500 px-4 py-2 text-sm font-medium text-white hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition shrink-0"
+                    >
+                      Send
+                    </button>
+                  </div>
+                  <div className="px-5 pb-3 text-[10px] text-slate-400">
+                    AI responses are verified for accuracy but are not legal advice. Always confirm with your HR team or a qualified attorney.
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
