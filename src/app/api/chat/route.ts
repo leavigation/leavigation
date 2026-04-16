@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-sonnet-4-5";
 
 const CA_LEAVE_KNOWLEDGE = `
 You are Leavigation's parental leave assistant. You are an expert in California parental leave law, federal leave law, and the interactions between them. You help users understand their maternity and parental leave rights.
