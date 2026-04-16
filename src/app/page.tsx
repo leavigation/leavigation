@@ -12,9 +12,7 @@ const steps = [
   "Birth & Recovery",
   "Your Income",
   "Legal & Employer",
-  "Employer Leave Details",
   "Short‑term Disability",
-  "Coordination",
   "Results",
 ];
 
@@ -1170,7 +1168,7 @@ export function PlanPage() {
   }, [showEmailModal, emailSendStatus]);
 
   useEffect(() => {
-    if (step === 7) {
+    if (step === 5) {
       const timer = setTimeout(() => setFeedbackVisible(true), 3000);
       return () => clearTimeout(timer);
     } else {
@@ -1183,7 +1181,7 @@ export function PlanPage() {
 
   function handleNext() {
     const noEmployerLeave = employerLeaveOffered === "no";
-    const isPenultimateStep = noEmployerLeave ? step === 5 : step === steps.length - 2;
+    const isPenultimateStep = noEmployerLeave ? step === 4 : step === steps.length - 2;
 
     if (isPenultimateStep) {
       const weeks = buildTimeline({
@@ -1200,17 +1198,17 @@ export function PlanPage() {
         caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
       });
       setTimeline(weeks);
-      // When no employer leave, skip step 6 (Coordination) and go straight to Results (step 7)
+      // When no employer leave, go straight to Results (step 5)
       if (noEmployerLeave) {
-        setStep(7);
+        setStep(5);
       } else {
         setStep((s) => s + 1);
       }
       return;
     }
 
-    if (step === 4 && noEmployerLeave) {
-      setStep(6);
+    if (step === 3 && noEmployerLeave) {
+      setStep(4);
       return;
     }
 
@@ -1222,12 +1220,12 @@ export function PlanPage() {
   function handleBack() {
     const noEmployerLeave = employerLeaveOffered === "no";
     if (noEmployerLeave) {
-      if (step === 6) {
-        setStep(4);
+      if (step === 4 && noEmployerLeave) {
+        setStep(3);
         return;
       }
-      if (step === 7) {
-        setStep(6);
+      if (step === 5) {
+        setStep(4);
         return;
       }
     }
@@ -1667,13 +1665,13 @@ export function PlanPage() {
           )}
 
           {step === 3 && (
-            <div>
+            <div className="space-y-8">
+              <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 Legal protections and company policies
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                These questions help us understand what job protections you may
-                have while you&apos;re away.
+                These questions help us understand what job protections and employer benefits you have.
               </p>
 
               <div className="mt-6 space-y-6">
@@ -1871,6 +1869,86 @@ export function PlanPage() {
                   </div>
                 )}
               </div>
+              </div>
+
+              {/* Employer leave details — show when employer leave = yes */}
+              {employerLeaveOffered !== "no" && employerLeaveOffered !== "" && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 space-y-6">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">Employer leave details</h3>
+                    <p className="mt-1 text-xs text-slate-500">Tell us about your employer&apos;s parental leave policy.</p>
+                  </div>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                      How many weeks of employer parental leave?
+                      <input
+                        type="number"
+                        min={0}
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
+                        placeholder="e.g., 6"
+                        value={employerLeaveWeeks}
+                        onChange={(e) => setEmployerLeaveWeeks(e.target.value)}
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                      At what % of your pay?
+                      <div className="mt-2 flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
+                          placeholder="e.g., 100"
+                          value={employerLeavePayPercent}
+                          onChange={(e) => setEmployerLeavePayPercent(e.target.value)}
+                        />
+                        <span className="text-sm text-slate-500">%</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-medium text-slate-700">
+                      Does your employer leave run at the same time as state leave, or after?
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Some employers let you stack leaves so they run one after another. Others require that they run at the same time.
+                    </p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <button
+                        type="button"
+                        onClick={() => setCoordination("concurrent")}
+                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${coordination === "concurrent" ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                      >
+                        At the same time (concurrent)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCoordination("sequential")}
+                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${coordination === "sequential" ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                      >
+                        One after another (sequential)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCoordination("unsure")}
+                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${coordination === "unsure" ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                      >
+                        I&apos;m not sure
+                      </button>
+                    </div>
+                    <label className="mt-4 flex cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={employerRequiresConcurrent}
+                        onChange={(e) => setEmployerRequiresConcurrent(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300"
+                      />
+                      <span className="text-xs text-slate-600">My employer requires that I use my leave at the same time (I cannot run employer leave after state leave ends)</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1948,49 +2026,7 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 4 && employerLeaveOffered !== "no" && (
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">
-                Employer parental leave details
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                If your employer offers paid leave, we&apos;ll use this to
-                estimate your income coverage.
-              </p>
-
-              <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                <label className="block text-sm font-medium text-slate-700">
-                  How many weeks of employer parental leave?
-                  <input
-                    type="number"
-                    min={0}
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
-                    placeholder="e.g., 6"
-                    value={employerLeaveWeeks}
-                    onChange={(e) => setEmployerLeaveWeeks(e.target.value)}
-                  />
-                </label>
-
-                <label className="block text-sm font-medium text-slate-700">
-                  At what % of your pay?
-                  <div className="mt-2 flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
-                      placeholder="e.g., 100"
-                      value={employerLeavePayPercent}
-                      onChange={(e) => setEmployerLeavePayPercent(e.target.value)}
-                    />
-                    <span className="text-sm text-slate-500">%</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
+          {step === 4 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
                 Short-term disability
@@ -2050,83 +2086,7 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 6 && employerLeaveOffered !== "no" && (
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">
-                How does your leave stack?
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                We&apos;ll use this to build a week‑by‑week view of how your
-                employer leave lines up with state leave.
-              </p>
-
-              <div className="mt-6 space-y-6">
-                <div>
-                  <div className="text-sm font-medium text-slate-700">
-                    Does your employer leave run at the same time as state
-                    leave, or after?
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Some employers let you stack leaves so they run one after
-                    another. Others require that they run at the same time.
-                  </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <button
-                      type="button"
-                      onClick={() => setCoordination("concurrent")}
-                      className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
-                        coordination === "concurrent"
-                          ? "border-sky-400 bg-sky-50 text-sky-900"
-                          : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                      }`}
-                    >
-                      At the same time (concurrent)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCoordination("sequential")}
-                      className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
-                        coordination === "sequential"
-                          ? "border-sky-400 bg-sky-50 text-sky-900"
-                          : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                      }`}
-                    >
-                      One after another (sequential)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCoordination("unsure")}
-                      className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
-                        coordination === "unsure"
-                          ? "border-sky-400 bg-sky-50 text-sky-900"
-                          : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                      }`}
-                    >
-                      I&apos;m not sure
-                    </button>
-                  </div>
-                  <label className="mt-4 flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={employerRequiresConcurrent}
-                      onChange={(e) => setEmployerRequiresConcurrent(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-400"
-                    />
-                    <span className="text-sm text-slate-700">
-                      My employer requires that I use my leave at the same time (I cannot run employer leave after state leave ends)
-                    </span>
-                  </label>
-                </div>
-
-                <div className="rounded-xl bg-sky-50 px-4 py-3 text-xs text-sky-900">
-                  This is just the first step. Next, we&apos;ll turn your
-                  answers into a clear, week‑by‑week leave timeline.
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 7 && (displayTimeline ?? timeline) && (
+          {step === 5 && (displayTimeline ?? timeline) && (
             <div className="print-results-full-width flex w-full flex-col gap-6">
               {/* Condensed assumptions reminder — visible on screen and in PDF */}
               <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
@@ -2839,7 +2799,7 @@ export function PlanPage() {
         </section>
 
         {/* Feedback floating card */}
-        {step === 7 && feedbackVisible && !feedbackDone && (
+        {step === 5 && feedbackVisible && !feedbackDone && (
           <div className="no-print fixed bottom-6 right-6 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-semibold text-slate-800">Quick feedback</span>
@@ -2948,7 +2908,7 @@ export function PlanPage() {
           </div>
         )}
 
-        {step === 7 && (
+        {step === 5 && (
           <div className="no-print mt-6 space-y-3">
             <button
               type="button"
@@ -2974,7 +2934,7 @@ export function PlanPage() {
             Back
           </button>
 
-          {step < 7 && (
+          {step < 5 && (
             <button
               type="button"
               onClick={handleNext}
