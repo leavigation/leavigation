@@ -70,6 +70,13 @@ export default function WhyLeavigationPage() {
       hr: { check: false, note: "Corporate perspective, not personal" },
       tools: { check: false, note: "Typically built by HR tech companies" },
     },
+    {
+      feature: "AI assistant that knows your plan",
+      leavigation: { check: true, note: "Ask questions about your specific leave plan — answered instantly, verified for accuracy, with sources" },
+      consultants: { check: false, note: "Available during scheduled sessions only" },
+      hr: { check: false, note: "Not available — HR answers general policy questions" },
+      tools: { check: false, note: "No other tools offer plan-specific AI Q&A" },
+    },
   ];
 
   const cols = [
