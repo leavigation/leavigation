@@ -1006,7 +1006,7 @@ export function PlanPage() {
   const showPreBirthNote = state && !PRE_BIRTH_STATES.includes(state);
 
   const showRecentMoverQuestion =
-    step === 3 &&
+    (step === 0 || step === 3) &&
     PAID_LEAVE_STATES.includes(state) &&
     (!dueDate || isDueDateWithin6Months(dueDate));
   const moverEligibilityResult: MoverEligibilityResult | null =
@@ -1595,6 +1595,124 @@ export function PlanPage() {
                     Pre-birth leave in your state is unpaid and covered only by FMLA (if eligible) or employer STD. It is not a separate state benefit.
                   </p>
                 )}
+                {showRecentMoverQuestion && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                    <div className="text-sm font-medium text-slate-700">
+                      Have you recently moved to {getStateDisplayName(state)}?
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      We&apos;ll ask a few questions that affect your state benefit eligibility.
+                    </p>
+                    <div className="mt-4 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setRecentMover("yes")}
+                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${recentMover === "yes" ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setRecentMover("no"); setMoverMoveDate(""); setMoverWorkLocation(""); setMoverPayrollUpdated(""); setMoverNotifiedEmployer(""); }}
+                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${recentMover === "no" ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    {recentMover === "yes" && (
+                      <div className="mt-6 space-y-6 border-t border-slate-200 pt-6">
+                        <div>
+                          <label className="text-sm font-medium text-slate-700">
+                            Q1: When did you move to {getStateDisplayName(state)}?
+                          </label>
+                          <p className="mt-1 text-xs text-slate-500">Month and year only.</p>
+                          <input
+                            type="month"
+                            value={moverMoveDate}
+                            onChange={(e) => setMoverMoveDate(e.target.value)}
+                            className="mt-2 w-full max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          />
+                        </div>
+                        {moverMoveDate && (
+                          <div>
+                            <div className="text-sm font-medium text-slate-700">
+                              Q2: Where do you physically perform your work?
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              {[
+                                { value: "in_state" as const, label: `In ${getStateDisplayName(state)} / at home in ${getStateDisplayName(state)}` },
+                                { value: "remote_out_of_state" as const, label: "Remotely for an out-of-state employer" },
+                                { value: "travel" as const, label: "I travel between states" },
+                                { value: "not_employed" as const, label: "I'm not currently employed" },
+                              ].map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => setMoverWorkLocation(opt.value)}
+                                  className={`block w-full rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${moverWorkLocation === opt.value ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {moverWorkLocation && (
+                          <div>
+                            <div className="text-sm font-medium text-slate-700">
+                              Q3: Has your employer updated your payroll to withhold {getStateDisplayName(state)} state taxes (look for &quot;{PAYROLL_TAX_CODES[state] ?? "state tax"}&quot; on your paystub)?
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              {[
+                                { value: "yes" as const, label: "Yes, I can see it on my paystub" },
+                                { value: "no" as const, label: "No, they haven't switched yet" },
+                                { value: "not_sure" as const, label: "I'm not sure" },
+                                { value: "self_employed" as const, label: "I'm self-employed" },
+                              ].map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => { setMoverPayrollUpdated(opt.value); if (opt.value !== "no" && opt.value !== "not_sure") setMoverNotifiedEmployer(""); }}
+                                  className={`block w-full rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${moverPayrollUpdated === opt.value ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                            {isMoverSelfEmployed && (
+                              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                                Self-employed individuals are generally not automatically covered by state paid leave programs. Some states offer voluntary enrollment — in California, you can apply for Disability Insurance Elective Coverage (DIEC) through EDD, but enrollment must happen before you need the benefit. Given your timeline, contact EDD directly to explore your options.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {(moverPayrollUpdated === "no" || moverPayrollUpdated === "not_sure") && moverWorkLocation && (
+                          <div>
+                            <div className="text-sm font-medium text-slate-700">
+                              Q4: Have you notified your employer that you&apos;ve relocated to {getStateDisplayName(state)}?
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              {[
+                                { value: "yes" as const, label: "Yes, they know" },
+                                { value: "not_yet" as const, label: "Not yet" },
+                                { value: "self" as const, label: "I work for myself" },
+                              ].map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => setMoverNotifiedEmployer(opt.value)}
+                                  className={`block w-full rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${moverNotifiedEmployer === opt.value ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"}`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1716,158 +1834,6 @@ export function PlanPage() {
                     ))}
                   </div>
                 </div>
-
-                {showRecentMoverQuestion && (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-                    <div className="text-sm font-medium text-slate-700">
-                      Have you recently moved to {getStateDisplayName(state)}?
-                    </div>
-                    <p className="mt-1 text-xs text-slate-500">
-                      We&apos;ll ask a few questions that affect your state benefit eligibility.
-                    </p>
-                    <div className="mt-4 flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setRecentMover("yes")}
-                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
-                          recentMover === "yes"
-                            ? "border-sky-400 bg-sky-50 text-sky-900"
-                            : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                        }`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRecentMover("no");
-                          setMoverMoveDate("");
-                          setMoverWorkLocation("");
-                          setMoverPayrollUpdated("");
-                          setMoverNotifiedEmployer("");
-                        }}
-                        className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
-                          recentMover === "no"
-                            ? "border-sky-400 bg-sky-50 text-sky-900"
-                            : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                        }`}
-                      >
-                        No
-                      </button>
-                    </div>
-
-                    {recentMover === "yes" && (
-                      <div className="mt-6 space-y-6 border-t border-slate-200 pt-6">
-                        <div>
-                          <label className="text-sm font-medium text-slate-700">
-                            Q1: When did you move to {getStateDisplayName(state)}?
-                          </label>
-                          <p className="mt-1 text-xs text-slate-500">Month and year only.</p>
-                          <input
-                            type="month"
-                            value={moverMoveDate}
-                            onChange={(e) => setMoverMoveDate(e.target.value)}
-                            className="mt-2 w-full max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          />
-                        </div>
-
-                        {moverMoveDate && (
-                          <div>
-                            <div className="text-sm font-medium text-slate-700">
-                              Q2: Where do you physically perform your work?
-                            </div>
-                            <div className="mt-3 space-y-2">
-                              {[
-                                { value: "in_state" as const, label: `In ${getStateDisplayName(state)} / at home in ${getStateDisplayName(state)}` },
-                                { value: "remote_out_of_state" as const, label: "Remotely for an out-of-state employer" },
-                                { value: "travel" as const, label: "I travel between states" },
-                                { value: "not_employed" as const, label: "I'm not currently employed" },
-                              ].map((opt) => (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => setMoverWorkLocation(opt.value)}
-                                  className={`block w-full rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${
-                                    moverWorkLocation === opt.value
-                                      ? "border-sky-400 bg-sky-50 text-sky-900"
-                                      : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {moverWorkLocation && (
-                          <div>
-                            <div className="text-sm font-medium text-slate-700">
-                              Q3: Has your employer updated your payroll to withhold {getStateDisplayName(state)} state taxes (look for &quot;{PAYROLL_TAX_CODES[state] ?? "state tax"}&quot; on your paystub)?
-                            </div>
-                            <div className="mt-3 space-y-2">
-                              {[
-                                { value: "yes" as const, label: "Yes, I can see it on my paystub" },
-                                { value: "no" as const, label: "No, they haven't switched yet" },
-                                { value: "not_sure" as const, label: "I'm not sure" },
-                                { value: "self_employed" as const, label: "I'm self-employed" },
-                              ].map((opt) => (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => {
-                                    setMoverPayrollUpdated(opt.value);
-                                    if (opt.value !== "no" && opt.value !== "not_sure") setMoverNotifiedEmployer("");
-                                  }}
-                                  className={`block w-full rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${
-                                    moverPayrollUpdated === opt.value
-                                      ? "border-sky-400 bg-sky-50 text-sky-900"
-                                      : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                            {isMoverSelfEmployed && (
-                              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                                Self-employed individuals are generally not automatically covered by state paid leave programs. Some states offer voluntary enrollment — in California, you can apply for Disability Insurance Elective Coverage (DIEC) through EDD, but enrollment must happen before you need the benefit. Given your timeline, contact EDD directly to explore your options.
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {(moverPayrollUpdated === "no" || moverPayrollUpdated === "not_sure") && moverWorkLocation && (
-                          <div>
-                            <div className="text-sm font-medium text-slate-700">
-                              Q4: Have you notified your employer that you&apos;ve relocated to {getStateDisplayName(state)}?
-                            </div>
-                            <div className="mt-3 space-y-2">
-                              {[
-                                { value: "yes" as const, label: "Yes, they know" },
-                                { value: "not_yet" as const, label: "Not yet" },
-                                { value: "self" as const, label: "I work for myself" },
-                              ].map((opt) => (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => setMoverNotifiedEmployer(opt.value)}
-                                  className={`block w-full rounded-xl border px-3 py-2 text-left text-sm shadow-sm transition ${
-                                    moverNotifiedEmployer === opt.value
-                                      ? "border-sky-400 bg-sky-50 text-sky-900"
-                                      : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
               </div>
 
