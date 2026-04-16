@@ -122,8 +122,10 @@ RESPONSE FORMAT:
       body: JSON.stringify({ model: MODEL, max_tokens: 1024, system: systemPrompt, messages }),
     });
     const firstData = await firstRes.json();
+    console.log("[Chat API] First call status:", firstRes.status);
+    console.log("[Chat API] First call response:", JSON.stringify(firstData).slice(0, 500));
     const firstAnswer = firstData.content?.[0]?.text;
-    if (!firstAnswer) return NextResponse.json({ error: "No response generated" }, { status: 500 });
+    if (!firstAnswer) return NextResponse.json({ error: "No response generated", debug: firstData }, { status: 500 });
 
     // Second call — verify answer
     const verifyRes = await fetch(ANTHROPIC_API_URL, {
