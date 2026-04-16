@@ -1,6 +1,6 @@
 export default function LeaveGuidePage() {
   return (
-    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 50%, #FEF6D0 100%)" }}>
+    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)" }}>
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="mb-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-200">
@@ -15,23 +15,55 @@ export default function LeaveGuidePage() {
         </div>
 
         <div className="space-y-6 text-slate-700">
+
+          {/* Thing 1 */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-pink-100">
             <div className="inline-flex items-center gap-2 rounded-full bg-pink-50 px-3 py-1 text-xs font-medium text-pink-700 mb-3">🛡️ Job Protection</div>
-            <h2 className="text-lg font-semibold text-slate-900 mb-2">Thing 1: Job protection</h2>
-            <p className="text-sm leading-relaxed">Job protection means your employer must hold your job — or an equivalent role — while you&apos;re on leave. It does <strong>not</strong> mean you get paid. The main laws are FMLA (federal, 12 weeks) and CFRA (California, 12 weeks) — and in California, they can stack for up to 7 months of total job protection for birthing parents.</p>
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">Thing 1: Job protection — your right to come back</h2>
+            <p className="text-sm leading-relaxed mb-3">Job protection means your employer must hold your job — or an equivalent role — while you&apos;re on leave. It does <strong>not</strong> mean you get paid. The main federal law is FMLA — 12 weeks of job protection for eligible employees. Some states layer on additional weeks on top of that.</p>
+            <div className="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-900 ring-1 ring-amber-200">
+              <p className="font-semibold">Job protection and pay are separate.</p>
+              <p className="mt-1">You can be fully job-protected and still receive no income — or you can be getting paid with no legal right to return to your role.</p>
+            </div>
           </div>
 
+          {/* Thing 2 */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-blue-100">
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 mb-3">💵 Paid Leave</div>
-            <h2 className="text-lg font-semibold text-slate-900 mb-2">Thing 2: Paid leave</h2>
-            <p className="text-sm leading-relaxed">Paid leave means income while you&apos;re away. In California, this comes from two main sources: State Disability Insurance (SDI) during pregnancy recovery, and Paid Family Leave (PFL) during bonding. These are funded by payroll taxes — you&apos;ve already paid into them. They are separate from job protection and must be filed separately with the EDD.</p>
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">Thing 2: Paid leave — income while you&apos;re away</h2>
+            <p className="text-sm leading-relaxed mb-3">Paid leave is the money that shows up while you&apos;re out. It can come from state disability insurance (SDI), state paid family leave (PFL), employer parental leave, and short-term disability (STD). Each has its own start date, duration, and pay rate — and they can stack.</p>
+            <div className="rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-900 ring-1 ring-emerald-200">
+              <p className="font-semibold">Most people receive pay from 2–3 different programs.</p>
+              <p className="mt-1">Each program has its own forms, deadlines, and rules. The confusing part isn&apos;t any one program — it&apos;s how they overlap.</p>
+            </div>
           </div>
 
-          <div className="rounded-2xl p-6 ring-1 ring-yellow-200" style={{ background: "#FEF6D0" }}>
-            <h2 className="text-lg font-semibold text-yellow-900 mb-2">The most important thing to know</h2>
-            <p className="text-sm leading-relaxed text-yellow-800">Job protection and pay are completely separate. You can be fully job-protected and receive no income. Or you can be getting paid with no legal right to return to your role. Understanding how your specific combination of programs interact — week by week — is what Leavigation helps you do.</p>
+          {/* How they work together */}
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-purple-100">
+            <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700 mb-3">🔗 Job Protection + Pay</div>
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">How they work together</h2>
+            <p className="text-sm leading-relaxed mb-4">In any given week of leave, you might be job-protected but unpaid, paid but not job-protected, both, or neither. The goal is to maximize weeks where you have <strong>both protection and income</strong>. That&apos;s exactly what Leavigation helps you map out.</p>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-xl bg-emerald-50 px-3 py-3 ring-1 ring-emerald-200">
+                <p className="font-semibold text-emerald-800">✅ Protected + Paid</p>
+                <p className="mt-1 text-emerald-700">The ideal: your job is protected and money is coming in.</p>
+              </div>
+              <div className="rounded-xl bg-amber-50 px-3 py-3 ring-1 ring-amber-200">
+                <p className="font-semibold text-amber-800">⚠️ Protected + Unpaid</p>
+                <p className="mt-1 text-amber-700">Legally safe, but financially stressful — sometimes a planned gap.</p>
+              </div>
+              <div className="rounded-xl bg-orange-50 px-3 py-3 ring-1 ring-orange-200">
+                <p className="font-semibold text-orange-800">⚠️ Paid + Unprotected</p>
+                <p className="mt-1 text-orange-700">Income without legal protection — often when employer pay extends after laws run out.</p>
+              </div>
+              <div className="rounded-xl bg-rose-50 px-3 py-3 ring-1 ring-rose-200">
+                <p className="font-semibold text-rose-800">❌ Unprotected + Unpaid</p>
+                <p className="mt-1 text-rose-700">The real cliff — no legal protection and no income. Planning helps you avoid landing here by surprise.</p>
+              </div>
+            </div>
           </div>
 
+          {/* CA programs */}
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-purple-100">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">California programs at a glance</h2>
             <div className="space-y-3 text-sm">
@@ -50,13 +82,23 @@ export default function LeaveGuidePage() {
             </div>
           </div>
 
+          {/* Not in CA */}
+          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">Not in California? We&apos;re expanding.</h2>
+            <p className="text-sm text-slate-600 mb-4">Leavigation currently supports California. Enter your email to get notified when we add your state.</p>
+            <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
+            <iframe src="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" className="beehiiv-embed" data-test-id="beehiiv-embed" frameBorder={0} scrolling="no" style={{ width: "100%", maxWidth: "560px", height: "200px", margin: 0, backgroundColor: "transparent", boxShadow: "none", borderRadius: 0 }}></iframe>
+          </div>
+
+          {/* CTA */}
           <div className="rounded-2xl p-6 text-white" style={{ background: "linear-gradient(135deg, #60A9DC, #9B7FD4)" }}>
             <h2 className="text-lg font-semibold mb-2">See how these all apply to you</h2>
-            <p className="text-sm opacity-90 mb-4">Every situation is different. Your specific combination of programs depends on your employer, your salary, your birth type, and your leave timing.</p>
+            <p className="text-sm opacity-90 mb-4">Every situation is different. Build your personalized plan in 5 minutes.</p>
             <a href="/plan" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition">
               Build my free leave plan →
             </a>
           </div>
+
         </div>
       </div>
     </main>

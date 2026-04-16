@@ -3137,126 +3137,72 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Section 1: Job protection */}
-          <section className="mb-10 space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
-              <span className="text-base leading-none">🛡️</span>
-              <span>Job Protection</span>
-            </div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              Job Protection: Your right to come back
-            </h2>
-            <p className="text-sm text-slate-700">
-              Job protection means your employer has to hold your job (or an equivalent
-              role) while you&apos;re on leave. It{" "}
-              <span className="font-semibold">does not</span> mean you get paid. The main
-              federal law is FMLA — 12 weeks of job protection for eligible employees.
-              Some states layer on additional weeks of protection on top of that.
-            </p>
-            <div className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-900 ring-1 ring-amber-200">
-              <p className="font-semibold">
-                Job protection and pay are separate.
-              </p>
-              <p className="mt-1">
-                You can be fully job-protected and still receive no income — or you can
-                be getting paid with no legal right to return to your role.
-              </p>
+          {/* Benefits section */}
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Everything you need to plan your leave — in one place</h2>
+            <div className="grid gap-5 sm:grid-cols-3">
+              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-purple-100">
+                <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-xl mb-4">🤖</div>
+                <h3 className="text-base font-semibold text-slate-900 mb-2">AI assistant that knows your plan</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">Ask any question about your specific leave — how FMLA interacts with CFRA, when to file your SDI claim, what your rights are. Get instant, verified answers with cited sources.</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-pink-100">
+                <div className="h-10 w-10 rounded-xl bg-pink-100 flex items-center justify-center text-xl mb-4">📅</div>
+                <h3 className="text-base font-semibold text-slate-900 mb-2">Your full timeline in 5 minutes</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">Get a personalized week-by-week Gantt chart showing exactly which programs cover you each week — SDI, PFL, FMLA, CFRA, employer leave, and SF PPLO — all stacked correctly.</p>
+              </div>
+              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
+                <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl mb-4">💵</div>
+                <h3 className="text-base font-semibold text-slate-900 mb-2">Forecasted income during leave</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">See exactly how much money you'll receive each week — broken down by source. Know your shortfall in advance so you can plan, save, and negotiate with confidence.</p>
+              </div>
             </div>
           </section>
 
-          {/* Section 2: Paid leave */}
-          <section className="mb-10 space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
-              <span className="text-base leading-none">💵</span>
-              <span>Paid Leave</span>
+          {/* Social proof / trust */}
+          <section className="mb-12">
+            <div className="rounded-2xl bg-white/70 px-6 py-5 shadow-sm ring-1 ring-slate-200">
+              <div className="flex flex-wrap items-center justify-center gap-6 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-pink-500">Free</div>
+                  <div className="text-xs text-slate-500 mt-1">No login required</div>
+                </div>
+                <div className="hidden sm:block h-8 w-px bg-slate-200" />
+                <div>
+                  <div className="text-2xl font-bold text-purple-500">5 min</div>
+                  <div className="text-xs text-slate-500 mt-1">To your full plan</div>
+                </div>
+                <div className="hidden sm:block h-8 w-px bg-slate-200" />
+                <div>
+                  <div className="text-2xl font-bold text-blue-500">CA</div>
+                  <div className="text-xs text-slate-500 mt-1">All CA programs covered</div>
+                </div>
+                <div className="hidden sm:block h-8 w-px bg-slate-200" />
+                <div>
+                  <div className="text-2xl font-bold text-yellow-500">AI</div>
+                  <div className="text-xs text-slate-500 mt-1">Verified answers</div>
+                </div>
+              </div>
             </div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            Paid Leave: Income while you&apos;re away
-          </h2>
-          <p className="text-sm text-slate-700">
-            Paid leave is the money that shows up while you&apos;re out. It can come
-            from state disability insurance (SDI), state paid family leave (PFL),
-            employer parental leave, and short-term disability (STD). Each has its own
-            start date, duration, and pay rate — and they can stack.
-          </p>
-          <div className="mt-3 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-900 ring-1 ring-emerald-200">
-            <p className="font-semibold">
-              Most people receive pay from 2–3 different programs.
-            </p>
-            <p className="mt-1">
-              Each program has its own forms, deadlines, and rules. The confusing part
-              isn&apos;t any one program — it&apos;s how they overlap.
-            </p>
-          </div>
-        </section>
+          </section>
 
-        {/* Section 3: How they work together */}
-        <section className="mb-12 space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
-            <span className="text-base leading-none">🔗</span>
-            <span>Job Protection + Pay</span>
-          </div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            How they work together
-          </h2>
-          <p className="text-sm text-slate-700">
-            In any given week of leave, you might be job-protected but unpaid, paid but
-            not job-protected, both, or neither. The goal is to maximize weeks where
-            you have{" "}
-            <span className="font-semibold">both protection and income.</span> That&apos;s
-            exactly what Leavigation helps you map out.
-          </p>
-
-          {/* 2x2 grid */}
-          <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-            <div className="rounded-xl bg-emerald-50 px-3 py-3 ring-1 ring-emerald-200">
-              <p className="font-semibold text-emerald-900">✅ Protected + Paid</p>
-              <p className="mt-1 text-emerald-900/80">
-                The ideal: your job is protected and money is coming in.
-              </p>
+          {/* How it works */}
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">How it works</h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { step: "1", title: "Answer a few questions", desc: "Tell us your state, due date, birth type, salary, and employer leave policy. Takes 5 minutes." },
+                { step: "2", title: "Get your personalized plan", desc: "See your week-by-week Gantt chart, income forecast, and key filing deadlines — all specific to your situation." },
+                { step: "3", title: "Ask the AI anything", desc: "Use the built-in AI assistant to ask follow-up questions about your plan. Verified answers with cited sources." },
+              ].map((item) => (
+                <div key={item.step} className="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-slate-200">
+                  <div className="h-8 w-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold mb-3">{item.step}</div>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-1">{item.title}</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
             </div>
-            <div className="rounded-xl bg-amber-50 px-3 py-3 ring-1 ring-amber-200">
-              <p className="font-semibold text-amber-900">
-                ⚠️ Protected + Unpaid
-              </p>
-              <p className="mt-1 text-amber-900/80">
-                Legally safe, but financially stressful — sometimes a planned gap.
-              </p>
-            </div>
-            <div className="rounded-xl bg-orange-50 px-3 py-3 ring-1 ring-orange-200">
-              <p className="font-semibold text-orange-900">
-                ⚠️ Paid + Unprotected
-              </p>
-              <p className="mt-1 text-orange-900/80">
-                Income without legal protection — often when employer pay extends after
-                laws run out.
-              </p>
-            </div>
-            <div className="rounded-xl bg-rose-50 px-3 py-3 ring-1 ring-rose-200">
-              <p className="font-semibold text-rose-900">
-                ❌ Unprotected + Unpaid
-              </p>
-              <p className="mt-1 text-rose-900/80">
-                The real cliff — no legal protection and no income. Planning helps you
-                avoid landing here by surprise.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Email capture — Beehiiv */}
-        <section className="mb-6 rounded-2xl bg-blue-50 px-5 py-6 shadow-sm ring-1 ring-blue-100">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Not in California? We&apos;re expanding.
-          </h2>
-          <p className="mt-2 text-sm text-slate-700">
-            Leavigation currently supports California. Enter your email to get notified when we add your state.
-          </p>
-          <div className="mt-4">
-            <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
-            <iframe src="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" className="beehiiv-embed" data-test-id="beehiiv-embed" frameBorder={0} scrolling="no" style={{ width: "100%", maxWidth: "560px", height: "200px", margin: 0, backgroundColor: "transparent", boxShadow: "none", borderRadius: 0 }}></iframe>
-          </div>
-        </section>
+          </section>
 
         {/* Bottom CTA */}
         <section className="mb-6 rounded-2xl bg-white px-5 py-6 shadow-sm ring-1 ring-slate-200">
