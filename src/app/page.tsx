@@ -1971,7 +1971,7 @@ export function PlanPage() {
                 What is your current pre-tax salary?
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Used to estimate your SDI, PFL, and employer leave income. Optional — skip if you prefer not to share.
+                Used to estimate your SDI, PFL, and employer leave income. This is optional. We don&apos;t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave.
               </p>
 
               {/* Max benefit callout */}
