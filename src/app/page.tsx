@@ -1592,18 +1592,27 @@ export function PlanPage() {
               <div className="mt-0.5 text-amber-500 text-lg leading-none">⚠</div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-amber-900">This tool is currently designed for:</p>
-                <ul className="mt-2 space-y-1 text-xs text-amber-800">
-                  <li>✓ W-2 employees currently employed full-time in California</li>
-                  <li>✓ Birthing parents (pregnant women)</li>
-                  <li>✓ People who have paid into CA SDI within the last 18 months</li>
-                  <li>✓ Employees who have worked for their current employer for at least 12 months</li>
-                  <li>✓ Employers with 5 or more employees</li>
-                  <li>STD is estimated from the weeks and % you enter on the STD step (policies still vary — confirm with HR).</li>
-                </ul>
-                <p className="mt-3 text-xs text-amber-700">
-                  If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage.{" "}
-                  <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Visit CA EDD directly</a> for the most complete information.
-                </p>
+                <div className="mt-2 space-y-1 text-xs text-amber-800">
+                  {state === "CA" ? (
+                    <>
+                      <p>✓ W-2 employees currently employed full-time in California</p>
+                      <p>✓ Birthing parents (pregnant women)</p>
+                      <p>✓ People who have paid into CA SDI within the last 18 months</p>
+                      <p>✓ Employees who have worked for their current employer for at least 12 months</p>
+                      <p>✓ Employers with 5 or more employees</p>
+                      <p>STD is estimated from the weeks and % you enter on the STD step (policies still vary — confirm with HR).</p>
+                      <p className="mt-2 text-amber-700">If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage. <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium">Visit CA EDD directly</a> for the most complete information.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>✓ Full-time W-2 employees</p>
+                      <p>✓ Birthing parents (pregnant women)</p>
+                      <p>✓ FMLA eligible employees (employer 50+ employees, 12+ months tenure, 1,250+ hours worked)</p>
+                      <p>✓ Employer leave and STD estimated from your inputs</p>
+                      <p className="mt-2 text-amber-700">Your state does not have a state paid leave program. This tool shows FMLA job protection + employer leave + STD only. <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="underline font-medium">Learn about FMLA at DOL.gov →</a></p>
+                    </>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => setAssumptionsAcknowledged(true)}
@@ -2108,7 +2117,9 @@ export function PlanPage() {
                 What is your current pre-tax salary?
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Used to estimate your SDI, PFL, and employer leave income. This is optional. We don&apos;t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave.
+                {state === "CA"
+                  ? "Used to estimate your SDI, PFL, and employer leave income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."
+                  : "Used to estimate your employer leave and STD income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."}
               </p>
 
               {/* Max benefit callout — CA only */}
@@ -3051,12 +3062,17 @@ export function PlanPage() {
                           <> — a shortfall of <span className="font-semibold text-rose-600">${incomeEstimator.shortfall.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span></>
                         )}.
                       </p>
-                      <p className="text-[11px] text-slate-500 leading-snug">
-                        SDI and PFL amounts are gross pre-tax estimates. Your employer leave is taxed as regular income. See tax details for more.
-                      </p>
-                      <p className="text-[11px] text-slate-500 leading-snug">
-                        Estimates are based on 2026 CA EDD rates. Actual benefits depend on your base period wages. This is not financial advice.
-                      </p>
+                      {state === "CA" && (
+                        <p className="text-[11px] text-slate-500 leading-snug">
+                          SDI and PFL amounts are gross pre-tax estimates. Your employer leave is taxed as regular income. See tax details for more.
+                        </p>
+                      )}
+                      {state === "CA" && (
+                        <p className="mt-1 text-xs text-slate-500">Estimates are based on 2026 CA EDD rates. Actual benefits depend on your base period wages. This is not financial advice.</p>
+                      )}
+                      {state !== "CA" && (
+                        <p className="mt-1 text-xs text-slate-500">Estimates are based on your employer leave and STD inputs. Actual benefits depend on your employer policy. This is not financial advice.</p>
+                      )}
                     </div>
                     ) : (
                       <p className="mt-4 text-sm text-slate-600">Estimated leave income based on your timeline and salary.</p>
