@@ -634,10 +634,12 @@ function buildTimeline(options: {
   const jobProtectionEnd = preBirthWeeks + disabilityWeeks + cfraExtension;
   const paidLeaveEnd = preBirthWeeks + disabilityWeeks + bondingWeeks + (employerConcurrent ? 0 : employerWeeks);
   const concurrentEmployerEnd = employerConcurrent ? preBirthWeeks + employerWeeks : 0;
+  const fmlaProtectionEnd = hasFmla ? preBirthWeeks + FMLA.weeksProtected : 0;
   const totalWeeks = Math.max(
     jobProtectionEnd,
     paidLeaveEnd,
     concurrentEmployerEnd,
+    fmlaProtectionEnd,
     preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2
   );
   const employerStartWeek = hasEmployerPreBirth ? 1 : (employerConcurrent ? preBirthWeeks + 1 : statePaidWeeks + 1);
