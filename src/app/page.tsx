@@ -663,7 +663,7 @@ function buildTimeline(options: {
         if (hasStd && stdPreBirth === "yes") streams.push("Short‑term disability");
       } else if (weekNumber <= lastSdiWeek) {
         streams.push("State SDI");
-        if (hasStd && weekNumber <= preBirthWeeks + stdWeeksNum) streams.push("Short‑term disability");
+        if (hasStd && weekNumber <= preBirthWeeks + Math.min(stdWeeksNum, recoveryWeeks)) streams.push("Short‑term disability");
       }
 
       if (weekNumber >= pflStartWeek && weekNumber <= pflEndWeek && !streams.includes("State SDI")) {
@@ -857,7 +857,9 @@ function buildTimeline(options: {
 
     // STD: runs during pre-birth (if applicable) and post-birth recovery
     const stdStartWeek = (hasStd && stdPreBirth === "yes") ? 1 : preBirthWeeks + 1;
-    const stdEndWeek = preBirthWeeks + Math.min(stdWeeksNum, recoveryWeeks);
+    const stdEndWeek = (hasStd && stdPreBirth === "yes")
+      ? preBirthWeeks + stdWeeksNum
+      : preBirthWeeks + Math.min(stdWeeksNum, recoveryWeeks);
     if (hasStd && weekNumber >= stdStartWeek && weekNumber <= stdEndWeek) {
       streams.push("Short‑term disability");
     }
@@ -1639,6 +1641,7 @@ export function PlanPage() {
                   State
                   <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                     ⚠️ Full paid leave program support is currently available for California only. All other states show FMLA + employer leave only.{" "}
+                    <span className="font-semibold">* State-specific view is in development — tool only supports federal programs at this time.</span>{" "}
                     <a href="/leave-guide#notify" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</a>
                   </div>
                   <select
@@ -1656,7 +1659,7 @@ export function PlanPage() {
                     <option value="">Select your state...</option>
                     {ALL_US_STATES.map((s) => (
                       <option key={s.code} value={s.code}>
-                        {s.name}{US_STATES_PAID_LEAVE_COMING_SOON.includes(s.code) ? " (paid leave coming soon)" : ""}
+                        {s.name}{US_STATES_PAID_LEAVE_COMING_SOON.includes(s.code) ? " *" : ""}
                       </option>
                     ))}
                   </select>
@@ -2056,7 +2059,7 @@ export function PlanPage() {
 
                   <div>
                     <div className="text-sm font-medium text-slate-700">
-                      Does your employer leave run at the same time as state leave, or after?
+                      Does your employer leave run at the same time as {state === "CA" ? "state leave" : "FMLA"}, or after?
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
                       Some employers let you stack leaves so they run one after another. Others require that they run at the same time.
@@ -2091,7 +2094,7 @@ export function PlanPage() {
                         onChange={(e) => setEmployerRequiresConcurrent(e.target.checked)}
                         className="h-4 w-4 rounded border-slate-300"
                       />
-                      <span className="text-xs text-slate-600">My employer requires that I use my leave at the same time (I cannot run employer leave after state leave ends)</span>
+                      <span className="text-xs text-slate-600">My employer requires that I use my leave at the same time (I cannot run employer leave after {state === "CA" ? "state leave" : "FMLA"} ends)</span>
                     </label>
                   </div>
                 </div>
@@ -2108,13 +2111,15 @@ export function PlanPage() {
                 Used to estimate your SDI, PFL, and employer leave income. This is optional. We don&apos;t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave.
               </p>
 
-              {/* Max benefit callout */}
-              <div className="mt-4 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
-                <span className="mt-0.5 shrink-0 text-sky-400">ℹ</span>
-                <div className="flex-1">
-                  <span className="font-semibold">Earning $91,780+/year?</span> You&apos;ll receive the maximum CA state benefit of <span className="font-semibold">$1,765/week</span> — but we still need your actual salary to calculate SF PPLO accurately.
+              {/* Max benefit callout — CA only */}
+              {state === "CA" && (
+                <div className="mt-4 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
+                  <span className="mt-0.5 shrink-0 text-sky-400">ℹ</span>
+                  <div className="flex-1">
+                    <span className="font-semibold">Earning $91,780+/year?</span> You&apos;ll receive the maximum CA state benefit of <span className="font-semibold">$1,765/week</span> — but we still need your actual salary to calculate SF PPLO accurately.
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="mt-6 flex flex-wrap items-end gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-500">$</span>
@@ -2150,26 +2155,28 @@ export function PlanPage() {
                   ))}
                 </div>
               </div>
-              {/* SDI calculation explainer */}
-              <div className="mt-6">
-                <button
-                  type="button"
-                  onClick={() => setSdiExplainerOpen((v) => !v)}
-                  className="flex items-center gap-2 text-xs font-medium text-sky-700 hover:text-sky-900 transition"
-                >
-                  <span className={`transition-transform ${sdiExplainerOpen ? "rotate-90" : ""}`}>▶</span>
-                  How does CA SDI calculate my benefit?
-                </button>
-                {sdiExplainerOpen && (
-                  <div className="mt-3 rounded-xl border-l-4 border-sky-300 bg-sky-50 px-4 py-3 text-xs text-sky-900 space-y-2">
-                    <p><span className="font-semibold">CA SDI uses your highest-earning quarter</span> from your base period (roughly the 12 months before your claim) — not your current salary. If you recently changed jobs or had a gap in employment, your benefit may be lower than expected.</p>
-                    <p><span className="font-semibold">Benefit rate:</span> If your weekly wage is <span className="font-semibold">$1,252 or less</span> (70% of the 2026 SAWW), you receive <span className="font-semibold">90%</span> of your weekly wage. Above that threshold, you receive <span className="font-semibold">70%</span> of your weekly wage.</p>
-                    <p><span className="font-semibold">Maximum benefit:</span> $1,765/week (2026 cap). You hit this cap at roughly $91,780/year.</p>
-                    <p><span className="font-semibold">Waiting period:</span> CA SDI has a 7-day unpaid waiting period. Week 1 of disability pays $0 unless your employer or STD policy covers it.</p>
-                    <p className="text-sky-700 italic">This tool uses your current salary as a proxy. For the most accurate estimate, use your base period wages.</p>
-                  </div>
-                )}
-              </div>
+              {/* SDI calculation explainer — CA only */}
+              {state === "CA" && (
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setSdiExplainerOpen((v) => !v)}
+                    className="flex items-center gap-2 text-xs font-medium text-sky-700 hover:text-sky-900 transition"
+                  >
+                    <span className={`transition-transform ${sdiExplainerOpen ? "rotate-90" : ""}`}>▶</span>
+                    How does CA SDI calculate my benefit?
+                  </button>
+                  {sdiExplainerOpen && (
+                    <div className="mt-3 rounded-xl border-l-4 border-sky-300 bg-sky-50 px-4 py-3 text-xs text-sky-900 space-y-2">
+                      <p><span className="font-semibold">CA SDI uses your highest-earning quarter</span> from your base period (roughly the 12 months before your claim) — not your current salary. If you recently changed jobs or had a gap in employment, your benefit may be lower than expected.</p>
+                      <p><span className="font-semibold">Benefit rate:</span> If your weekly wage is <span className="font-semibold">$1,252 or less</span> (70% of the 2026 SAWW), you receive <span className="font-semibold">90%</span> of your weekly wage. Above that threshold, you receive <span className="font-semibold">70%</span> of your weekly wage.</p>
+                      <p><span className="font-semibold">Maximum benefit:</span> $1,765/week (2026 cap). You hit this cap at roughly $91,780/year.</p>
+                      <p><span className="font-semibold">Waiting period:</span> CA SDI has a 7-day unpaid waiting period. Week 1 of disability pays $0 unless your employer or STD policy covers it.</p>
+                      <p className="text-sky-700 italic">This tool uses your current salary as a proxy. For the most accurate estimate, use your base period wages.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -2315,19 +2322,35 @@ export function PlanPage() {
               <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
                 <span className="text-amber-500">⚠</span>
                 <span className="font-semibold text-amber-900">Results are based on these assumptions:</span>
-                <span>Full-time CA W-2 employee</span>
-                <span className="text-amber-300">·</span>
-                <span>Paid into CA SDI in last 18 months</span>
-                <span className="text-amber-300">·</span>
-                <span>Employed 12+ months</span>
-                <span className="text-amber-300">·</span>
-                <span>Employer 5+ employees</span>
-                <span className="text-amber-300">·</span>
-                <span>Birthing parent</span>
-                <span className="text-amber-300">·</span>
-                <span>STD from your inputs when you select coverage</span>
-                <span className="text-amber-300">·</span>
-                <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit CA EDD →</a>
+                {state === "CA" ? (
+                  <>
+                    <span>Full-time CA W-2 employee</span>
+                    <span className="text-amber-300">·</span>
+                    <span>Paid into CA SDI in last 18 months</span>
+                    <span className="text-amber-300">·</span>
+                    <span>Employed 12+ months</span>
+                    <span className="text-amber-300">·</span>
+                    <span>Employer 5+ employees</span>
+                    <span className="text-amber-300">·</span>
+                    <span>Birthing parent</span>
+                    <span className="text-amber-300">·</span>
+                    <span>STD from your inputs when you select coverage</span>
+                    <span className="text-amber-300">·</span>
+                    <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit CA EDD →</a>
+                  </>
+                ) : (
+                  <>
+                    <span>Full-time W-2 employee</span>
+                    <span className="text-amber-300">·</span>
+                    <span>FMLA eligible (employer 50+ employees, 12+ months tenure, 1,250+ hours)</span>
+                    <span className="text-amber-300">·</span>
+                    <span>Birthing parent</span>
+                    <span className="text-amber-300">·</span>
+                    <span>STD from your inputs when you select coverage</span>
+                    <span className="text-amber-300">·</span>
+                    <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit DOL FMLA →</a>
+                  </>
+                )}
               </div>
               {!US_STATES_SUPPORTED.includes(state) && (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
@@ -2664,12 +2687,22 @@ export function PlanPage() {
                         if (isCA) {
                           rows.push("PDL");
                           rows.push("CFRA");
-                        } else {
+                        } else if (stateLeave.stateProtection?.available && stateLeave.hasProtectionBeyondFMLA) {
                           rows.push("CFRA");
+                        } else {
+                          excludedRows.push("No state protection beyond FMLA");
                         }
 
-                        rows.push("State SDI");
-                        rows.push("State PFL");
+                        if (stateLeave.sdi?.available) {
+                          rows.push("State SDI");
+                        } else {
+                          excludedRows.push("State SDI (no state program)");
+                        }
+                        if (stateLeave.pfl?.available) {
+                          rows.push("State PFL");
+                        } else {
+                          excludedRows.push("State PFL (no state program)");
+                        }
 
                         if (isSF) rows.push("SF PPLO" as WeekStream);
 
@@ -2687,6 +2720,7 @@ export function PlanPage() {
 
                         return rows;
                       })();
+                      const excludedFootnoteRows = excludedRows.filter((r) => r !== "No state protection beyond FMLA");
                       const primaryLaw = stateLeave.stateProtectionLaws?.[0];
                       const cfraLawHeader = (() => {
                         if (!primaryLaw) return "State job protection";
@@ -2840,14 +2874,19 @@ export function PlanPage() {
                             }
                             return elements;
                           })}
+                          {!stateLeave.hasProtectionBeyondFMLA && state !== "CA" && (
+                            <div className="mt-2 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] text-slate-600">
+                              No state protection beyond FMLA — this view shows federal job protection (FMLA) plus employer leave and any STD you enter.
+                            </div>
+                          )}
                           {city === "San Francisco" && (
                             <p className="mt-2 text-xs text-slate-500 px-1">
                               * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
                             </p>
                           )}
-                          {excludedRows.length > 0 && (
+                          {excludedFootnoteRows.length > 0 && (
                             <p className="mt-1 text-xs text-slate-400 px-1">
-                              † Not shown: {excludedRows.join(", ")}. These rows are hidden because they do not apply to your situation.
+                              † Not shown: {excludedFootnoteRows.join(", ")}. These rows are hidden because they do not apply to your situation.
                             </p>
                           )}
                           {parseFloat(employerLeavePayPercent) === 0 && parseFloat(employerLeaveWeeks) > 0 && (
