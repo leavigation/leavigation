@@ -562,10 +562,12 @@ function buildTimeline(options: {
   employerLeavePayPercent: string;
   employerPreBirth?: "yes" | "no" | "";
   employerPreBirthWeeks?: string;
+  employerPreBirthPayPercent?: string;
   stdCoverage: "yes" | "no" | "unsure" | "";
   stdWeeks?: string;
   stdPayPercent?: string;
   stdPreBirth?: "yes" | "no" | "";
+  stdPreBirthPayPercent?: string;
   stdCoversWaitingPeriod?: "yes" | "no" | "unsure" | "";
   coordination: Coordination;
   caPreBirthLeave?: "yes_standard" | "yes_extended" | "no" | "";
@@ -581,10 +583,12 @@ function buildTimeline(options: {
     employerLeavePayPercent,
     employerPreBirth = "",
     employerPreBirthWeeks: employerPreBirthWeeksStr = "2",
+    employerPreBirthPayPercent: employerPreBirthPayPercentStr = "100",
     stdCoverage,
     stdWeeks: stdWeeksStr = "",
     stdPayPercent: stdPayPercentStr = "60",
     stdPreBirth = "",
+    stdPreBirthPayPercent: stdPreBirthPayPercentStr = "60",
     stdCoversWaitingPeriod = "",
     coordination,
     caPreBirthLeave = "",
@@ -604,6 +608,10 @@ function buildTimeline(options: {
   const hasStd = stdCoverage === "yes";
   const stdWeeksNum = hasStd ? (parseInt(stdWeeksStr, 10) || 6) : 0;
   const stdPercent = hasStd ? (parseInt(stdPayPercentStr, 10) || 60) : 0;
+  const employerPreBirthPercentForPay =
+    parseInt(employerPreBirthPayPercentStr, 10) || employerPercent;
+  const stdPreBirthPercentForPay =
+    parseInt(stdPreBirthPayPercentStr, 10) || stdPercent;
   const stdCoversWeek1 = hasStd && stdCoversWaitingPeriod === "yes";
   const hasEmployerPreBirth = employerPreBirth === "yes";
   const employerPreBirthWeeksNum = hasEmployerPreBirth ? (parseInt(employerPreBirthWeeksStr, 10) || 2) : 0;
@@ -682,18 +690,27 @@ function buildTimeline(options: {
         }
       }
 
-      let payPercent = 0;
-      if (streams.includes("Employer leave"))
-        payPercent = Math.max(payPercent, employerPercent);
-
       const inPreBirth = weekNumber <= preBirthWeeks;
       const isFirstWeekOfLeave = weekNumber === 1;
+
+      let payPercent = 0;
+      if (streams.includes("Employer leave")) {
+        const empPct =
+          inPreBirth && hasEmployerPreBirth
+            ? employerPreBirthPercentForPay
+            : employerPercent;
+        payPercent = Math.max(payPercent, empPct);
+      }
 
       if (inPreBirth) {
         if (isCA) {
           if (isFirstWeekOfLeave && caWaitingPeriodDays >= 7) {
             payPercent = 0;
-            if (hasStd && stdCoversWeek1) payPercent = Math.max(payPercent, stdPercent);
+            if (hasStd && stdCoversWeek1)
+              payPercent = Math.max(
+                payPercent,
+                stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
+              );
           } else {
             const sdiPct = state.sdi.payPercent
               ? Math.round(state.sdi.payPercent * 100)
@@ -702,19 +719,31 @@ function buildTimeline(options: {
           }
         } else if (isNY) {
           payPercent = Math.max(payPercent, 50);
-          if (hasStd) payPercent = Math.max(payPercent, stdPercent);
+          if (hasStd)
+            payPercent = Math.max(
+              payPercent,
+              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
+            );
         } else if (isNJ) {
           const sdiPct = state.sdi.payPercent
             ? Math.round(state.sdi.payPercent * 100)
             : 85;
           payPercent = Math.max(payPercent, sdiPct);
-          if (hasStd) payPercent = Math.max(payPercent, stdPercent);
+          if (hasStd)
+            payPercent = Math.max(
+              payPercent,
+              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
+            );
         } else if (isRI) {
           const sdiPct = state.sdi.payPercent
             ? Math.round(state.sdi.payPercent * 100)
             : 60;
           payPercent = Math.max(payPercent, sdiPct);
-          if (hasStd) payPercent = Math.max(payPercent, stdPercent);
+          if (hasStd)
+            payPercent = Math.max(
+              payPercent,
+              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
+            );
         }
       } else {
         if (streams.includes("State SDI")) {
@@ -871,8 +900,13 @@ function buildTimeline(options: {
 
     let payPercent = 0;
 
+    const inPreBirthDefault = preBirthWeeks > 0 && weekNumber <= preBirthWeeks;
     if (streams.includes("Employer leave")) {
-      payPercent = Math.max(payPercent, employerPercent);
+      const empPct =
+        inPreBirthDefault && hasEmployerPreBirth
+          ? employerPreBirthPercentForPay
+          : employerPercent;
+      payPercent = Math.max(payPercent, empPct);
     }
 
     if (streams.includes("State SDI")) {
@@ -901,8 +935,12 @@ function buildTimeline(options: {
         state.sdi.available &&
         (state.sdi?.waitingPeriodDays ?? 7) >= 7 &&
         weekNumber === 1;
+      const stdPctThisWeek =
+        inPreBirthDefault && stdPreBirth === "yes"
+          ? stdPreBirthPercentForPay
+          : stdPercent;
       if (!caWeek1SdiWaiting || stdCoversWeek1) {
-        payPercent = Math.max(payPercent, stdPercent);
+        payPercent = Math.max(payPercent, stdPctThisWeek);
       }
     }
 
@@ -977,9 +1015,11 @@ function buildTimeline(options: {
 
     note = note.trim();
 
-    const birthWeek = 1;
+    const birthWeekForRelative = preBirthWeeks + 1;
     const birthRelativeWeek =
-      weekNumber < birthWeek ? weekNumber - birthWeek : weekNumber - birthWeek + 1;
+      weekNumber < birthWeekForRelative
+        ? weekNumber - birthWeekForRelative
+        : weekNumber - birthWeekForRelative + 1;
     const base = new Date(dueDate + "T00:00:00");
     const weekStart = new Date(base);
     weekStart.setDate(weekStart.getDate() + i * 7);
@@ -1019,9 +1059,11 @@ export function PlanPage() {
   const [stdCoverage, setStdCoverage] = useState<"yes" | "no" | "unsure" | "">("");
   const [employerPreBirth, setEmployerPreBirth] = useState<"yes" | "no" | "">("");
   const [employerPreBirthWeeks, setEmployerPreBirthWeeks] = useState("2");
+  const [employerPreBirthPayPercent, setEmployerPreBirthPayPercent] = useState("100");
   const [stdWeeks, setStdWeeks] = useState("");
   const [stdPayPercent, setStdPayPercent] = useState("60");
   const [stdPreBirth, setStdPreBirth] = useState<"yes" | "no" | "">("");
+  const [stdPreBirthPayPercent, setStdPreBirthPayPercent] = useState("60");
   const [stdCoversWaitingPeriod, setStdCoversWaitingPeriod] = useState<"yes" | "no" | "unsure" | "">("");
   const [coordination, setCoordination] = useState<Coordination>("");
   const [timeline, setTimeline] = useState<WeekInfo[] | null>(null);
@@ -1120,9 +1162,11 @@ export function PlanPage() {
     setStdCoverage("");
     setEmployerPreBirth("");
     setEmployerPreBirthWeeks("2");
+    setEmployerPreBirthPayPercent("100");
     setStdWeeks("");
     setStdPayPercent("60");
     setStdPreBirth("");
+    setStdPreBirthPayPercent("60");
     setStdCoversWaitingPeriod("");
     setCoordination("");
     setTimeline(null);
@@ -1314,9 +1358,11 @@ export function PlanPage() {
         employerLeavePayPercent,
         employerPreBirth,
         employerPreBirthWeeks,
+        employerPreBirthPayPercent,
         stdWeeks,
         stdPayPercent,
         stdPreBirth,
+        stdPreBirthPayPercent,
         stdCoversWaitingPeriod,
         stdCoverage,
         coordination,
@@ -1398,9 +1444,11 @@ export function PlanPage() {
       employerLeavePayPercent,
       employerPreBirth,
       employerPreBirthWeeks,
+      employerPreBirthPayPercent,
       stdWeeks,
       stdPayPercent,
       stdPreBirth,
+      stdPreBirthPayPercent,
       stdCoversWaitingPeriod,
       stdCoverage,
       coordination: coordinationForTimeline,
@@ -1421,9 +1469,11 @@ export function PlanPage() {
     stdCoverage,
     employerPreBirth,
     employerPreBirthWeeks,
+    employerPreBirthPayPercent,
     stdWeeks,
     stdPayPercent,
     stdPreBirth,
+    stdPreBirthPayPercent,
     stdCoversWaitingPeriod,
     caPreBirthLeave,
     caPreBirthWeeks,
@@ -1444,6 +1494,12 @@ export function PlanPage() {
     const employerPct = parsePercent(employerLeavePayPercent);
     const employerWks = parseWeeks(employerLeaveWeeks);
     const stdPctForEst = parsePercent(stdPayPercent) || 60;
+    const employerPreBirthPctForEst =
+      parseInt(employerPreBirthPayPercent, 10) || employerPct;
+    const stdPreBirthPctForEst =
+      parseInt(stdPreBirthPayPercent, 10) || stdPctForEst;
+    const stdWeeksNumForDisplay =
+      stdCoverage === "yes" ? (parseInt(stdWeeks, 10) || 6) : 0;
     const coordinationForEstimator: "concurrent" | "sequential" =
       employerRequiresConcurrent
         ? "concurrent"
@@ -1456,7 +1512,6 @@ export function PlanPage() {
     let sdiPaidWeeks = 0;
     let pflPaidWeeks = 0;
     let employerPaidWeeks = 0;
-    let stdPaidWeeks = 0;
     let sdiTotal = 0;
     let pflTotal = 0;
     let sfPploTotal = 0;
@@ -1483,13 +1538,22 @@ export function PlanPage() {
         pflTotal += weekPfl;
       }
       if (w.streams.includes("Employer leave")) {
-        weekEmployer = weeklySalary * (employerPct / 100);
+        const isPreBirthPhase = (w.birthRelativeWeek ?? 0) < 0;
+        const employerPctThisWeek =
+          employerPreBirth === "yes" && isPreBirthPhase
+            ? employerPreBirthPctForEst
+            : employerPct;
+        weekEmployer = weeklySalary * (employerPctThisWeek / 100);
         employerPaidWeeks += 1;
         employerTotal += weekEmployer;
       }
       if (w.streams.includes("Short‑term disability")) {
-        weekStd = weeklySalary * (stdPctForEst / 100);
-        stdPaidWeeks += 1;
+        const isPreBirthPhase = (w.birthRelativeWeek ?? 0) < 0;
+        const stdPctThisWeek =
+          stdPreBirth === "yes" && isPreBirthPhase
+            ? stdPreBirthPctForEst
+            : stdPctForEst;
+        weekStd = weeklySalary * (stdPctThisWeek / 100);
         stdTotal += weekStd;
       }
       // SF PPLO tops up PFL to 100% of weekly salary
@@ -1539,6 +1603,11 @@ export function PlanPage() {
     const normalIncomeSamePeriod = weeklySalary * totalWeeks;
     const shortfall = normalIncomeSamePeriod - totalLeaveIncome;
 
+    const stdWeeklyForDisplay =
+      stdWeeksNumForDisplay > 0 && stdTotal > 0
+        ? stdTotal / stdWeeksNumForDisplay
+        : weeklySalary * (stdPctForEst / 100);
+
     return {
       sdiWeeks: sdiWeeksForDisplay,
       sdiPaidWeeks: sdiPaidWeeksForDisplay,
@@ -1552,8 +1621,8 @@ export function PlanPage() {
       employerWeeks: employerPaidWeeks,
       employerWeekly: weeklySalary * (employerPct / 100),
       employerTotal,
-      stdWeeks: stdPaidWeeks,
-      stdWeekly: weeklySalary * (stdPctForEst / 100),
+      stdWeeks: stdWeeksNumForDisplay,
+      stdWeekly: stdWeeklyForDisplay,
       stdTotal,
       totalLeaveIncome,
       normalIncomeSamePeriod,
@@ -1568,6 +1637,12 @@ export function PlanPage() {
     employerLeavePayPercent,
     employerLeaveWeeks,
     stdPayPercent,
+    stdCoverage,
+    stdWeeks,
+    employerPreBirth,
+    employerPreBirthPayPercent,
+    stdPreBirth,
+    stdPreBirthPayPercent,
     coordination,
     employerRequiresConcurrent,
   ]);
@@ -2049,18 +2124,33 @@ export function PlanPage() {
                       ))}
                     </div>
                     {employerPreBirth === "yes" && (
-                      <div className="mt-4">
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
                         <label className="block text-sm font-medium text-slate-700">
                           How many weeks before your due date?
                           <input
                             type="number"
                             min={1}
                             max={8}
-                            className="mt-2 w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                            className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                             placeholder="e.g. 2"
                             value={employerPreBirthWeeks}
                             onChange={(e) => setEmployerPreBirthWeeks(e.target.value)}
                           />
+                        </label>
+                        <label className="block text-sm font-medium text-slate-700">
+                          At what % of your pay?
+                          <div className="mt-2 flex items-center gap-2">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                              placeholder="e.g. 100"
+                              value={employerPreBirthPayPercent}
+                              onChange={(e) => setEmployerPreBirthPayPercent(e.target.value)}
+                            />
+                            <span className="text-sm text-slate-500">%</span>
+                          </div>
                         </label>
                       </div>
                     )}
@@ -2297,6 +2387,26 @@ export function PlanPage() {
                           </button>
                         ))}
                       </div>
+                      {stdPreBirth === "yes" && (
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-slate-700">
+                            At what % of your pay does STD cover pre-birth leave?
+                            <div className="mt-2 flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                                placeholder="e.g. 60"
+                                value={stdPreBirthPayPercent}
+                                onChange={(e) => setStdPreBirthPayPercent(e.target.value)}
+                              />
+                              <span className="text-sm text-slate-500">%</span>
+                            </div>
+                            <span className="mt-1 block text-xs text-slate-400">Often the same as your post-birth STD rate.</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
 
                     {state === "CA" && (
@@ -2968,7 +3078,7 @@ export function PlanPage() {
                         </tbody>
                       </table>
                       {incomeEstimator.employerTotal > 0 && (
-                        <p className="text-[11px] text-slate-500">Employer leave: paid as regular wages — federal and CA state taxes apply.</p>
+                        <p className="text-[11px] text-slate-500 leading-snug">Employer leave: paid as regular wages — federal and {state === "CA" ? "CA" : "applicable"} state taxes apply.</p>
                       )}
                       {incomeEstimator.stdTotal > 0 && (
                         <p className="text-[11px] text-slate-500">STD: tax treatment depends on who paid your premiums — check with HR.</p>
