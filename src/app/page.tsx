@@ -569,6 +569,7 @@ function buildTimeline(options: {
   stdPreBirth?: "yes" | "no" | "";
   stdPreBirthPayPercent?: string;
   stdCoversWaitingPeriod?: "yes" | "no" | "unsure" | "";
+  stdCoordinatesWithEmployer?: "supplement" | "replace" | "";
   coordination: Coordination;
   caPreBirthLeave?: "yes_standard" | "yes_extended" | "no" | "";
   caPreBirthWeeks?: string;
@@ -590,6 +591,7 @@ function buildTimeline(options: {
     stdPreBirth = "",
     stdPreBirthPayPercent: stdPreBirthPayPercentStr = "60",
     stdCoversWaitingPeriod = "",
+    stdCoordinatesWithEmployer = "",
     coordination,
     caPreBirthLeave = "",
     caPreBirthWeeks: caPreBirthWeeksStr = "4",
@@ -641,6 +643,22 @@ function buildTimeline(options: {
   const employerStartWeek = employerConcurrent ? 1 : statePaidWeeks + 1;
   const employerEndWeek = employerConcurrent ? employerWeeks : statePaidWeeks + employerWeeks;
   const weeks: WeekInfo[] = [];
+
+  const stdCoordMode = stdCoordinatesWithEmployer;
+  function applyStdEmployerToPayPercent(
+    payPercent: number,
+    stdPct: number,
+    streams: WeekStream[]
+  ): number {
+    if (!streams.includes("Short‑term disability")) return payPercent;
+    if (stdCoordMode === "supplement" && streams.includes("Employer leave")) {
+      return Math.min(100, Math.max(payPercent, stdPct));
+    }
+    if (stdCoordMode === "replace") {
+      return Math.min(100, payPercent + stdPct);
+    }
+    return Math.min(100, Math.max(payPercent, stdPct));
+  }
 
   const fmlaWeeks = hasFmla ? FMLA.weeksProtected : 0;
 
@@ -706,11 +724,15 @@ function buildTimeline(options: {
         if (isCA) {
           if (isFirstWeekOfLeave && caWaitingPeriodDays >= 7) {
             payPercent = 0;
-            if (hasStd && stdCoversWeek1)
-              payPercent = Math.max(
-                payPercent,
-                stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
-              );
+            if (hasStd && stdCoversWeek1) {
+              const stdPctW1 =
+                stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent;
+              if (streams.includes("Short‑term disability")) {
+                payPercent = applyStdEmployerToPayPercent(payPercent, stdPctW1, streams);
+              } else {
+                payPercent = Math.max(payPercent, stdPctW1);
+              }
+            }
           } else {
             const sdiPct = state.sdi.payPercent
               ? Math.round(state.sdi.payPercent * 100)
@@ -719,31 +741,43 @@ function buildTimeline(options: {
           }
         } else if (isNY) {
           payPercent = Math.max(payPercent, 50);
-          if (hasStd)
-            payPercent = Math.max(
-              payPercent,
-              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
-            );
+          if (hasStd) {
+            const stdPctNy =
+              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent;
+            if (streams.includes("Short‑term disability")) {
+              payPercent = applyStdEmployerToPayPercent(payPercent, stdPctNy, streams);
+            } else {
+              payPercent = Math.max(payPercent, stdPctNy);
+            }
+          }
         } else if (isNJ) {
           const sdiPct = state.sdi.payPercent
             ? Math.round(state.sdi.payPercent * 100)
             : 85;
           payPercent = Math.max(payPercent, sdiPct);
-          if (hasStd)
-            payPercent = Math.max(
-              payPercent,
-              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
-            );
+          if (hasStd) {
+            const stdPctNj =
+              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent;
+            if (streams.includes("Short‑term disability")) {
+              payPercent = applyStdEmployerToPayPercent(payPercent, stdPctNj, streams);
+            } else {
+              payPercent = Math.max(payPercent, stdPctNj);
+            }
+          }
         } else if (isRI) {
           const sdiPct = state.sdi.payPercent
             ? Math.round(state.sdi.payPercent * 100)
             : 60;
           payPercent = Math.max(payPercent, sdiPct);
-          if (hasStd)
-            payPercent = Math.max(
-              payPercent,
-              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent
-            );
+          if (hasStd) {
+            const stdPctRi =
+              stdPreBirth === "yes" ? stdPreBirthPercentForPay : stdPercent;
+            if (streams.includes("Short‑term disability")) {
+              payPercent = applyStdEmployerToPayPercent(payPercent, stdPctRi, streams);
+            } else {
+              payPercent = Math.max(payPercent, stdPctRi);
+            }
+          }
         }
       } else {
         if (streams.includes("State SDI")) {
@@ -758,8 +792,9 @@ function buildTimeline(options: {
             : 0;
           payPercent = Math.max(payPercent, pflPct);
         }
-        if (streams.includes("Short‑term disability"))
-          payPercent = Math.max(payPercent, stdPercent);
+        if (streams.includes("Short‑term disability")) {
+          payPercent = applyStdEmployerToPayPercent(payPercent, stdPercent, streams);
+        }
       }
 
       if (payPercent > 100) payPercent = 100;
@@ -940,7 +975,7 @@ function buildTimeline(options: {
           ? stdPreBirthPercentForPay
           : stdPercent;
       if (!caWeek1SdiWaiting || stdCoversWeek1) {
-        payPercent = Math.max(payPercent, stdPctThisWeek);
+        payPercent = applyStdEmployerToPayPercent(payPercent, stdPctThisWeek, streams);
       }
     }
 
@@ -1065,6 +1100,7 @@ export function PlanPage() {
   const [stdPreBirth, setStdPreBirth] = useState<"yes" | "no" | "">("");
   const [stdPreBirthPayPercent, setStdPreBirthPayPercent] = useState("60");
   const [stdCoversWaitingPeriod, setStdCoversWaitingPeriod] = useState<"yes" | "no" | "unsure" | "">("");
+  const [stdCoordinatesWithEmployer, setStdCoordinatesWithEmployer] = useState<"supplement" | "replace" | "">("");
   const [coordination, setCoordination] = useState<Coordination>("");
   const [timeline, setTimeline] = useState<WeekInfo[] | null>(null);
   const [salaryAmount, setSalaryAmount] = useState("");
@@ -1168,6 +1204,7 @@ export function PlanPage() {
     setStdPreBirth("");
     setStdPreBirthPayPercent("60");
     setStdCoversWaitingPeriod("");
+    setStdCoordinatesWithEmployer("");
     setCoordination("");
     setTimeline(null);
     setSalaryAmount("");
@@ -1364,6 +1401,7 @@ export function PlanPage() {
         stdPreBirth,
         stdPreBirthPayPercent,
         stdCoversWaitingPeriod,
+        stdCoordinatesWithEmployer,
         stdCoverage,
         coordination,
         caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
@@ -1450,6 +1488,7 @@ export function PlanPage() {
       stdPreBirth,
       stdPreBirthPayPercent,
       stdCoversWaitingPeriod,
+      stdCoordinatesWithEmployer,
       stdCoverage,
       coordination: coordinationForTimeline,
       caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
@@ -1475,6 +1514,7 @@ export function PlanPage() {
     stdPreBirth,
     stdPreBirthPayPercent,
     stdCoversWaitingPeriod,
+    stdCoordinatesWithEmployer,
     caPreBirthLeave,
     caPreBirthWeeks,
   ]);
@@ -2411,6 +2451,38 @@ export function PlanPage() {
                           </label>
                         </div>
                       )}
+                    </div>
+
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">How does your STD interact with your employer leave?</div>
+                      <p className="mt-1 text-xs text-slate-500">This affects how your income is calculated when both are active at the same time.</p>
+                      <div className="mt-3 space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => setStdCoordinatesWithEmployer("supplement")}
+                          className={`block w-full rounded-xl border px-4 py-3 text-left text-sm shadow-sm transition ${
+                            stdCoordinatesWithEmployer === "supplement"
+                              ? "border-sky-400 bg-sky-50 text-sky-900"
+                              : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="font-medium">STD supplements employer leave — total capped at 100%</div>
+                          <div className="mt-0.5 text-xs text-slate-500">Example: Employer pays 60% + STD pays up to 40% to fill the gap. You receive 100% of your salary total, not 160%.</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStdCoordinatesWithEmployer("replace")}
+                          className={`block w-full rounded-xl border px-4 py-3 text-left text-sm shadow-sm transition ${
+                            stdCoordinatesWithEmployer === "replace"
+                              ? "border-sky-400 bg-sky-50 text-sky-900"
+                              : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="font-medium">STD and employer leave are independent — both pay their full amounts</div>
+                          <div className="mt-0.5 text-xs text-slate-500">Example: Employer pays 60% AND STD separately pays 60%. You may receive more than 100% of your normal salary. Less common — check your policy.</div>
+                        </button>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-400">Not sure? Most employer STD policies coordinate (cap at 100%). Check your benefits portal or ask HR.</p>
                     </div>
 
                     {state === "CA" && (
