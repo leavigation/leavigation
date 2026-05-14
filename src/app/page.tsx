@@ -5,7 +5,36 @@ import emailjs from "@emailjs/browser";
 import { getStateLeave, FMLA } from "../stateleavedata";
 import { getMunicipalLeave, isMunicipalPaySupplement } from "../data/municipalleavedata";
 
-const US_STATES = [{ code: "CA", name: "California" }];
+const US_STATES_SUPPORTED = ["CA"];
+const US_STATES_PAID_LEAVE_COMING_SOON = ["NY", "NJ", "WA", "MA", "CT", "CO", "OR", "RI", "MN", "DE", "MD", "HI"];
+const ALL_US_STATES = [
+  { code: "AL", name: "Alabama" }, { code: "AK", name: "Alaska" },
+  { code: "AZ", name: "Arizona" }, { code: "AR", name: "Arkansas" },
+  { code: "CA", name: "California" }, { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" }, { code: "DE", name: "Delaware" },
+  { code: "FL", name: "Florida" }, { code: "GA", name: "Georgia" },
+  { code: "HI", name: "Hawaii" }, { code: "ID", name: "Idaho" },
+  { code: "IL", name: "Illinois" }, { code: "IN", name: "Indiana" },
+  { code: "IA", name: "Iowa" }, { code: "KS", name: "Kansas" },
+  { code: "KY", name: "Kentucky" }, { code: "LA", name: "Louisiana" },
+  { code: "ME", name: "Maine" }, { code: "MD", name: "Maryland" },
+  { code: "MA", name: "Massachusetts" }, { code: "MI", name: "Michigan" },
+  { code: "MN", name: "Minnesota" }, { code: "MS", name: "Mississippi" },
+  { code: "MO", name: "Missouri" }, { code: "MT", name: "Montana" },
+  { code: "NE", name: "Nebraska" }, { code: "NV", name: "Nevada" },
+  { code: "NH", name: "New Hampshire" }, { code: "NJ", name: "New Jersey" },
+  { code: "NM", name: "New Mexico" }, { code: "NY", name: "New York" },
+  { code: "NC", name: "North Carolina" }, { code: "ND", name: "North Dakota" },
+  { code: "OH", name: "Ohio" }, { code: "OK", name: "Oklahoma" },
+  { code: "OR", name: "Oregon" }, { code: "PA", name: "Pennsylvania" },
+  { code: "RI", name: "Rhode Island" }, { code: "SC", name: "South Carolina" },
+  { code: "SD", name: "South Dakota" }, { code: "TN", name: "Tennessee" },
+  { code: "TX", name: "Texas" }, { code: "UT", name: "Utah" },
+  { code: "VT", name: "Vermont" }, { code: "VA", name: "Virginia" },
+  { code: "WA", name: "Washington" }, { code: "WV", name: "West Virginia" },
+  { code: "WI", name: "Wisconsin" }, { code: "WY", name: "Wyoming" },
+  { code: "DC", name: "Washington DC" },
+];
 
 const steps = [
   "Basics",
@@ -33,7 +62,7 @@ const PAYROLL_TAX_CODES: Record<string, string> = {
   CT: "CT PFML",
 };
 function getStateDisplayName(stateCode: string): string {
-  const found = US_STATES.find((s) => s.code === stateCode);
+  const found = ALL_US_STATES.find((s) => s.code === stateCode);
   return found?.name ?? stateCode;
 }
 
@@ -531,7 +560,13 @@ function buildTimeline(options: {
   fmlaEligible: "yes" | "no" | "unsure" | "";
   employerLeaveWeeks: string;
   employerLeavePayPercent: string;
+  employerPreBirth?: "yes" | "no" | "";
+  employerPreBirthWeeks?: string;
   stdCoverage: "yes" | "no" | "unsure" | "";
+  stdWeeks?: string;
+  stdPayPercent?: string;
+  stdPreBirth?: "yes" | "no" | "";
+  stdCoversWaitingPeriod?: "yes" | "no" | "unsure" | "";
   coordination: Coordination;
   caPreBirthLeave?: "yes_standard" | "yes_extended" | "no" | "";
   caPreBirthWeeks?: string;
@@ -544,7 +579,13 @@ function buildTimeline(options: {
     fmlaEligible,
     employerLeaveWeeks,
     employerLeavePayPercent,
+    employerPreBirth = "",
+    employerPreBirthWeeks: employerPreBirthWeeksStr = "2",
     stdCoverage,
+    stdWeeks: stdWeeksStr = "",
+    stdPayPercent: stdPayPercentStr = "60",
+    stdPreBirth = "",
+    stdCoversWaitingPeriod = "",
     coordination,
     caPreBirthLeave = "",
     caPreBirthWeeks: caPreBirthWeeksStr = "4",
@@ -560,17 +601,22 @@ function buildTimeline(options: {
       : state.sdi.weeksDurationVaginal || getRecoveryWeeks(birthType);
   const employerWeeks = parseWeeks(employerLeaveWeeks);
   const employerPercent = parsePercent(employerLeavePayPercent);
-  const hasStd = false; // STD removed from calculations — policy details vary too much by employer. Coming soon.
-  const userHasStd = stdCoverage === "yes"; // preserved for future use
+  const hasStd = stdCoverage === "yes";
+  const stdWeeksNum = hasStd ? (parseInt(stdWeeksStr, 10) || 6) : 0;
+  const stdPercent = hasStd ? (parseInt(stdPayPercentStr, 10) || 60) : 0;
+  const stdCoversWeek1 = hasStd && stdCoversWaitingPeriod === "yes";
+  const hasEmployerPreBirth = employerPreBirth === "yes";
+  const employerPreBirthWeeksNum = hasEmployerPreBirth ? (parseInt(employerPreBirthWeeksStr, 10) || 2) : 0;
   const hasFmla = fmlaEligible === "yes";
   const disabilityWeeks = state.sdi.available ? recoveryWeeks : 0;
   const bondingWeeks = state.pfl.available ? state.pfl.weeksDuration || 0 : 0;
 
-  const preBirthWeeks =
+  const statePreBirthWeeks =
     (code === "CA" || code === "NY" || code === "NJ" || code === "RI") &&
     (caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended")
       ? Math.min(20, Math.max(1, parseInt(caPreBirthWeeksStr, 10) || 4))
       : 0;
+  const preBirthWeeks = Math.max(statePreBirthWeeks, employerPreBirthWeeksNum);
 
   const statePaidWeeks = preBirthWeeks + disabilityWeeks + bondingWeeks;
   const employerConcurrent = coordination === "concurrent" || coordination === "unsure" || coordination === "";
@@ -614,22 +660,26 @@ function buildTimeline(options: {
 
       if (weekNumber <= preBirthWeeks) {
         streams.push("State SDI");
-        if (hasStd) streams.push("Short‑term disability");
+        if (hasStd && stdPreBirth === "yes") streams.push("Short‑term disability");
       } else if (weekNumber <= lastSdiWeek) {
         streams.push("State SDI");
-        if (hasStd) streams.push("Short‑term disability");
+        if (hasStd && weekNumber <= preBirthWeeks + stdWeeksNum) streams.push("Short‑term disability");
       }
 
       if (weekNumber >= pflStartWeek && weekNumber <= pflEndWeek && !streams.includes("State SDI")) {
         streams.push("State PFL");
       }
 
-      if (
-        employerWeeks > 0 &&
-        weekNumber >= (employerConcurrent ? birthWeek : statePaidWeeks + 1) &&
-        weekNumber <= (employerConcurrent ? preBirthWeeks + employerWeeks : statePaidWeeks + employerWeeks)
-      ) {
-        streams.push("Employer leave");
+      if (employerWeeks > 0) {
+        const empStart = hasEmployerPreBirth
+          ? 1
+          : (employerConcurrent ? birthWeek : statePaidWeeks + 1);
+        const empEnd = hasEmployerPreBirth
+          ? employerPreBirthWeeksNum + employerWeeks
+          : (employerConcurrent ? preBirthWeeks + employerWeeks : statePaidWeeks + employerWeeks);
+        if (weekNumber >= empStart && weekNumber <= empEnd) {
+          streams.push("Employer leave");
+        }
       }
 
       let payPercent = 0;
@@ -643,7 +693,7 @@ function buildTimeline(options: {
         if (isCA) {
           if (isFirstWeekOfLeave && caWaitingPeriodDays >= 7) {
             payPercent = 0;
-            if (hasStd) payPercent = Math.max(payPercent, 60);
+            if (hasStd && stdCoversWeek1) payPercent = Math.max(payPercent, stdPercent);
           } else {
             const sdiPct = state.sdi.payPercent
               ? Math.round(state.sdi.payPercent * 100)
@@ -652,19 +702,19 @@ function buildTimeline(options: {
           }
         } else if (isNY) {
           payPercent = Math.max(payPercent, 50);
-          if (hasStd) payPercent = Math.max(payPercent, 60);
+          if (hasStd) payPercent = Math.max(payPercent, stdPercent);
         } else if (isNJ) {
           const sdiPct = state.sdi.payPercent
             ? Math.round(state.sdi.payPercent * 100)
             : 85;
           payPercent = Math.max(payPercent, sdiPct);
-          if (hasStd) payPercent = Math.max(payPercent, 60);
+          if (hasStd) payPercent = Math.max(payPercent, stdPercent);
         } else if (isRI) {
           const sdiPct = state.sdi.payPercent
             ? Math.round(state.sdi.payPercent * 100)
             : 60;
           payPercent = Math.max(payPercent, sdiPct);
-          if (hasStd) payPercent = Math.max(payPercent, 60);
+          if (hasStd) payPercent = Math.max(payPercent, stdPercent);
         }
       } else {
         if (streams.includes("State SDI")) {
@@ -680,7 +730,7 @@ function buildTimeline(options: {
           payPercent = Math.max(payPercent, pflPct);
         }
         if (streams.includes("Short‑term disability"))
-          payPercent = Math.max(payPercent, 60);
+          payPercent = Math.max(payPercent, stdPercent);
       }
 
       if (payPercent > 100) payPercent = 100;
@@ -805,8 +855,10 @@ function buildTimeline(options: {
       }
     }
 
-    // STD: runs during medical recovery only, concurrently
-    if (hasStd && weekNumber <= recoveryWeeks) {
+    // STD: runs during pre-birth (if applicable) and post-birth recovery
+    const stdStartWeek = (hasStd && stdPreBirth === "yes") ? 1 : preBirthWeeks + 1;
+    const stdEndWeek = preBirthWeeks + Math.min(stdWeeksNum, recoveryWeeks);
+    if (hasStd && weekNumber >= stdStartWeek && weekNumber <= stdEndWeek) {
       streams.push("Short‑term disability");
     }
 
@@ -842,7 +894,14 @@ function buildTimeline(options: {
     }
 
     if (streams.includes("Short‑term disability")) {
-      payPercent = Math.max(payPercent, 60);
+      const caWeek1SdiWaiting =
+        code === "CA" &&
+        state.sdi.available &&
+        (state.sdi?.waitingPeriodDays ?? 7) >= 7 &&
+        weekNumber === 1;
+      if (!caWeek1SdiWaiting || stdCoversWeek1) {
+        payPercent = Math.max(payPercent, stdPercent);
+      }
     }
 
     if (payPercent > 100) payPercent = 100;
@@ -956,6 +1015,12 @@ export function PlanPage() {
   const [employerLeaveWeeks, setEmployerLeaveWeeks] = useState("");
   const [employerLeavePayPercent, setEmployerLeavePayPercent] = useState("");
   const [stdCoverage, setStdCoverage] = useState<"yes" | "no" | "unsure" | "">("");
+  const [employerPreBirth, setEmployerPreBirth] = useState<"yes" | "no" | "">("");
+  const [employerPreBirthWeeks, setEmployerPreBirthWeeks] = useState("2");
+  const [stdWeeks, setStdWeeks] = useState("");
+  const [stdPayPercent, setStdPayPercent] = useState("60");
+  const [stdPreBirth, setStdPreBirth] = useState<"yes" | "no" | "">("");
+  const [stdCoversWaitingPeriod, setStdCoversWaitingPeriod] = useState<"yes" | "no" | "unsure" | "">("");
   const [coordination, setCoordination] = useState<Coordination>("");
   const [timeline, setTimeline] = useState<WeekInfo[] | null>(null);
   const [salaryAmount, setSalaryAmount] = useState("");
@@ -1051,6 +1116,12 @@ export function PlanPage() {
     setEmployerLeaveWeeks("");
     setEmployerLeavePayPercent("");
     setStdCoverage("");
+    setEmployerPreBirth("");
+    setEmployerPreBirthWeeks("2");
+    setStdWeeks("");
+    setStdPayPercent("60");
+    setStdPreBirth("");
+    setStdCoversWaitingPeriod("");
     setCoordination("");
     setTimeline(null);
     setSalaryAmount("");
@@ -1239,6 +1310,12 @@ export function PlanPage() {
         fmlaEligible,
         employerLeaveWeeks,
         employerLeavePayPercent,
+        employerPreBirth,
+        employerPreBirthWeeks,
+        stdWeeks,
+        stdPayPercent,
+        stdPreBirth,
+        stdCoversWaitingPeriod,
         stdCoverage,
         coordination,
         caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
@@ -1317,6 +1394,12 @@ export function PlanPage() {
       fmlaEligible,
       employerLeaveWeeks,
       employerLeavePayPercent,
+      employerPreBirth,
+      employerPreBirthWeeks,
+      stdWeeks,
+      stdPayPercent,
+      stdPreBirth,
+      stdCoversWaitingPeriod,
       stdCoverage,
       coordination: coordinationForTimeline,
       caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
@@ -1325,8 +1408,7 @@ export function PlanPage() {
     return result;
   }, [
     timeline,
-    coordination,
-    employerRequiresConcurrent,
+    coordinationForTimeline,
     state,
     city,
     dueDate,
@@ -1335,6 +1417,12 @@ export function PlanPage() {
     employerLeaveWeeks,
     employerLeavePayPercent,
     stdCoverage,
+    employerPreBirth,
+    employerPreBirthWeeks,
+    stdWeeks,
+    stdPayPercent,
+    stdPreBirth,
+    stdCoversWaitingPeriod,
     caPreBirthLeave,
     caPreBirthWeeks,
   ]);
@@ -1353,7 +1441,7 @@ export function PlanPage() {
     const isCA = stateCode === "CA";
     const employerPct = parsePercent(employerLeavePayPercent);
     const employerWks = parseWeeks(employerLeaveWeeks);
-    const hasStd = stdCoverage === "yes";
+    const stdPctForEst = parsePercent(stdPayPercent) || 60;
     const coordinationForEstimator: "concurrent" | "sequential" =
       employerRequiresConcurrent
         ? "concurrent"
@@ -1398,7 +1486,7 @@ export function PlanPage() {
         employerTotal += weekEmployer;
       }
       if (w.streams.includes("Short‑term disability")) {
-        weekStd = weeklySalary * 0.6;
+        weekStd = weeklySalary * (stdPctForEst / 100);
         stdPaidWeeks += 1;
         stdTotal += weekStd;
       }
@@ -1463,7 +1551,7 @@ export function PlanPage() {
       employerWeekly: weeklySalary * (employerPct / 100),
       employerTotal,
       stdWeeks: stdPaidWeeks,
-      stdWeekly: weeklySalary * 0.6,
+      stdWeekly: weeklySalary * (stdPctForEst / 100),
       stdTotal,
       totalLeaveIncome,
       normalIncomeSamePeriod,
@@ -1477,7 +1565,7 @@ export function PlanPage() {
     state,
     employerLeavePayPercent,
     employerLeaveWeeks,
-    stdCoverage,
+    stdPayPercent,
     coordination,
     employerRequiresConcurrent,
   ]);
@@ -1508,7 +1596,7 @@ export function PlanPage() {
                   <li>✓ People who have paid into CA SDI within the last 18 months</li>
                   <li>✓ Employees who have worked for their current employer for at least 12 months</li>
                   <li>✓ Employers with 5 or more employees</li>
-                  <li>⚠ Short-term disability (STD) coverage is not yet factored into income estimates — STD policies vary significantly by employer. This feature is coming soon.</li>
+                  <li>STD is estimated from the weeks and % you enter on the STD step (policies still vary — confirm with HR).</li>
                 </ul>
                 <p className="mt-3 text-xs text-amber-700">
                   If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage.{" "}
@@ -1549,6 +1637,10 @@ export function PlanPage() {
               <div className="mt-6 space-y-4">
                 <label className="block text-sm font-medium text-slate-700">
                   State
+                  <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    ⚠️ Full paid leave program support is currently available for California only. All other states show FMLA + employer leave only.{" "}
+                    <a href="/leave-guide#notify" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</a>
+                  </div>
                   <select
                     className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
                     value={state}
@@ -1561,7 +1653,12 @@ export function PlanPage() {
                       }
                     }}
                   >
-                    <option value="CA">California</option>
+                    <option value="">Select your state...</option>
+                    {ALL_US_STATES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.name}{US_STATES_PAID_LEAVE_COMING_SOON.includes(s.code) ? " (paid leave coming soon)" : ""}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
@@ -1893,7 +1990,7 @@ export function PlanPage() {
                   </div>
                   <div className="grid gap-6 sm:grid-cols-2">
                     <label className="block text-sm font-medium text-slate-700">
-                      How many weeks of employer parental leave?
+                      How many weeks of employer parental leave after birth?
                       <input
                         type="number"
                         min={0}
@@ -1918,6 +2015,43 @@ export function PlanPage() {
                         <span className="text-sm text-slate-500">%</span>
                       </div>
                     </label>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="text-sm font-medium text-slate-700">Does your employer allow parental leave to start before birth?</div>
+                    <p className="mt-1 text-xs text-slate-500">Some employers allow you to start leave 1–4 weeks before your due date.</p>
+                    <div className="mt-3 flex gap-3">
+                      {[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setEmployerPreBirth(opt.value as "yes" | "no")}
+                          className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
+                            employerPreBirth === opt.value
+                              ? "border-sky-400 bg-sky-50 text-sky-900"
+                              : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {employerPreBirth === "yes" && (
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-slate-700">
+                          How many weeks before your due date?
+                          <input
+                            type="number"
+                            min={1}
+                            max={8}
+                            className="mt-2 w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                            placeholder="e.g. 2"
+                            value={employerPreBirthWeeks}
+                            onChange={(e) => setEmployerPreBirthWeeks(e.target.value)}
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -2045,8 +2179,7 @@ export function PlanPage() {
                 Short-term disability
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Short-term disability can sometimes cover part of your income
-                during medical recovery.
+                Short-term disability (STD) is private insurance that pays a portion of your salary when you can&apos;t work due to pregnancy or recovery from childbirth. It is separate from state SDI.
               </p>
               <div className="mt-6 space-y-6">
                 <div>
@@ -2063,15 +2196,14 @@ export function PlanPage() {
                   </div>
                   {stdExplainerOpen && (
                     <div className="mt-2 border-l-2 border-sky-300 bg-sky-50 rounded-r-xl px-4 py-3 text-xs text-slate-700 space-y-2">
-                      <p><span className="font-semibold">Short-term disability (STD)</span> is private insurance — separate from California SDI — that pays a portion of your salary when you can&apos;t work due to a medical condition, including pregnancy and childbirth recovery.</p>
-                      <p>There are 2 ways you might have it: (1) your employer includes it as part of your benefits package, or (2) you purchased a policy independently through a private insurer.</p>
-                      <p>CA SDI is mandatory — everyone in California pays into it via payroll taxes. STD is optional and not universal. If you have STD, it typically pays 60% of your salary and often covers the first unpaid week of CA SDI (the 7-day waiting period).</p>
-                      <p><span className="font-semibold">Not sure?</span> Check your benefits portal, your offer letter, or ask HR directly. Search for &quot;short-term disability&quot; or &quot;income protection.&quot;</p>
+                      <p><span className="font-semibold">Short-term disability (STD)</span> is private insurance — separate from any state program — that pays a portion of your salary when you can&apos;t work due to a medical condition, including pregnancy and childbirth recovery.</p>
+                      <p>There are 2 ways you might have it: (1) your employer includes it as part of your benefits package, or (2) you purchased a policy independently through a private insurer (e.g. The Hartford, Cigna, MetLife, Unum).</p>
+                      {state === "CA" && <p>CA SDI is mandatory and separate from STD. If you have both, STD often covers the 7-day CA SDI waiting period so week 1 is not $0.</p>}
+                      {state !== "CA" && <p>In states without a state disability program, STD is your primary source of income during pregnancy recovery. Without it, recovery weeks are typically unpaid.</p>}
+                      <p><span className="font-semibold">Not sure?</span> Check your benefits portal, offer letter, or ask HR. Search for &quot;short-term disability&quot; or &quot;income protection.&quot;</p>
                     </div>
                   )}
-                  <p className="mt-2 text-xs text-slate-500">
-                    This might be through your employer or a separate plan you purchased.
-                  </p>
+                  <p className="mt-2 text-xs text-slate-500">This might be through your employer or a separate plan you purchased.</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     {[
                       { value: "yes", label: "Yes" },
@@ -2081,9 +2213,7 @@ export function PlanPage() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() =>
-                          setStdCoverage(option.value as "yes" | "no" | "unsure")
-                        }
+                        onClick={() => setStdCoverage(option.value as "yes" | "no" | "unsure")}
                         className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
                           stdCoverage === option.value
                             ? "border-sky-400 bg-sky-50 text-sky-900"
@@ -2095,6 +2225,86 @@ export function PlanPage() {
                     ))}
                   </div>
                 </div>
+
+                {stdCoverage === "yes" && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 space-y-5">
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <label className="block text-sm font-medium text-slate-700">
+                        How many weeks does your STD cover after birth?
+                        <input
+                          type="number"
+                          min={0}
+                          max={26}
+                          className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="e.g. 6"
+                          value={stdWeeks}
+                          onChange={(e) => setStdWeeks(e.target.value)}
+                        />
+                        <span className="mt-1 block text-xs text-slate-400">Typically 6–12 weeks. Check your policy.</span>
+                      </label>
+                      <label className="block text-sm font-medium text-slate-700">
+                        At what % of your pay?
+                        <div className="mt-2 flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                            placeholder="e.g. 60"
+                            value={stdPayPercent}
+                            onChange={(e) => setStdPayPercent(e.target.value)}
+                          />
+                          <span className="text-sm text-slate-500">%</span>
+                        </div>
+                        <span className="mt-1 block text-xs text-slate-400">Most STD policies pay 60% of salary.</span>
+                      </label>
+                    </div>
+
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Can your STD coverage start before birth if medically necessary?</div>
+                      <p className="mt-1 text-xs text-slate-500">e.g. bed rest, complications, or doctor&apos;s orders before your due date</p>
+                      <div className="mt-3 flex gap-3">
+                        {[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }].map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setStdPreBirth(opt.value as "yes" | "no")}
+                            className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
+                              stdPreBirth === opt.value
+                                ? "border-sky-400 bg-sky-50 text-sky-900"
+                                : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {state === "CA" && (
+                      <div>
+                        <div className="text-sm font-medium text-slate-700">Does your STD cover the CA SDI 7-day waiting period (week 1)?</div>
+                        <p className="mt-1 text-xs text-slate-500">Many STD policies are designed to cover this gap so you receive income from day 1.</p>
+                        <div className="mt-3 flex gap-3">
+                          {[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }, { value: "unsure", label: "Not sure" }].map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setStdCoversWaitingPeriod(opt.value as "yes" | "no" | "unsure")}
+                              className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
+                                stdCoversWaitingPeriod === opt.value
+                                  ? "border-sky-400 bg-sky-50 text-sky-900"
+                                  : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2115,10 +2325,18 @@ export function PlanPage() {
                 <span className="text-amber-300">·</span>
                 <span>Birthing parent</span>
                 <span className="text-amber-300">·</span>
-                <span>STD not yet included in estimates</span>
+                <span>STD from your inputs when you select coverage</span>
                 <span className="text-amber-300">·</span>
                 <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-amber-900">Not your situation? Visit CA EDD →</a>
               </div>
+              {!US_STATES_SUPPORTED.includes(state) && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
+                  <span className="text-blue-500">ℹ</span>
+                  <span className="font-semibold">Your state does not have a state paid leave program.</span>
+                  <span>Income during leave comes from your employer and any private STD coverage you have. FMLA provides 12 weeks of unpaid job protection only.</span>
+                  <a href="https://leavigation.com/leave-guide" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">Learn more →</a>
+                </div>
+              )}
               {/* FMLA cliff warning — show when pre-birth leave causes FMLA to exhaust before PDL ends */}
               {fmlaEligible === "yes" &&
                 state === "CA" &&
@@ -2127,7 +2345,7 @@ export function PlanPage() {
                   <span className="mt-0.5 text-orange-500 text-base leading-none shrink-0">⚠️</span>
                   <div>
                     <p className="font-semibold text-orange-900">Your FMLA protection ends earlier than you might expect.</p>
-                    <p className="mt-1 text-orange-800">Because you're taking leave before your due date, your 12-week FMLA clock starts now — not at birth. Your federal job protection ends 12 weeks from your first day of leave, which may be before your pregnancy disability leave (PDL) ends. California's PDL and CFRA will continue to protect your job after FMLA ends, but it's important to know the federal protection ends early.</p>
+                    <p className="mt-1 text-orange-800">Because you&apos;re taking leave before your due date, your 12-week FMLA clock starts now — not at birth. Your federal job protection ends 12 weeks from your first day of leave, which may be before your pregnancy disability leave (PDL) ends. California&apos;s PDL and CFRA will continue to protect your job after FMLA ends, but it&apos;s important to know the federal protection ends early.</p>
                   </div>
                 </div>
               )}
@@ -2462,7 +2680,7 @@ export function PlanPage() {
                         }
 
                         if (hasStdCoverage) {
-                          excludedRows.push("Short-term disability (coming soon — not yet included in estimates)");
+                          rows.push("Short‑term disability");
                         } else {
                           excludedRows.push("Short-term disability (not selected)");
                         }
@@ -3154,7 +3372,7 @@ export default function LandingPage() {
               <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
                 <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl mb-4">💵</div>
                 <h3 className="text-base font-semibold text-slate-900 mb-2">Forecasted income during leave</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">See exactly how much money you'll receive each week — broken down by source. Know your shortfall in advance so you can plan, save, and negotiate with confidence.</p>
+                <p className="text-sm text-slate-600 leading-relaxed">See exactly how much money you&apos;ll receive each week — broken down by source. Know your shortfall in advance so you can plan, save, and negotiate with confidence.</p>
               </div>
             </div>
           </section>

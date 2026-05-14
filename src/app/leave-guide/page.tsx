@@ -83,7 +83,7 @@ export default function LeaveGuidePage() {
           </div>
 
           {/* Not in CA */}
-          <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <div id="notify" className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <h2 className="text-lg font-semibold text-slate-900 mb-2">Not in California? We&apos;re expanding.</h2>
             <p className="text-sm text-slate-600 mb-4">Leavigation currently supports California. Enter your email to get notified when we add your state.</p>
             <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
