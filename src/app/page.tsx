@@ -640,8 +640,10 @@ function buildTimeline(options: {
     concurrentEmployerEnd,
     preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2
   );
-  const employerStartWeek = employerConcurrent ? 1 : statePaidWeeks + 1;
-  const employerEndWeek = employerConcurrent ? employerWeeks : statePaidWeeks + employerWeeks;
+  const employerStartWeek = hasEmployerPreBirth ? 1 : (employerConcurrent ? preBirthWeeks + 1 : statePaidWeeks + 1);
+  const employerEndWeek = hasEmployerPreBirth
+    ? employerPreBirthWeeksNum + employerWeeks
+    : (employerConcurrent ? preBirthWeeks + employerWeeks : statePaidWeeks + employerWeeks);
   const weeks: WeekInfo[] = [];
 
   const stdCoordMode = stdCoordinatesWithEmployer;
@@ -702,7 +704,7 @@ function buildTimeline(options: {
           : (employerConcurrent ? birthWeek : statePaidWeeks + 1);
         const empEnd = hasEmployerPreBirth
           ? employerPreBirthWeeksNum + employerWeeks
-          : (employerConcurrent ? preBirthWeeks + employerWeeks : statePaidWeeks + employerWeeks);
+          : (employerConcurrent ? birthWeek - 1 + employerWeeks : statePaidWeeks + employerWeeks);
         if (weekNumber >= empStart && weekNumber <= empEnd) {
           streams.push("Employer leave");
         }
