@@ -1684,7 +1684,11 @@ export function PlanPage() {
                       <p>✓ Birthing parents (pregnant women)</p>
                       <p>✓ FMLA eligible employees (employer 50+ employees, 12+ months tenure, 1,250+ hours worked)</p>
                       <p>✓ Employer leave and STD estimated from your inputs</p>
-                      <p className="mt-2 text-amber-700">Your state does not have a state paid leave program. This tool shows FMLA job protection + employer leave + STD only. <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="underline font-medium">Learn about FMLA at DOL.gov →</a></p>
+                      {US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? (
+                        <p className="mt-2 text-amber-700">Your state has a paid leave program, but full support for it is not yet available in Leavigation. Results show FMLA + employer leave + STD only. <a href="/leave-guide#notify" className="underline font-medium">Get notified when your state launches →</a></p>
+                      ) : (
+                        <p className="mt-2 text-amber-700">Your state does not have a state paid leave program. This tool shows FMLA job protection + employer leave + STD only. <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="underline font-medium">Learn about FMLA at DOL.gov →</a></p>
+                      )}
                     </>
                   )}
                 </div>
@@ -2473,12 +2477,20 @@ export function PlanPage() {
                   </>
                 )}
               </div>
-              {!US_STATES_SUPPORTED.includes(state) && (
+              {!US_STATES_SUPPORTED.includes(state) && US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-2.5 text-xs text-purple-800">
+                  <span className="text-purple-500">ℹ</span>
+                  <span className="font-semibold">{`Full paid leave support for your state is coming soon.`}</span>
+                  <span>Results below show FMLA job protection + employer leave + STD only. Your state&apos;s paid leave program is not yet included.</span>
+                  <a href="/leave-guide#notify" className="font-medium underline hover:text-purple-900">Get notified when it launches →</a>
+                </div>
+              )}
+              {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
                   <span className="text-blue-500">ℹ</span>
                   <span className="font-semibold">Your state does not have a state paid leave program.</span>
                   <span>Income during leave comes from your employer and any private STD coverage you have. FMLA provides 12 weeks of unpaid job protection only.</span>
-                  <a href="https://leavigation.com/leave-guide" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">Learn more →</a>
+                  <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">Learn more at DOL.gov →</a>
                 </div>
               )}
               {/* FMLA cliff warning — show when pre-birth leave causes FMLA to exhaust before PDL ends */}
