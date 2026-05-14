@@ -3422,13 +3422,19 @@ export function PlanPage() {
                     <div className="px-5 py-4 border-b border-slate-100">
                       <p className="text-xs text-slate-500 mb-3">Suggested questions:</p>
                       <div className="flex flex-wrap gap-2">
-                        {[
+                        {(state === "CA" ? [
                           "When should I file my SDI claim?",
                           "What happens if I take leave before my due date?",
                           "How does my employer leave interact with SDI?",
                           "What is the FMLA cliff?",
                           "When does CFRA start?",
-                        ].map((q) => (
+                        ] : [
+                          "What does FMLA cover?",
+                          "How does my STD interact with employer leave?",
+                          "What happens after my FMLA runs out?",
+                          "How do I file for FMLA leave?",
+                          "What is the difference between FMLA and employer leave?",
+                        ]).map((q) => (
                           <button
                             key={q}
                             type="button"
@@ -3499,7 +3505,7 @@ export function PlanPage() {
                           handleChatSubmit();
                         }
                       }}
-                      placeholder="Ask anything about your leave plan or CA leave law..."
+                      placeholder={state === "CA" ? "Ask anything about your leave plan or CA leave law..." : "Ask anything about your leave plan or FMLA..."}
                       className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 resize-none outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition"
                       rows={2}
                     />
