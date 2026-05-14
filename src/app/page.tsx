@@ -1310,8 +1310,11 @@ export function PlanPage() {
     const lastActive = tl ? Math.max(0, ...tl.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0))) : 0;
     const fullyPaid = tl ? tl.filter((w) => w.weekNumber <= lastActive && w.payPercent >= 95).length : 0;
 
+    const stateDisplayName = ALL_US_STATES.find((s) => s.code === state)?.name ?? state;
+    const hasStatePaidLeave = US_STATES_SUPPORTED.includes(state);
     const planContext = tl ? [
-      `State: California`,
+      `State: ${stateDisplayName} (${state})`,
+      `State paid leave program: ${hasStatePaidLeave ? "Yes — full CA program" : US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? "Yes but not yet modeled in this tool — showing FMLA + employer + STD only" : "No state program — FMLA + employer + STD only"}`,
       `Birth type: ${birthType || "not specified"}`,
       `Pre-birth leave: ${caPreBirthLeave === "yes_standard" ? "Yes, standard (<=4 weeks)" : caPreBirthLeave === "yes_extended" ? `Yes, extended (${caPreBirthWeeks} weeks)` : "None"}`,
       `SF PPLO: ${city === "San Francisco" ? "Yes" : "No"}`,
@@ -2522,7 +2525,7 @@ export function PlanPage() {
               {/* Condensed assumptions reminder — visible on screen and in PDF */}
               <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
                 <span className="text-amber-500">⚠</span>
-                <span className="font-semibold text-amber-900">Results are based on these assumptions:</span>
+                <span className="font-semibold text-amber-900">Results for {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} — based on these assumptions:</span>
                 {state === "CA" ? (
                   <>
                     <span>Full-time CA W-2 employee</span>
@@ -2556,7 +2559,7 @@ export function PlanPage() {
               {!US_STATES_SUPPORTED.includes(state) && US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-2.5 text-xs text-purple-800">
                   <span className="text-purple-500">ℹ</span>
-                  <span className="font-semibold">{`Full paid leave support for your state is coming soon.`}</span>
+                  <span className="font-semibold">{`Full paid leave support for ${ALL_US_STATES.find((s) => s.code === state)?.name ?? state} is coming soon.`}</span>
                   <span>Results below show FMLA job protection + employer leave + STD only. Your state&apos;s paid leave program is not yet included.</span>
                   <a href="/leave-guide#notify" className="font-medium underline hover:text-purple-900">Get notified when it launches →</a>
                 </div>
@@ -2564,7 +2567,7 @@ export function PlanPage() {
               {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
                   <span className="text-blue-500">ℹ</span>
-                  <span className="font-semibold">Your state does not have a state paid leave program.</span>
+                  <span className="font-semibold">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} does not have a state paid leave program.</span>
                   <span>Income during leave comes from your employer and any private STD coverage you have. FMLA provides 12 weeks of unpaid job protection only.</span>
                   <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">Learn more at DOL.gov →</a>
                 </div>
