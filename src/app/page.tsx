@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import emailjs from "@emailjs/browser";
 import { getStateLeave, FMLA } from "../stateleavedata";
@@ -1085,7 +1086,7 @@ function buildTimeline(options: {
 export function PlanPage() {
   const [step, setStep] = useState(0);
 
-  const [state, setState] = useState("CA");
+  const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [birthType, setBirthType] = useState<"vaginal" | "c-section" | "">("");
@@ -1191,7 +1192,7 @@ export function PlanPage() {
   function handleStartOver() {
     setStep(0);
     setAssumptionsAcknowledged(false);
-    setState("CA");
+    setState("");
     setCity("");
     setDueDate("");
     setBirthType("");
@@ -1388,6 +1389,10 @@ export function PlanPage() {
   }, [step]);
 
   function handleNext() {
+    if (step === 0 && !state) {
+      alert("Please select your state to continue.");
+      return;
+    }
     const noEmployerLeave = employerLeaveOffered === "no";
     const isPenultimateStep = noEmployerLeave ? step === 4 : step === steps.length - 2;
 
@@ -1775,9 +1780,9 @@ export function PlanPage() {
                 <label className="block text-sm font-medium text-slate-700">
                   State
                   <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                    ⚠️ Full paid leave program support is currently available for California only. All other states show FMLA + employer leave only.{" "}
-                    <span className="font-semibold">* State-specific view is in development, tool only supports federal programs at this time.</span>{" "}
-                    <a href="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</a>
+                    ⚠️ Full paid leave program support is available for <span className="font-semibold">California</span>. All other states show FMLA + employer leave + STD only.{" "}
+                    <span className="font-semibold">* State-specific paid leave view is in development.</span>{" "}
+                    <Link href="/leave-guide#notify" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</Link>
                   </div>
                   <select
                     className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
@@ -1791,7 +1796,7 @@ export function PlanPage() {
                       }
                     }}
                   >
-                    <option value="">Select your state...</option>
+                    <option value="" disabled>Select your state...</option>
                     {ALL_US_STATES.map((s) => (
                       <option key={s.code} value={s.code}>
                         {s.name}{US_STATES_PAID_LEAVE_COMING_SOON.includes(s.code) ? " *" : ""}
@@ -1817,7 +1822,7 @@ export function PlanPage() {
                   </label>
                 )}
 
-                {hasPreBirthOption && (
+                {state !== "" && hasPreBirthOption && (
                   <>
                     <div>
                       <div className="text-sm font-medium text-slate-700">
