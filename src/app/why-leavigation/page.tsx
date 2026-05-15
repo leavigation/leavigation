@@ -3,7 +3,7 @@ export default function WhyLeavigationPage() {
     {
       feature: "Free to use",
       leavigation: { check: true, note: "Always free for the core plan" },
-      consultants: { check: false, note: "Typically $200–500/session" },
+      consultants: { check: false, note: "Typically $200 to 500/session" },
       hr: { check: true, note: "Free but limited to employer policy" },
       tools: { check: false, note: "Many charge for full access" },
     },
@@ -18,7 +18,7 @@ export default function WhyLeavigationPage() {
       feature: "Real dollar income estimates",
       leavigation: { check: true, note: "SDI, PFL, employer pay broken down by week" },
       consultants: { check: true, note: "Can estimate but based on general knowledge" },
-      hr: { check: false, note: "Employer pay only — won't calculate state benefits" },
+      hr: { check: false, note: "Employer pay only, won't calculate state benefits" },
       tools: { check: false, note: "Rarely include state benefit calculations" },
     },
     {
@@ -51,8 +51,8 @@ export default function WhyLeavigationPage() {
     },
     {
       feature: "Personalized to your situation",
-      leavigation: { check: true, note: "Built from your specific inputs — salary, birth type, employer policy" },
-      consultants: { check: true, note: "Highly personalized — the main value of a consultant" },
+      leavigation: { check: true, note: "Built from your specific inputs, salary, birth type, employer policy" },
+      consultants: { check: true, note: "Highly personalized, the main value of a consultant" },
       hr: { check: false, note: "Company-wide policies, not tailored to you" },
       tools: { check: false, note: "Often generic calculators, not scenario-specific" },
     },
@@ -72,9 +72,9 @@ export default function WhyLeavigationPage() {
     },
     {
       feature: "AI assistant that knows your plan",
-      leavigation: { check: true, note: "Ask questions about your specific leave plan — answered instantly, verified for accuracy, with sources" },
+      leavigation: { check: true, note: "Ask questions about your specific leave plan, answered instantly, verified for accuracy, with sources" },
       consultants: { check: false, note: "Available during scheduled sessions only" },
-      hr: { check: false, note: "Not available — HR answers general policy questions" },
+      hr: { check: false, note: "Not available, HR answers general policy questions" },
       tools: { check: false, note: "No other tools offer plan-specific AI Q&A" },
     },
   ];
@@ -99,11 +99,11 @@ export default function WhyLeavigationPage() {
             Why Leavigation?
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-600">
-            There are other ways to figure out your maternity leave. Each one has real value. Here&apos;s how Leavigation fits in — and where it fills the gaps.
+            There are other ways to figure out your maternity leave. Each one has real value. Here&apos;s how Leavigation fits in, and where it fills the gaps.
           </p>
         </div>
 
-        {/* Comparison table — desktop */}
+        {/* Comparison table, desktop */}
         <div className="hidden md:block rounded-2xl overflow-hidden shadow-sm ring-1 ring-purple-100 mb-12">
           <table className="w-full text-sm">
             <thead>
@@ -140,7 +140,7 @@ export default function WhyLeavigationPage() {
           </table>
         </div>
 
-        {/* Comparison cards — mobile */}
+        {/* Comparison cards, mobile */}
         <div className="md:hidden space-y-4 mb-12">
           {rows.map((row) => (
             <div key={row.feature} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-purple-100">
@@ -168,7 +168,7 @@ export default function WhyLeavigationPage() {
         {/* Bottom note */}
         <div className="rounded-2xl bg-white/70 p-6 ring-1 ring-purple-100 text-center mb-8">
           <p className="text-sm text-slate-600 max-w-2xl mx-auto">
-            <span className="font-semibold text-slate-900">A note on consultants:</span> Parental leave consultants are genuinely valuable — especially for complex situations, negotiations with employers, or legal questions. Leavigation doesn&apos;t replace them. We help you show up to that conversation informed, so you get more out of every minute you pay for.
+            <span className="font-semibold text-slate-900">A note on consultants:</span> Parental leave consultants are genuinely valuable, especially for complex situations, negotiations with employers, or legal questions. Leavigation doesn&apos;t replace them. We help you show up to that conversation informed, so you get more out of every minute you pay for.
           </p>
         </div>
 

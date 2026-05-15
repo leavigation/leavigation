@@ -4,38 +4,38 @@ const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 
 const CA_LEAVE_KNOWLEDGE = `
-You are Leavigation's parental leave assistant. You are an expert in US parental leave law — including federal law (FMLA), California state law, and other state programs. You help users understand their maternity and parental leave rights based on their specific state.
+You are Leavigation's parental leave assistant. You are an expert in US parental leave law, including federal law (FMLA), California state law, and other state programs. You help users understand their maternity and parental leave rights based on their specific state.
 
 FEDERAL LAW (applies to all states):
 
 FMLA (Family and Medical Leave Act):
-- 12 weeks of UNPAID job-protected leave
+- 12 weeks of UNPAID job protected leave
 - Requires: employer 50+ employees, 12+ months employment, 1,250+ hours worked
 - Runs concurrently with all other leave types
-- Does NOT pay you — it only protects your job
+- Does NOT pay you. It only protects your job
 - Admin: dol.gov/agencies/whd/fmla
 
-FMLA-ONLY STATES (no state paid leave program):
+FMLA ONLY STATES (no state paid leave program):
 - Most US states have no state paid leave program
-- In these states: income during leave = employer parental leave + private STD (short-term disability) only
-- Private STD typically pays 60% of wages for 6-12 weeks through carriers like Hartford, Cigna, MetLife, Unum
+- In these states: income during leave = employer parental leave + private STD (short term disability) only
+- Private STD typically pays 60% of wages for 6 to 12 weeks through carriers like Hartford, Cigna, MetLife, Unum
 - STD may coordinate with employer leave (supplement to cap at 100%) or stack independently
 - Without employer leave or STD, recovery and bonding weeks are unpaid
-- FMLA provides job protection only — no income
+- FMLA provides job protection only, no income
 
-CALIFORNIA-SPECIFIC (only applies when user is in CA):
+CALIFORNIA SPECIFIC (only applies when user is in CA):
 
 CA SDI (State Disability Insurance):
-- Covers pregnancy disability — 6 weeks vaginal birth, 8 weeks C-section
+- Covers pregnancy disability, 6 weeks vaginal birth, 8 weeks C-section
 - Benefit rate: 90% of weekly wage if weekly wage ≤ $1,252 (70% of SAWW $1,789). Otherwise 70%.
 - Maximum benefit: $1,765/week (2026 cap)
-- 7-day unpaid waiting period — week 1 pays $0
+- 7-day unpaid waiting period, week 1 pays $0
 - No minimum employment requirement
 - Must file claim with EDD within 49 days of first day of disability
 - Admin: edd.ca.gov/disability
 
 CA PFL (Paid Family Leave):
-- Covers bonding after birth — 8 weeks available
+- Covers bonding after birth, 8 weeks available
 - Same benefit rate as SDI (90% or 70%, capped at $1,765/week)
 - No waiting period
 - Starts the week after SDI ends
@@ -45,7 +45,7 @@ CA PFL (Paid Family Leave):
 CA PDL (Pregnancy Disability Leave):
 - Up to 17.33 weeks of JOB PROTECTION
 - No minimum employment requirement (employer must have 5+ employees)
-- DOES NOT pay you — SDI pays during PDL
+- DOES NOT pay you, SDI pays during PDL
 
 CFRA (California Family Rights Act):
 - 12 weeks of JOB PROTECTED bonding leave
@@ -63,7 +63,7 @@ KEY CA INTERACTIONS:
 - PDL and FMLA run CONCURRENTLY from day 1
 - CFRA starts AFTER PDL ends
 - CA birthing parents can get up to ~7 months total job protection (PDL + CFRA)
-- SDI and PFL are PAID — PDL, CFRA, FMLA are JOB PROTECTION only
+- SDI and PFL are PAID, PDL, CFRA, FMLA are JOB PROTECTION only
 
 IMPORTANT CAVEATS:
 - Always remind users this is general information, not legal advice
@@ -88,12 +88,12 @@ Check the answer against these rules based on the user's state:
 
 FOR ALL STATES (federal):
 1. FMLA: 12 weeks UNPAID job protection, requires 50+ employee employer, 12mo tenure, 1,250 hours
-2. FMLA does NOT pay — job protection only
+2. FMLA does NOT pay. Job protection only
 3. Private STD: typically 60% of wages, 6-12 weeks, through private carriers (Hartford, Cigna, MetLife etc.)
 
 FOR CALIFORNIA ONLY:
 4. SDI rates: 90% if weekly wage ≤ $1,252, else 70%, capped at $1,765/week (2026)
-5. SDI waiting period: 7 days — week 1 = $0
+5. SDI waiting period: 7 days, week 1 = $0
 6. PFL: 8 weeks bonding, same rate as SDI, no waiting period, must file separately
 7. PDL: up to 17.33 weeks job protection, no min employment (employer 5+ employees)
 8. CFRA: 12 weeks, starts DAY AFTER PDL ends, requires 12mo + 1250hrs + employer 5+
@@ -106,7 +106,7 @@ CRITICAL: If the user is NOT in California, do not reference CA SDI, CA PFL, PDL
 If the answer contains any factual errors, correct them.
 If the answer references CA-specific programs for a non-CA user, remove those references.
 Always ensure citations are included when laws are referenced.
-Return ONLY the final verified answer — do not explain what you checked or changed.`;
+Return ONLY the final verified answer, do not explain what you checked or changed.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -120,19 +120,19 @@ ${planContext ? `USER'S SPECIFIC PLAN CONTEXT:\n${planContext}\n\nUse this conte
 
 RESPONSE FORMAT:
 - Be warm, clear, and direct
-- Use plain English — avoid jargon unless explaining a term
-- Keep answers concise — 2-4 paragraphs max
+- Use plain English, avoid jargon unless explaining a term
+- Keep answers concise, 2-4 paragraphs max
 - Always include a "Sources:" section at the end when referencing specific laws or programs
-- Format sources as: • [Program Name] — [URL]
+- Format sources as: • [Program Name] | [URL]
 - End with a brief disclaimer if giving specific financial estimates: "This is an estimate based on 2026 CA EDD rates. Actual benefits depend on your base period wages."
-- Never give legal advice — recommend consulting HR or an attorney for complex situations`;
+- Never give legal advice, recommend consulting HR or an attorney for complex situations`;
 
     const messages = [
       ...(history || []),
       { role: "user", content: message }
     ];
 
-    // First call — generate answer
+    // First call, generate answer
     const firstRes = await fetch(ANTHROPIC_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
@@ -144,7 +144,7 @@ RESPONSE FORMAT:
     const firstAnswer = firstData.content?.[0]?.text;
     if (!firstAnswer) return NextResponse.json({ error: firstData?.error?.message ?? "No response generated", debug: firstData }, { status: 500 });
 
-    // Second call — verify answer
+    // Second call, verify answer
     const verifyRes = await fetch(ANTHROPIC_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },

@@ -1,5 +1,5 @@
 // ============================================================
-// PARENTAL LEAVE PLANNER — STATE LEAVE DATA FILE
+// PARENTAL LEAVE PLANNER, STATE LEAVE DATA FILE
 // ============================================================
 // HOW TO USE THIS FILE IN CURSOR:
 //   1. Copy this file into your project's /src/data/ folder
@@ -7,7 +7,7 @@
 //      import { STATE_LEAVE_DATA, getStateLeave } from '../data/stateleavedata'
 //   3. Call getStateLeave("CA") to get California's data, etc.
 //
-// DATA SOURCES (verify annually — laws change):
+// DATA SOURCES (verify annually, laws change):
 //   - State labor department websites
 //   - DOL.gov for FMLA
 //   - NCSL.org for state-by-state comparison
@@ -22,7 +22,7 @@ export const STATE_LEAVE_DATA = {
     name: "California",
     hasStatePaidLeave: true,
 
-    // State Disability Insurance (SDI) — covers medical/birth recovery
+    // State Disability Insurance (SDI), covers medical/birth recovery
     sdi: {
       available: true,
       name: "CA State Disability Insurance (SDI)",
@@ -30,14 +30,14 @@ export const STATE_LEAVE_DATA = {
       weeksDurationCsection: 8,
       payPercent: 0.70,           // ~60-70% of wages
       payPercentNote: "60-70% of wages, up to state weekly benefit cap",
-      weeklyCapDollars: 1620,     // 2024 cap (no cap as of Jan 2025 — update annually)
+      weeklyCapDollars: 1620,     // 2024 cap (no cap as of Jan 2025, update annually)
       waitingPeriodDays: 7,
       filingNote: "File SDI claim with EDD before or immediately after birth. Do NOT wait.",
       adminAgency: "CA Employment Development Department (EDD)",
       adminUrl: "https://edd.ca.gov/disability",
     },
 
-    // Paid Family Leave (PFL) — covers baby bonding after SDI ends
+    // Paid Family Leave (PFL), covers baby bonding after SDI ends
     pfl: {
       available: true,
       name: "CA Paid Family Leave (PFL)",
@@ -58,10 +58,10 @@ export const STATE_LEAVE_DATA = {
       name: "CA Family Rights Act (CFRA)",
       weeksProtected: 12,         // 12 weeks bonding, separate from CFRA medical
       employerSizeThreshold: 5,   // Applies to employers with 5+ employees (broader than FMLA)
-      note: "CFRA provides state job protection for bonding, running concurrently with FMLA. For employers with 5+ employees — broader than federal FMLA (50+). Pregnancy disability leave (PDL) provides additional protection during medical recovery.",
+      note: "CFRA provides state job protection for bonding, running concurrently with FMLA. For employers with 5+ employees, broader than federal FMLA (50+). Pregnancy disability leave (PDL) provides additional protection during medical recovery.",
     },
 
-    // Pregnancy Disability Leave — pre-birth + post-birth medical recovery; runs before CFRA bonding
+    // Pregnancy Disability Leave, pre-birth + post-birth medical recovery; runs before CFRA bonding
     pdl: {
       available: true,
       name: "Pregnancy Disability Leave (PDL)",
@@ -71,7 +71,7 @@ export const STATE_LEAVE_DATA = {
       paidBySDI: true,
       runsConcurrentlyWithFMLA: true,
       runsConcurrentlyWithCFRA: false,
-      note: "PDL covers any period the birthing parent is medically unable to work due to pregnancy. CFRA bonding leave begins only after PDL ends. PDL applies to employers with 5+ employees — broader than FMLA.",
+      note: "PDL covers any period the birthing parent is medically unable to work due to pregnancy. CFRA bonding leave begins only after PDL ends. PDL applies to employers with 5+ employees, broader than FMLA.",
     },
 
     stateProtectionLaws: [
@@ -87,9 +87,9 @@ export const STATE_LEAVE_DATA = {
     // Stacking notes for the timeline builder
     stackingNotes: [
       "FMLA and CFRA run concurrently with SDI and PFL.",
-      "STD coordinates with SDI — most employer STD plans top up to 100%, not pay on top.",
+      "STD coordinates with SDI, most employer STD plans top up to 100%, not pay on top.",
       "Employer parental leave typically runs concurrently with SDI/PFL (confirm with HR).",
-      "A CA birthing parent may have up to ~17.33 weeks of Pregnancy Disability Leave (PDL) followed by 12 weeks of CFRA bonding — roughly 29 weeks of total job-protected leave if eligible.",
+      "A CA birthing parent may have up to ~17.33 weeks of Pregnancy Disability Leave (PDL) followed by 12 weeks of CFRA bonding, roughly 29 weeks of total job-protected leave if eligible.",
       "PFL is state-paid but job protection comes from CFRA, not PFL itself.",
     ],
   },
@@ -105,8 +105,8 @@ export const STATE_LEAVE_DATA = {
       weeksDurationVaginal: 6,
       weeksDurationCsection: 8,
       payPercent: 0.50,
-      payPercentNote: "50% of wages but capped at $170/week — extremely low. STD is critical.",
-      weeklyCapDollars: 170,      // Very low cap — major gap employer STD must fill
+      payPercentNote: "50% of wages but capped at $170/week, extremely low. STD is critical.",
+      weeklyCapDollars: 170,      // Very low cap, major gap employer STD must fill
       waitingPeriodDays: 7,
       filingNote: "File DBL claim through your employer's DBL insurance carrier (not a state agency).",
       adminAgency: "NY Workers' Compensation Board",
@@ -132,7 +132,7 @@ export const STATE_LEAVE_DATA = {
       name: "NY Paid Family Leave (job protection component)",
       weeksProtected: 12,
       employerSizeThreshold: 1,   // Applies to ALL private employers
-      note: "NY PFL provides both pay AND job protection for bonding. Applies to all private employers regardless of size — broader than FMLA.",
+      note: "NY PFL provides both pay AND job protection for bonding. Applies to all private employers regardless of size, broader than FMLA.",
     },
 
     stateProtectionLaws: [
@@ -146,8 +146,8 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "NY DBL cap of $170/week is extremely low — employer STD is essential to fill this gap.",
-      "NY PFL provides 12 weeks of bonding pay AND job protection — more generous than FMLA's 12 weeks protection-only.",
+      "NY DBL cap of $170/week is extremely low, employer STD is essential to fill this gap.",
+      "NY PFL provides 12 weeks of bonding pay AND job protection, more generous than FMLA's 12 weeks protection-only.",
       "FMLA and NY PFL may run concurrently during bonding phase.",
       "After FMLA exhausts, NY PFL still provides state job protection through bonding period.",
       "Both DBL and PFL are filed through employer's insurance carrier, not a state website.",
@@ -192,7 +192,7 @@ export const STATE_LEAVE_DATA = {
       name: "NJ Family Leave Act (NJFLA)",
       weeksProtected: 12,
       employerSizeThreshold: 30,  // Employers with 30+ employees
-      note: "NJFLA protects bonding leave. Note: NJFLA does NOT cover the birthing parent's own medical disability — that's FMLA. They layer together.",
+      note: "NJFLA protects bonding leave. Note: NJFLA does NOT cover the birthing parent's own medical disability, that's FMLA. They layer together.",
     },
 
     stateProtectionLaws: [
@@ -206,9 +206,9 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "NJ has one of the most generous pay rates at 85% — but the weekly dollar cap still limits high earners.",
+      "NJ has one of the most generous pay rates at 85%, but the weekly dollar cap still limits high earners.",
       "NJFLA covers bonding only; FMLA covers the medical recovery period for birthing parent.",
-      "TDI and FLI are both administered through the same NJ agency — easier to navigate than NY.",
+      "TDI and FLI are both administered through the same NJ agency, easier to navigate than NY.",
     ],
   },
 
@@ -219,27 +219,27 @@ export const STATE_LEAVE_DATA = {
 
     sdi: {
       available: true,
-      name: "WA Paid Family & Medical Leave — Medical portion",
+      name: "WA Paid Family & Medical Leave, Medical portion",
       weeksDurationVaginal: 6,
       weeksDurationCsection: 8,
       payPercent: 0.90,
       payPercentNote: "Up to 90% for lower earners; 90% of wages up to state avg, then 50% above that",
       weeklyCapDollars: 1456,     // 2024 cap (150% of state avg weekly wage)
       waitingPeriodDays: 7,
-      filingNote: "File through WA Employment Security Department (ESD). One combined program — same claim covers medical and bonding.",
+      filingNote: "File through WA Employment Security Department (ESD). One combined program, same claim covers medical and bonding.",
       adminAgency: "WA Employment Security Department (ESD)",
       adminUrl: "https://paidleave.wa.gov",
     },
 
     pfl: {
       available: true,
-      name: "WA Paid Family & Medical Leave — Family/Bonding portion",
+      name: "WA Paid Family & Medical Leave, Family/Bonding portion",
       weeksDuration: 12,
       payPercent: 0.90,
       payPercentNote: "Same formula as medical portion",
       weeklyCapDollars: 1456,
       waitingPeriodDays: 0,
-      filingNote: "Same claim as medical leave — WA has a unified program. Total combined max is 16-18 weeks for birthing parents.",
+      filingNote: "Same claim as medical leave, WA has a unified program. Total combined max is 16-18 weeks for birthing parents.",
       adminAgency: "WA Employment Security Department (ESD)",
       adminUrl: "https://paidleave.wa.gov",
       sequencing: "Medical and family leave are one combined program. Birthing parent can receive up to 16 weeks total (18 with pregnancy complications).",
@@ -264,9 +264,9 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "WA has one of the most generous programs — unified medical + bonding, up to 18 weeks for birthing parents.",
+      "WA has one of the most generous programs, unified medical + bonding, up to 18 weeks for birthing parents.",
       "Employer size matters: 50+ employees = pay + protection; under 50 = pay only.",
-      "WA's benefit formula is tiered — lower earners get closer to 90%, higher earners get less as % of wages.",
+      "WA's benefit formula is tiered, lower earners get closer to 90%, higher earners get less as % of wages.",
     ],
   },
 
@@ -277,7 +277,7 @@ export const STATE_LEAVE_DATA = {
 
     sdi: {
       available: true,
-      name: "MA Paid Family and Medical Leave — Medical portion",
+      name: "MA Paid Family and Medical Leave, Medical portion",
       weeksDurationVaginal: 6,
       weeksDurationCsection: 8,
       payPercent: 0.80,
@@ -291,7 +291,7 @@ export const STATE_LEAVE_DATA = {
 
     pfl: {
       available: true,
-      name: "MA Paid Family and Medical Leave — Family/Bonding portion",
+      name: "MA Paid Family and Medical Leave, Family/Bonding portion",
       weeksDuration: 12,
       payPercent: 0.80,
       payPercentNote: "Same formula as medical portion",
@@ -322,7 +322,7 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "MA has a unified PFML program — one agency, one portal for both medical and bonding.",
+      "MA has a unified PFML program, one agency, one portal for both medical and bonding.",
       "Employer size threshold for protection is 25 (lower than FMLA's 50).",
       "Up to 26 total weeks possible in a benefit year for birthing parents.",
     ],
@@ -355,10 +355,10 @@ export const STATE_LEAVE_DATA = {
       payPercentNote: "95% of wages up to 60x CT minimum wage, then 60% above that",
       weeklyCapDollars: 941,      // 2024 cap
       waitingPeriodDays: 0,
-      filingNote: "File through CT Paid Leave Authority. Can be used for bonding — starts after birth/adoption.",
+      filingNote: "File through CT Paid Leave Authority. Can be used for bonding, starts after birth/adoption.",
       adminAgency: "CT Paid Leave Authority",
       adminUrl: "https://ctpaidleave.org",
-      sequencing: "Bonding leave — no medical/disability component. Birthing parent uses FMLA or employer STD for medical recovery, then CTPL for bonding.",
+      sequencing: "Bonding leave, no medical/disability component. Birthing parent uses FMLA or employer STD for medical recovery, then CTPL for bonding.",
     },
 
     stateProtection: {
@@ -366,7 +366,7 @@ export const STATE_LEAVE_DATA = {
       name: "CT Family and Medical Leave Act (CT FMLA)",
       weeksProtected: 12,
       employerSizeThreshold: 1,   // Applies to ALL employers with 1+ employee
-      note: "CT FMLA applies to ALL employers — even those with just 1 employee. Much broader than federal FMLA.",
+      note: "CT FMLA applies to ALL employers, even those with just 1 employee. Much broader than federal FMLA.",
     },
 
     stateProtectionLaws: [
@@ -380,9 +380,9 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "⚠️ CT has NO state disability insurance — the medical recovery phase is NOT covered by state pay.",
+      "⚠️ CT has NO state disability insurance, the medical recovery phase is NOT covered by state pay.",
       "Employer STD is essential for CT residents during the 6-8 week medical recovery phase.",
-      "CT FMLA covers all employers (1+ employee) — much broader than federal.",
+      "CT FMLA covers all employers (1+ employee), much broader than federal.",
       "CTPL covers bonding only; medical phase relies entirely on employer STD or unpaid FMLA.",
     ],
   },
@@ -394,7 +394,7 @@ export const STATE_LEAVE_DATA = {
 
     sdi: {
       available: true,
-      name: "CO Family and Medical Leave Insurance — Medical portion (FAMLI)",
+      name: "CO Family and Medical Leave Insurance, Medical portion (FAMLI)",
       weeksDurationVaginal: 6,
       weeksDurationCsection: 8,
       payPercent: 0.90,
@@ -408,7 +408,7 @@ export const STATE_LEAVE_DATA = {
 
     pfl: {
       available: true,
-      name: "CO FAMLI — Family/Bonding portion",
+      name: "CO FAMLI, Family/Bonding portion",
       weeksDuration: 12,
       payPercent: 0.90,
       payPercentNote: "Same formula as medical portion",
@@ -439,8 +439,8 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "CO FAMLI launched in 2024 — relatively new program, verify current caps.",
-      "No waiting period — one of the most accessible programs.",
+      "CO FAMLI launched in 2024, relatively new program, verify current caps.",
+      "No waiting period, one of the most accessible programs.",
       "Employer size threshold for job protection is 10 (lower than FMLA's 50).",
     ],
   },
@@ -452,7 +452,7 @@ export const STATE_LEAVE_DATA = {
 
     sdi: {
       available: true,
-      name: "OR Paid Leave — Medical portion",
+      name: "OR Paid Leave, Medical portion",
       weeksDurationVaginal: 6,
       weeksDurationCsection: 8,
       payPercent: 0.60,
@@ -466,7 +466,7 @@ export const STATE_LEAVE_DATA = {
 
     pfl: {
       available: true,
-      name: "OR Paid Leave — Family/Bonding portion",
+      name: "OR Paid Leave, Family/Bonding portion",
       weeksDuration: 12,
       payPercent: 0.60,
       payPercentNote: "Same formula as medical portion",
@@ -497,7 +497,7 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "OR Paid Leave launched in 2023 — relatively new, verify current rates.",
+      "OR Paid Leave launched in 2023, relatively new, verify current rates.",
       "Lower earners may receive up to 100% wage replacement due to tiered formula.",
       "Birthing parents can get up to 14 additional weeks beyond medical leave.",
     ],
@@ -525,7 +525,7 @@ export const STATE_LEAVE_DATA = {
     pfl: {
       available: true,
       name: "RI Temporary Caregiver Insurance (TCI)",
-      weeksDuration: 6,           // Only 6 weeks — less generous than other states
+      weeksDuration: 6,           // Only 6 weeks, less generous than other states
       payPercent: 0.60,
       payPercentNote: "Same formula as TDI",
       weeklyCapDollars: 1007,
@@ -533,7 +533,7 @@ export const STATE_LEAVE_DATA = {
       filingNote: "File TCI claim separately through RI DLT when TDI ends.",
       adminAgency: "RI Department of Labor and Training",
       adminUrl: "https://dlt.ri.gov/individuals/temporary-disability-caregiver-insurance",
-      sequencing: "TCI begins after TDI ends. Only 6 weeks — significantly less than other states.",
+      sequencing: "TCI begins after TDI ends. Only 6 weeks, significantly less than other states.",
     },
 
     stateProtection: {
@@ -549,14 +549,14 @@ export const STATE_LEAVE_DATA = {
         name: "No state protection beyond FMLA",
         weeksBeyondFMLA: 0,
         employerSizeThreshold: 50,
-        note: "No state protection beyond FMLA — flag this clearly. After week 12 there is no state job protection.",
+        note: "No state protection beyond FMLA, flag this clearly. After week 12 there is no state job protection.",
       },
     ],
     hasProtectionBeyondFMLA: false,
 
     stackingNotes: [
-      "RI TCI only provides 6 weeks of bonding — flag this as less generous vs other states.",
-      "No state job protection beyond FMLA — if not FMLA eligible, user has no protection.",
+      "RI TCI only provides 6 weeks of bonding, flag this as less generous vs other states.",
+      "No state job protection beyond FMLA, if not FMLA eligible, user has no protection.",
       "RI was the first state to have paid family leave (2014) but hasn't expanded as aggressively.",
     ],
   },
@@ -568,7 +568,7 @@ export const STATE_LEAVE_DATA = {
 
     sdi: {
       available: true,
-      name: "MN Paid Leave — Medical portion",
+      name: "MN Paid Leave, Medical portion",
       weeksDurationVaginal: 6,
       weeksDurationCsection: 8,
       payPercent: 0.90,
@@ -582,7 +582,7 @@ export const STATE_LEAVE_DATA = {
 
     pfl: {
       available: true,
-      name: "MN Paid Leave — Family/Bonding portion",
+      name: "MN Paid Leave, Family/Bonding portion",
       weeksDuration: 12,
       payPercent: 0.90,
       payPercentNote: "Same formula as medical portion",
@@ -613,9 +613,9 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "⚠️ MN Paid Leave launches January 2026 — flag this prominently for users.",
+      "⚠️ MN Paid Leave launches January 2026, flag this prominently for users.",
       "Will apply to ALL employers regardless of size when launched.",
-      "One of the most generous programs when launched — verify rates at launch.",
+      "One of the most generous programs when launched, verify rates at launch.",
     ],
   },
 
@@ -649,7 +649,7 @@ export const STATE_LEAVE_DATA = {
       filingNote: "Program launched 2025. File through DE Department of Labor.",
       adminAgency: "DE Department of Labor",
       adminUrl: "https://labor.delaware.gov/divisions/paid-leave",
-      sequencing: "Bonding only — no medical component.",
+      sequencing: "Bonding only, no medical component.",
     },
 
     stateProtection: {
@@ -671,8 +671,8 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "DE launched paid leave in 2025 — verify current rates and caps.",
-      "No state disability component — employer STD essential for medical recovery.",
+      "DE launched paid leave in 2025, verify current rates and caps.",
+      "No state disability component, employer STD essential for medical recovery.",
     ],
   },
 
@@ -701,12 +701,12 @@ export const STATE_LEAVE_DATA = {
       weeksDuration: 12,
       payPercent: 0.90,
       payPercentNote: "90% of wages up to 65% of state avg weekly wage",
-      weeklyCapDollars: 1000,     // Approximate — verify when program launches
+      weeklyCapDollars: 1000,     // Approximate, verify when program launches
       waitingPeriodDays: 7,
       filingNote: "Program launches 2026. File through MD Department of Labor.",
       adminAgency: "MD Department of Labor",
       adminUrl: "https://www.labor.maryland.gov/paidleave",
-      sequencing: "Bonding only — medical recovery relies on employer STD or FMLA.",
+      sequencing: "Bonding only, medical recovery relies on employer STD or FMLA.",
     },
 
     stateProtection: {
@@ -728,8 +728,8 @@ export const STATE_LEAVE_DATA = {
     hasProtectionBeyondFMLA: true,
 
     stackingNotes: [
-      "⚠️ MD FAMLI+ launches 2026 — flag prominently for users.",
-      "No state disability — employer STD essential during medical recovery phase.",
+      "⚠️ MD FAMLI+ launches 2026, flag prominently for users.",
+      "No state disability, employer STD essential during medical recovery phase.",
     ],
   },
 
@@ -779,14 +779,14 @@ export const STATE_LEAVE_DATA = {
         name: "No state protection beyond FMLA",
         weeksBeyondFMLA: 0,
         employerSizeThreshold: 50,
-        note: "No state protection beyond FMLA — after week 12 there is no job protection.",
+        note: "No state protection beyond FMLA, after week 12 there is no job protection.",
       },
     ],
     hasProtectionBeyondFMLA: false,
 
     stackingNotes: [
       "⚠️ This state has NO paid leave program. The user is entirely dependent on employer benefits.",
-      "FMLA provides 12 weeks of unpaid job protection ONLY — no pay.",
+      "FMLA provides 12 weeks of unpaid job protection ONLY, no pay.",
       "After FMLA exhausts, there is no job protection. This is a significant risk to flag.",
       "Strongly encourage users in these states to negotiate extended unpaid leave with HR before going on leave.",
     ],

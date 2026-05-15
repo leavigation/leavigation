@@ -84,12 +84,12 @@ export default function LegalPage() {
           <section>
             <h2 className="text-base font-semibold text-slate-900">5. Data and privacy</h2>
             <p className="mt-2">
-              This tool does not store your personal information. The information you enter — including your
-              state, due date, employer details, and salary — is used only to generate your personalized
+              This tool does not store your personal information. The information you enter, including your
+              state, due date, employer details, and salary, is used only to generate your personalized
               timeline and is not saved, sold, or shared with any third party.
             </p>
             <p className="mt-2">
-              If you use the Share Link feature, your inputs are encoded in the URL itself — do not share your
+              If you use the Share Link feature, your inputs are encoded in the URL itself, do not share your
               link with anyone you would not want to have access to that information.
             </p>
           </section>

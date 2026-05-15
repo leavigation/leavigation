@@ -48,7 +48,7 @@ const steps = [
 // Set to true to show income/salary input and tax details (step 3) and any results-page estimated total / "Based on $X per week" UI
 const SHOW_INCOME_UI = false;
 
-// States with paid leave programs — show Recent Mover flow when due date within 6 months
+// States with paid leave programs, show Recent Mover flow when due date within 6 months
 const PAID_LEAVE_STATES = ["CA", "NY", "NJ", "WA", "MA", "CT", "CO", "OR", "RI"];
 const PAYROLL_TAX_CODES: Record<string, string> = {
   CA: "CASDI",
@@ -265,7 +265,7 @@ function calculateMoverEligibility(
     return {
       status: "INELIGIBLE",
       monthsInState: months,
-      warning: `You moved to ${stateName} less than 1 month ago and your due date is within 8 weeks. State SDI/disability for this pregnancy may not cover you. PFL bonding may still apply after birth if payroll is corrected in time — notify your employer and ask them to switch withholding to ${taxCode} as soon as possible.`,
+      warning: `You moved to ${stateName} less than 1 month ago and your due date is within 8 weeks. State SDI/disability for this pregnancy may not cover you. PFL bonding may still apply after birth if payroll is corrected in time, notify your employer and ask them to switch withholding to ${taxCode} as soon as possible.`,
     };
   }
   if (months != null && months >= 2 && months < 5 && payrollUpdated === "yes") {
@@ -460,7 +460,7 @@ function getSituationBullets(options: {
   if (options.moverEligibility && (options.moverEligibility.status === "PARTIAL" || options.moverEligibility.status === "ELIGIBLE") && options.moverEligibility.monthsInState != null) {
     const pct = state.sdi?.payPercent ? Math.round(state.sdi.payPercent * 100) : 70;
     const salaryNote = options.weeklySalary != null && options.weeklySalary > 0
-      ? ` — significantly less than ${pct}% of your current pay.`
+      ? `, significantly less than ${pct}% of your current pay.`
       : ".";
     bullets.push(
       `Because you moved to ${stateName} ${options.moverEligibility.monthsInState} months ago, your ${state.sdi?.name?.includes("SDI") ? "SDI" : "state"} benefit will be calculated using only your ${stateName} wages. If your highest-earning quarter in ${stateName} was lower than your current salary, your weekly benefit may be significantly less than ${pct}% of your current pay${salaryNote}`
@@ -470,7 +470,7 @@ function getSituationBullets(options: {
     bullets.push(options.moverEligibility.warning);
   }
 
-  // State job protection bullet — fully from state data
+  // State job protection bullet, fully from state data
   if (hasProtectionBeyondFMLA && stateLaw) {
     const threshold =
       stateLaw.employerSizeThreshold === 1
@@ -486,35 +486,35 @@ function getSituationBullets(options: {
     bullets.push(body.trim());
   } else {
     bullets.push(
-      `⚠️ ${displayName} has no state job protection law beyond FMLA. After your FMLA exhausts at week 12, your job is not legally protected — consider negotiating extended leave with your employer before your leave starts.`
+      `⚠️ ${displayName} has no state job protection law beyond FMLA. After your FMLA exhausts at week 12, your job is not legally protected, consider negotiating extended leave with your employer before your leave starts.`
     );
   }
 
-  // State leave program context — from state.hasStatePaidLeave and state.name
+  // State leave program context, from state.hasStatePaidLeave and state.name
   if (state.hasStatePaidLeave) {
     bullets.push(
       `You're in ${state.name}. Your state's leave rules and deadlines will drive many of your key dates.`
     );
   } else {
     bullets.push(
-      `${displayName} doesn't offer paid leave — your income during leave depends on employer benefits and any short‑term disability you have.`
+      `${displayName} doesn't offer paid leave, your income during leave depends on employer benefits and any short‑term disability you have.`
     );
   }
 
   // CA-specific: PDL vs CFRA sequencing and total protected duration
   if ((options.stateCode || "").toUpperCase() === "CA" && state.pdl) {
     bullets.push(
-      "As a California birthing parent eligible for both PDL and CFRA, your total job-protected leave can reach up to 7 months — up to 17 weeks of pregnancy disability leave followed by 12 weeks of CFRA bonding leave. This is significantly more than the federal 12-week FMLA baseline."
+      "As a California birthing parent eligible for both PDL and CFRA, your total job-protected leave can reach up to 7 months, up to 17 weeks of pregnancy disability leave followed by 12 weeks of CFRA bonding leave. This is significantly more than the federal 12-week FMLA baseline."
     );
   }
   if ((options.stateCode || "").toUpperCase() === "CA" && state.sdi.available) {
     bullets.push(
-      "There is a 7-day unpaid waiting period before CA SDI begins paying. Most employers with STD plans cover this gap automatically — confirm with your HR team."
+      "There is a 7-day unpaid waiting period before CA SDI begins paying. Most employers with STD plans cover this gap automatically, confirm with your HR team."
     );
   }
   if (keyDates.fmlaStartedBeforeBirth && keyDates.fmlaExhaustion) {
     bullets.push(
-      `⚠️ Because your FMLA started before birth, your federal job protection ends at ${formatDateLong(keyDates.fmlaExhaustion)} — earlier than you might expect.`
+      `⚠️ Because your FMLA started before birth, your federal job protection ends at ${formatDateLong(keyDates.fmlaExhaustion)}, earlier than you might expect.`
     );
   }
 
@@ -523,27 +523,27 @@ function getSituationBullets(options: {
     if (concurrent) {
       bullets.push(`Your ${employerWeeks}-week employer leave runs at the same time as state benefits, so you'll receive up to ${options.employerPayPercent}% of your pay for those weeks where they overlap.`);
     } else {
-      bullets.push(`Your ${employerWeeks}-week employer leave runs after state leave ends — so you get an extended period of paid time.`);
+      bullets.push(`Your ${employerWeeks}-week employer leave runs after state leave ends, so you get an extended period of paid time.`);
     }
   }
   if (hasFmla && !hasStateProtection) {
     const fmlaDate = keyDates.fmlaExhaustion ? formatDateLong(keyDates.fmlaExhaustion) : "week 12";
-    bullets.push(`Your biggest risk is the FMLA cliff at week 12 (around ${fmlaDate}) — after that date your federal job protection ends and you're no longer protected unless your employer agrees to more leave.`);
+    bullets.push(`Your biggest risk is the FMLA cliff at week 12 (around ${fmlaDate}), after that date your federal job protection ends and you're no longer protected unless your employer agrees to more leave.`);
   } else if (hasFmla && hasStateProtection && stateLaw) {
     bullets.push(`After federal FMLA ends at week 12, ${state.name}'s ${stateLaw.name} may still cover you for bonding.`);
   } else if (!hasFmla) {
     bullets.push(`You're not FMLA-eligible, so you don't have federal job protection. Your job security during leave depends on your employer's policy and any state protection.`);
   }
   if (state.sdi.available && state.pfl.available && keyDates.sdiEnd) {
-    bullets.push(`You'll need to file a separate PFL claim when your SDI ends (around ${formatDateLong(keyDates.sdiEnd)}) — it won't happen automatically.`);
+    bullets.push(`You'll need to file a separate PFL claim when your SDI ends (around ${formatDateLong(keyDates.sdiEnd)}), it won't happen automatically.`);
   } else if (state.pfl.available && keyDates.pflClaimStart) {
-    bullets.push(`Your PFL claim can start around ${formatDateLong(keyDates.pflClaimStart)}. File it separately — don't wait.`);
+    bullets.push(`Your PFL claim can start around ${formatDateLong(keyDates.pflClaimStart)}. File it separately, don't wait.`);
   }
   if (!state.sdi.available) {
-    bullets.push(`${displayName} has no disability insurance for medical recovery — your income during the 6–8 week recovery window depends entirely on your employer STD plan and any employer paid leave.`);
+    bullets.push(`${displayName} has no disability insurance for medical recovery, your income during the 6 to 8 week recovery window depends entirely on your employer STD plan and any employer paid leave.`);
   }
   if (totalWeeks > 0 && fullyPaid >= totalWeeks * 0.8) {
-    bullets.push(`You have ${fullyPaid} fully paid weeks out of ${totalWeeks} total — most of your leave is well covered.`);
+    bullets.push(`You have ${fullyPaid} fully paid weeks out of ${totalWeeks} total, most of your leave is well covered.`);
   } else if (totalWeeks > 0 && fullyPaid === 0 && timeline.some((w) => w.payPercent > 0)) {
     bullets.push("Your pay varies week to week; none of your weeks reach 100% replacement. Employer top‑ups or STD can help close the gap.");
   }
@@ -828,21 +828,21 @@ function buildTimeline(options: {
         if (isCA) {
           if (isFirstWeekOfLeave && caWaitingPeriodDays >= 7) {
             note = hasStd
-              ? "7-day CA SDI waiting period — STD typically covers this week."
-              : "⚠️ 7-day CA SDI waiting period — no state pay this week. Check if your employer covers this gap or if you have PTO to use.";
+              ? "7-day CA SDI waiting period, STD typically covers this week."
+              : "⚠️ 7-day CA SDI waiting period, no state pay this week. Check if your employer covers this gap or if you have PTO to use.";
           } else {
             note =
-              "PDL pre-birth phase — SDI active, FMLA clock running.";
+              "PDL pre-birth phase, SDI active, FMLA clock running.";
           }
         } else if (isNY) {
           note =
-            "⚠️ NY DBL pays a maximum of $170/week during this phase — employer STD is critical to supplement this gap.";
+            "⚠️ NY DBL pays a maximum of $170/week during this phase, employer STD is critical to supplement this gap.";
         } else if (isNJ) {
           note =
-            "NJ TDI covers pre-birth leave at ~85% of wages. FMLA provides job protection if eligible — NJFLA does not apply to your own pregnancy disability.";
+            "NJ TDI covers pre-birth leave at ~85% of wages. FMLA provides job protection if eligible, NJFLA does not apply to your own pregnancy disability.";
         } else if (isRI) {
           note =
-            "RI TDI covers pre-birth leave. Note: Rhode Island has no state job protection law beyond FMLA — if not FMLA eligible, there is no job protection during this phase.";
+            "RI TDI covers pre-birth leave. Note: Rhode Island has no state job protection law beyond FMLA, if not FMLA eligible, there is no job protection during this phase.";
         }
       } else if (weekNumber === birthWeek) {
         note = "Birth and start of post-birth leave.";
@@ -869,8 +869,8 @@ function buildTimeline(options: {
         !stateBondingProtected
       ) {
         note = note
-          ? `${note} ⚠️ Because your FMLA started before birth, your federal job protection has ended — earlier than you might expect.`
-          : "⚠️ Because your FMLA started before birth, your federal job protection has ended — earlier than you might expect.";
+          ? `${note} ⚠️ Because your FMLA started before birth, your federal job protection has ended, earlier than you might expect.`
+          : "⚠️ Because your FMLA started before birth, your federal job protection has ended, earlier than you might expect.";
       }
 
       note = note.trim();
@@ -1020,8 +1020,8 @@ function buildTimeline(options: {
         (state.sdi?.waitingPeriodDays ?? 7) >= 7;
       if (caWaitingPeriod) {
         note = hasStd
-          ? "Birth and start of leave. 7-day CA SDI waiting period — STD typically covers this week."
-          : "Birth and start of leave. ⚠️ 7-day CA SDI waiting period — no state pay this week. Check if your employer covers this gap or if you have PTO to use.";
+          ? "Birth and start of leave. 7-day CA SDI waiting period, STD typically covers this week."
+          : "Birth and start of leave. ⚠️ 7-day CA SDI waiting period, no state pay this week. Check if your employer covers this gap or if you have PTO to use.";
         if (state.sdi?.filingNote) note += ` ${state.sdi.filingNote}`;
       } else {
         note = "Birth and start of leave.";
@@ -1089,7 +1089,7 @@ export function PlanPage() {
   const [city, setCity] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [birthType, setBirthType] = useState<"vaginal" | "c-section" | "">("");
-  // FMLA eligibility hidden — tool currently scoped to full-time employees
+  // FMLA eligibility hidden, tool currently scoped to full-time employees
   // Re-enable when expanding to part-time, contractor, and self-employed flows
   const [fmlaEligible, setFmlaEligible] = useState<"yes" | "no" | "unsure" | "">("yes");
   const [employerLeaveOffered, setEmployerLeaveOffered] = useState<"yes" | "no" | "unsure" | "">("");
@@ -1264,7 +1264,7 @@ export function PlanPage() {
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
     if (!serviceId || !templateId || !publicKey) {
-      setEmailError("Email is not configured. Add your EmailJS keys to .env.local — see EMAILJS_SETUP.md.");
+      setEmailError("Email is not configured. Add your EmailJS keys to .env.local, see EMAILJS_SETUP.md.");
       setEmailSendStatus("error");
       return;
     }
@@ -1314,11 +1314,11 @@ export function PlanPage() {
     const hasStatePaidLeave = US_STATES_SUPPORTED.includes(state);
     const planContext = tl ? [
       `State: ${stateDisplayName} (${state})`,
-      `State paid leave program: ${hasStatePaidLeave ? "Yes — full CA program" : US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? "Yes but not yet modeled in this tool — showing FMLA + employer + STD only" : "No state program — FMLA + employer + STD only"}`,
+      `State paid leave program: ${hasStatePaidLeave ? "Yes, full CA program" : US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? "Yes but not yet modeled in this tool, showing FMLA + employer + STD only" : "No state program, FMLA + employer + STD only"}`,
       `Birth type: ${birthType || "not specified"}`,
       `Pre-birth leave: ${caPreBirthLeave === "yes_standard" ? "Yes, standard (<=4 weeks)" : caPreBirthLeave === "yes_extended" ? `Yes, extended (${caPreBirthWeeks} weeks)` : "None"}`,
       `SF PPLO: ${city === "San Francisco" ? "Yes" : "No"}`,
-      `Employer leave: ${employerLeaveOffered === "yes" ? `Yes — ${employerLeaveWeeks} weeks at ${employerLeavePayPercent}%, ${coordination || "coordination not set"}` : employerLeaveOffered === "no" ? "None" : "Unsure"}`,
+      `Employer leave: ${employerLeaveOffered === "yes" ? `Yes, ${employerLeaveWeeks} weeks at ${employerLeavePayPercent}%, ${coordination || "coordination not set"}` : employerLeaveOffered === "no" ? "None" : "Unsure"}`,
       `Total leave weeks: ${lastActive}`,
       `Fully paid weeks: ${fullyPaid}`,
       weeklySalaryNum ? `Weekly salary: $${Math.round(weeklySalaryNum)}` : "Salary: not provided",
@@ -1707,7 +1707,7 @@ export function PlanPage() {
           </p>
         </header>
 
-        {/* Assumptions disclaimer — shown until acknowledged */}
+        {/* Assumptions disclaimer, shown until acknowledged */}
         {!assumptionsAcknowledged && (
           <section className="no-print mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
             <div className="flex items-start gap-3">
@@ -1722,8 +1722,8 @@ export function PlanPage() {
                       <p>✓ People who have paid into CA SDI within the last 18 months</p>
                       <p>✓ Employees who have worked for their current employer for at least 12 months</p>
                       <p>✓ Employers with 5 or more employees</p>
-                      <p>STD is estimated from the weeks and % you enter on the STD step (policies still vary — confirm with HR).</p>
-                      <p className="mt-2 text-amber-700">If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage. <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium">Visit CA EDD directly</a> for the most complete information.</p>
+                      <p>STD is estimated from the weeks and % you enter on the STD step (policies still vary, confirm with HR).</p>
+                      <p className="mt-2 text-amber-700">If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent, this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage. <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium">Visit CA EDD directly</a> for the most complete information.</p>
                     </>
                   ) : (
                     <>
@@ -1732,7 +1732,7 @@ export function PlanPage() {
                       <p>✓ FMLA eligible employees (employer 50+ employees, 12+ months tenure, 1,250+ hours worked)</p>
                       <p>✓ Employer leave and STD estimated from your inputs</p>
                       {US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? (
-                        <p className="mt-2 text-amber-700">Your state has a paid leave program, but full support for it is not yet available in Leavigation. Results show FMLA + employer leave + STD only. <a href="/leave-guide#notify" className="underline font-medium">Get notified when your state launches →</a></p>
+                        <p className="mt-2 text-amber-700">Your state has a paid leave program, but full support for it is not yet available in Leavigation. Results show FMLA + employer leave + STD only. <a href="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" target="_blank" rel="noopener noreferrer" className="underline font-medium">Get notified when your state launches →</a></p>
                       ) : (
                         <p className="mt-2 text-amber-700">Your state does not have a state paid leave program. This tool shows FMLA job protection + employer leave + STD only. <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="underline font-medium">Learn about FMLA at DOL.gov →</a></p>
                       )}
@@ -1744,7 +1744,7 @@ export function PlanPage() {
                   onClick={() => setAssumptionsAcknowledged(true)}
                   className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition"
                 >
-                  This applies to me — continue →
+                  This applies to me, continue →
                 </button>
               </div>
             </div>
@@ -1776,8 +1776,8 @@ export function PlanPage() {
                   State
                   <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                     ⚠️ Full paid leave program support is currently available for California only. All other states show FMLA + employer leave only.{" "}
-                    <span className="font-semibold">* State-specific view is in development — tool only supports federal programs at this time.</span>{" "}
-                    <a href="/leave-guide#notify" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</a>
+                    <span className="font-semibold">* State-specific view is in development, tool only supports federal programs at this time.</span>{" "}
+                    <a href="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</a>
                   </div>
                   <select
                     className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
@@ -1832,7 +1832,7 @@ export function PlanPage() {
                             onChange={() => setCaPreBirthLeave("yes_standard")}
                             className="h-4 w-4 border-slate-300 text-sky-600 focus:ring-sky-400"
                           />
-                          <span className="text-sm text-slate-700">Yes — 4 weeks before due date or less (standard)</span>
+                          <span className="text-sm text-slate-700">Yes, 4 weeks before due date or less (standard)</span>
                         </label>
                         <label className="flex cursor-pointer items-center gap-2">
                           <input
@@ -1842,7 +1842,7 @@ export function PlanPage() {
                             onChange={() => setCaPreBirthLeave("yes_extended")}
                             className="h-4 w-4 border-slate-300 text-sky-600 focus:ring-sky-400"
                           />
-                          <span className="text-sm text-slate-700">Yes — more than 4 weeks (complications)</span>
+                          <span className="text-sm text-slate-700">Yes, more than 4 weeks (complications)</span>
                         </label>
                         <label className="flex cursor-pointer items-center gap-2">
                           <input
@@ -1852,7 +1852,7 @@ export function PlanPage() {
                             onChange={() => setCaPreBirthLeave("no")}
                             className="h-4 w-4 border-slate-300 text-sky-600 focus:ring-sky-400"
                           />
-                          <span className="text-sm text-slate-700">No — I plan to start leave at birth</span>
+                          <span className="text-sm text-slate-700">No, I plan to start leave at birth</span>
                         </label>
                       </div>
                     </div>
@@ -1963,7 +1963,7 @@ export function PlanPage() {
                             </div>
                             {isMoverSelfEmployed && (
                               <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                                Self-employed individuals are generally not automatically covered by state paid leave programs. Some states offer voluntary enrollment — in California, you can apply for Disability Insurance Elective Coverage (DIEC) through EDD, but enrollment must happen before you need the benefit. Given your timeline, contact EDD directly to explore your options.
+                                Self-employed individuals are generally not automatically covered by state paid leave programs. Some states offer voluntary enrollment, in California, you can apply for Disability Insurance Elective Coverage (DIEC) through EDD, but enrollment must happen before you need the benefit. Given your timeline, contact EDD directly to explore your options.
                               </p>
                             )}
                           </div>
@@ -2075,7 +2075,7 @@ export function PlanPage() {
               </p>
 
               <div className="mt-6 space-y-6">
-                {/* FMLA ELIGIBILITY QUESTION — hidden for now, tool is scoped to full-time employees
+                {/* FMLA ELIGIBILITY QUESTION, hidden for now, tool is scoped to full-time employees
                     TODO: Re-enable when expanding to part-time, contractor, and self-employed flows
                     When re-enabling, also re-activate employment start date input (queue item 6d)
                 <div>
@@ -2119,7 +2119,7 @@ export function PlanPage() {
               </div>
               </div>
 
-              {/* Employer leave details — show when employer leave = yes */}
+              {/* Employer leave details, show when employer leave = yes */}
               {employerLeaveOffered !== "no" && employerLeaveOffered !== "" && (
                 <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 space-y-6">
                   <div>
@@ -2157,7 +2157,7 @@ export function PlanPage() {
 
                   <div className="mt-4">
                     <div className="text-sm font-medium text-slate-700">Does your employer allow parental leave to start before birth?</div>
-                    <p className="mt-1 text-xs text-slate-500">Some employers allow you to start leave 1–4 weeks before your due date.</p>
+                    <p className="mt-1 text-xs text-slate-500">Some employers allow you to start leave 1 to 4 weeks before your due date.</p>
                     <div className="mt-3 flex gap-3">
                       {[{ value: "yes", label: "Yes" }, { value: "no", label: "No" }].map((opt) => (
                         <button
@@ -2263,12 +2263,12 @@ export function PlanPage() {
                   : "Used to estimate your employer leave and STD income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."}
               </p>
 
-              {/* Max benefit callout — CA only */}
+              {/* Max benefit callout, CA only */}
               {state === "CA" && (
                 <div className="mt-4 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
                   <span className="mt-0.5 shrink-0 text-sky-400">ℹ</span>
                   <div className="flex-1">
-                    <span className="font-semibold">Earning $91,780+/year?</span> You&apos;ll receive the maximum CA state benefit of <span className="font-semibold">$1,765/week</span> — but we still need your actual salary to calculate SF PPLO accurately.
+                    <span className="font-semibold">Earning $91,780+/year?</span> You&apos;ll receive the maximum CA state benefit of <span className="font-semibold">$1,765/week</span>, but we still need your actual salary to calculate SF PPLO accurately.
                   </div>
                 </div>
               )}
@@ -2307,7 +2307,7 @@ export function PlanPage() {
                   ))}
                 </div>
               </div>
-              {/* SDI calculation explainer — CA only */}
+              {/* SDI calculation explainer, CA only */}
               {state === "CA" && (
                 <div className="mt-6">
                   <button
@@ -2320,7 +2320,7 @@ export function PlanPage() {
                   </button>
                   {sdiExplainerOpen && (
                     <div className="mt-3 rounded-xl border-l-4 border-sky-300 bg-sky-50 px-4 py-3 text-xs text-sky-900 space-y-2">
-                      <p><span className="font-semibold">CA SDI uses your highest-earning quarter</span> from your base period (roughly the 12 months before your claim) — not your current salary. If you recently changed jobs or had a gap in employment, your benefit may be lower than expected.</p>
+                      <p><span className="font-semibold">CA SDI uses your highest-earning quarter</span> from your base period (roughly the 12 months before your claim), not your current salary. If you recently changed jobs or had a gap in employment, your benefit may be lower than expected.</p>
                       <p><span className="font-semibold">Benefit rate:</span> If your weekly wage is <span className="font-semibold">$1,252 or less</span> (70% of the 2026 SAWW), you receive <span className="font-semibold">90%</span> of your weekly wage. Above that threshold, you receive <span className="font-semibold">70%</span> of your weekly wage.</p>
                       <p><span className="font-semibold">Maximum benefit:</span> $1,765/week (2026 cap). You hit this cap at roughly $91,780/year.</p>
                       <p><span className="font-semibold">Waiting period:</span> CA SDI has a 7-day unpaid waiting period. Week 1 of disability pays $0 unless your employer or STD policy covers it.</p>
@@ -2355,7 +2355,7 @@ export function PlanPage() {
                   </div>
                   {stdExplainerOpen && (
                     <div className="mt-2 border-l-2 border-sky-300 bg-sky-50 rounded-r-xl px-4 py-3 text-xs text-slate-700 space-y-2">
-                      <p><span className="font-semibold">Short-term disability (STD)</span> is private insurance — separate from any state program — that pays a portion of your salary when you can&apos;t work due to a medical condition, including pregnancy and childbirth recovery.</p>
+                      <p><span className="font-semibold">Short-term disability (STD)</span> is private insurance, separate from any state program, that pays a portion of your salary when you can&apos;t work due to a medical condition, including pregnancy and childbirth recovery.</p>
                       <p>There are 2 ways you might have it: (1) your employer includes it as part of your benefits package, or (2) you purchased a policy independently through a private insurer (e.g. The Hartford, Cigna, MetLife, Unum).</p>
                       {state === "CA" && <p>CA SDI is mandatory and separate from STD. If you have both, STD often covers the 7-day CA SDI waiting period so week 1 is not $0.</p>}
                       {state !== "CA" && <p>In states without a state disability program, STD is your primary source of income during pregnancy recovery. Without it, recovery weeks are typically unpaid.</p>}
@@ -2399,7 +2399,7 @@ export function PlanPage() {
                           value={stdWeeks}
                           onChange={(e) => setStdWeeks(e.target.value)}
                         />
-                        <span className="mt-1 block text-xs text-slate-400">Typically 6–12 weeks. Check your policy.</span>
+                        <span className="mt-1 block text-xs text-slate-400">Typically 6 to 12 weeks. Check your policy.</span>
                       </label>
                       <label className="block text-sm font-medium text-slate-700">
                         At what % of your pay?
@@ -2473,7 +2473,7 @@ export function PlanPage() {
                               : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
                           }`}
                         >
-                          <div className="font-medium">STD supplements employer leave — total capped at 100%</div>
+                          <div className="font-medium">STD supplements employer leave, total capped at 100%</div>
                           <div className="mt-0.5 text-xs text-slate-500">Example: Employer pays 60% + STD pays up to 40% to fill the gap. You receive 100% of your salary total, not 160%.</div>
                         </button>
                         <button
@@ -2485,8 +2485,8 @@ export function PlanPage() {
                               : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
                           }`}
                         >
-                          <div className="font-medium">STD and employer leave are independent — both pay their full amounts</div>
-                          <div className="mt-0.5 text-xs text-slate-500">Example: Employer pays 60% AND STD separately pays 60%. You may receive more than 100% of your normal salary. Less common — check your policy.</div>
+                          <div className="font-medium">STD and employer leave are independent, both pay their full amounts</div>
+                          <div className="mt-0.5 text-xs text-slate-500">Example: Employer pays 60% AND STD separately pays 60%. You may receive more than 100% of your normal salary. Less common, check your policy.</div>
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-slate-400">Not sure? Most employer STD policies coordinate (cap at 100%). Check your benefits portal or ask HR.</p>
@@ -2522,10 +2522,10 @@ export function PlanPage() {
 
           {step === 5 && (displayTimeline ?? timeline) && (
             <div className="print-results-full-width flex w-full flex-col gap-6">
-              {/* Condensed assumptions reminder — visible on screen and in PDF */}
+              {/* Condensed assumptions reminder, visible on screen and in PDF */}
               <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
                 <span className="text-amber-500">⚠</span>
-                <span className="font-semibold text-amber-900">Results for {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} — based on these assumptions:</span>
+                <span className="font-semibold text-amber-900">Results for {ALL_US_STATES.find((s) => s.code === state)?.name ?? state}, based on these assumptions:</span>
                 {state === "CA" ? (
                   <>
                     <span>Full-time CA W-2 employee</span>
@@ -2561,7 +2561,7 @@ export function PlanPage() {
                   <span className="text-purple-500">ℹ</span>
                   <span className="font-semibold">{`Full paid leave support for ${ALL_US_STATES.find((s) => s.code === state)?.name ?? state} is coming soon.`}</span>
                   <span>Results below show FMLA job protection + employer leave + STD only. Your state&apos;s paid leave program is not yet included.</span>
-                  <a href="/leave-guide#notify" className="font-medium underline hover:text-purple-900">Get notified when it launches →</a>
+                  <a href="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-purple-900">Get notified when it launches →</a>
                 </div>
               )}
               {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
@@ -2572,7 +2572,7 @@ export function PlanPage() {
                   <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">Learn more at DOL.gov →</a>
                 </div>
               )}
-              {/* FMLA cliff warning — show when pre-birth leave causes FMLA to exhaust before PDL ends */}
+              {/* FMLA cliff warning, show when pre-birth leave causes FMLA to exhaust before PDL ends */}
               {fmlaEligible === "yes" &&
                 state === "CA" &&
                 (caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended") && (
@@ -2580,7 +2580,7 @@ export function PlanPage() {
                   <span className="mt-0.5 text-orange-500 text-base leading-none shrink-0">⚠️</span>
                   <div>
                     <p className="font-semibold text-orange-900">Your FMLA protection ends earlier than you might expect.</p>
-                    <p className="mt-1 text-orange-800">Because you&apos;re taking leave before your due date, your 12-week FMLA clock starts now — not at birth. Your federal job protection ends 12 weeks from your first day of leave, which may be before your pregnancy disability leave (PDL) ends. California&apos;s PDL and CFRA will continue to protect your job after FMLA ends, but it&apos;s important to know the federal protection ends early.</p>
+                    <p className="mt-1 text-orange-800">Because you&apos;re taking leave before your due date, your 12-week FMLA clock starts now, not at birth. Your federal job protection ends 12 weeks from your first day of leave, which may be before your pregnancy disability leave (PDL) ends. California&apos;s PDL and CFRA will continue to protect your job after FMLA ends, but it&apos;s important to know the federal protection ends early.</p>
                   </div>
                 </div>
               )}
@@ -2685,7 +2685,7 @@ export function PlanPage() {
                 </div>
               </div>
 
-              {/* SDI waiting period note — only show when week 1 is actually unpaid */}
+              {/* SDI waiting period note, only show when week 1 is actually unpaid */}
               {state === "CA" && (() => {
                 const firstWeek = (displayTimeline ?? timeline)?.find((w) => w.weekNumber === 1);
                 const week1Unpaid = firstWeek && firstWeek.payPercent === 0;
@@ -3088,7 +3088,7 @@ export function PlanPage() {
                           })}
                           {!stateLeave.hasProtectionBeyondFMLA && state !== "CA" && (
                             <div className="mt-2 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] text-slate-600">
-                              No state protection beyond FMLA — this view shows federal job protection (FMLA) plus employer leave and any STD you enter.
+                              No state protection beyond FMLA, this view shows federal job protection (FMLA) plus employer leave and any STD you enter.
                             </div>
                           )}
                           {city === "San Francisco" && (
@@ -3103,7 +3103,7 @@ export function PlanPage() {
                           )}
                           {parseFloat(employerLeavePayPercent) === 0 && parseFloat(employerLeaveWeeks) > 0 && (
                             <p className="mt-1 text-xs text-slate-400 px-1">
-                              ‡‡ Your employer leave is shown in a lighter shade because it provides job protection only — no additional pay during these weeks.
+                              ‡‡ Your employer leave is shown in a lighter shade because it provides job protection only, no additional pay during these weeks.
                             </p>
                           )}
                         </>
@@ -3113,7 +3113,7 @@ export function PlanPage() {
               </div>
               </div>
 
-              {/* Estimated Leave Income card — always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
+              {/* Estimated Leave Income card, always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
               <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <h3 className="text-lg font-semibold text-slate-900">Estimated Leave Income</h3>
                   <div className={weeklySalaryNum != null && weeklySalaryNum > 0 ? "hidden" : ""}>
@@ -3169,10 +3169,10 @@ export function PlanPage() {
                         </tbody>
                       </table>
                       {incomeEstimator.employerTotal > 0 && (
-                        <p className="text-[11px] text-slate-500 leading-snug">Employer leave: paid as regular wages — federal and {state === "CA" ? "CA" : "applicable"} state taxes apply.</p>
+                        <p className="text-[11px] text-slate-500 leading-snug">Employer leave: paid as regular wages, federal and {state === "CA" ? "CA" : "applicable"} state taxes apply.</p>
                       )}
                       {incomeEstimator.stdTotal > 0 && (
-                        <p className="text-[11px] text-slate-500">STD: tax treatment depends on who paid your premiums — check with HR.</p>
+                        <p className="text-[11px] text-slate-500">STD: tax treatment depends on who paid your premiums, check with HR.</p>
                       )}
                       <div className="border-t border-slate-200 pt-3 text-sm">
                         <div className="flex justify-between py-1">
@@ -3227,7 +3227,7 @@ export function PlanPage() {
                                     <td className="py-1.5 text-slate-700">{row.weekNumber}</td>
                                     <td className="py-1.5 text-slate-700">{row.dateLabel}</td>
                                     <td className="py-1.5 text-slate-600">
-                                      {row.sources.length === 0 ? "—" : (
+                                      {row.sources.length === 0 ? "None" : (
                                         <div className="flex flex-col gap-1">
                                           {row.sources.map((s) => (
                                             <div key={s.label} className="flex items-center gap-1.5">
@@ -3260,7 +3260,7 @@ export function PlanPage() {
                         {" "}out of your normal{" "}
                         <span className="font-semibold">${incomeEstimator.normalIncomeSamePeriod.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
                         {incomeEstimator.shortfall > 0 && (
-                          <> — a shortfall of <span className="font-semibold text-rose-600">${incomeEstimator.shortfall.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span></>
+                          <>, a shortfall of <span className="font-semibold text-rose-600">${incomeEstimator.shortfall.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span></>
                         )}.
                       </p>
                       {state === "CA" && (
@@ -3311,7 +3311,7 @@ export function PlanPage() {
                   <>
                     <p className="text-xs text-slate-600 mb-3">Did this help you understand your parental leave?</p>
                     <div className="flex flex-col gap-2">
-                      {["Yes, exactly what I needed", "Somewhat — still have questions", "Didn't apply to my situation", "Just exploring"].map((opt) => (
+                      {["Yes, exactly what I needed", "Somewhat, still have questions", "Didn't apply to my situation", "Just exploring"].map((opt) => (
                         <button key={opt} type="button"
                           onClick={() => { setFeedbackQ1(opt); setFeedbackStep(2); }}
                           className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ1 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
@@ -3340,7 +3340,7 @@ export function PlanPage() {
                   <>
                     <p className="text-xs text-slate-600 mb-3">How much do you trust the information shown?</p>
                     <div className="flex flex-col gap-2">
-                      {["Very much — I'd use this to plan my leave", "Somewhat — I'd verify with HR or an attorney", "Not sure"].map((opt) => (
+                      {["Very much, I'd use this to plan my leave", "Somewhat, I'd verify with HR or an attorney", "Not sure"].map((opt) => (
                         <button key={opt} type="button"
                           onClick={() => { setFeedbackQ3(opt); setFeedbackStep(4); }}
                           className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ3 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
@@ -3354,7 +3354,7 @@ export function PlanPage() {
                   <>
                     <p className="text-xs text-slate-600 mb-3">Would you pay for a version with a week-by-week action checklist and filing deadlines?</p>
                     <div className="flex flex-col gap-2">
-                      {["Yes — I'd pay $10–20", "Yes — I'd pay $20–50", "Maybe, depends on price", "No — free only"].map((opt) => (
+                      {["Yes, I'd pay $10 to 20", "Yes, I'd pay $20 to 50", "Maybe, depends on price", "No, free only"].map((opt) => (
                         <button key={opt} type="button"
                           onClick={() => { setFeedbackQ4(opt); setFeedbackStep(5); }}
                           className={`text-left text-xs rounded-xl border px-3 py-2 transition ${feedbackQ4 === opt ? "border-sky-400 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300"}`}>
@@ -3409,7 +3409,7 @@ export function PlanPage() {
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">AI</div>
                   <div className="text-left">
                     <div className="text-sm font-semibold text-slate-900">Ask Leavigation AI</div>
-                    <div className="text-xs text-slate-500">Get instant answers about your leave plan — powered by AI, verified for accuracy</div>
+                    <div className="text-xs text-slate-500">Get instant answers about your leave plan, powered by AI, verified for accuracy</div>
                   </div>
                 </div>
                 <span className={`text-slate-400 transition-transform ${chatOpen ? "rotate-180" : ""}`}>▼</span>
@@ -3462,10 +3462,10 @@ export function PlanPage() {
                                 {msg.content.split("\n").map((line, j) => {
                                   if (line.startsWith("Sources:")) return <div key={j} className="mt-3 pt-3 border-t border-slate-200 text-xs font-semibold text-slate-500">{line}</div>;
                                   if (line.startsWith("• ") && line.includes("http")) {
-                                    const parts = line.replace("• ", "").split(" — ");
+                                    const parts = line.replace("• ", "").split(" | ");
                                     return (
                                       <div key={j} className="text-xs">
-                                        <span className="text-slate-600">• {parts[0]} — </span>
+                                        <span className="text-slate-600">• {parts[0]} | </span>
                                         <a href={parts[1]} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">{parts[1]}</a>
                                       </div>
                                     );
@@ -3600,8 +3600,8 @@ export default function LandingPage() {
                 <span className="text-pink-600">Most people only know about one.</span>
               </h1>
               <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-700">
-                Understanding how job protection and paid leave work — and how they
-                interact — is the key to planning a leave that actually works for you.
+                Understanding how job protection and paid leave work, and how they
+                interact, is the key to planning a leave that actually works for you.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <a
@@ -3611,7 +3611,7 @@ export default function LandingPage() {
                   Build my leave plan →
                 </a>
                 <p className="text-xs text-slate-500">
-                  Takes about 5–10 minutes. No login required.
+                  Takes about 5 to 10 minutes. No login required.
                 </p>
               </div>
             </div>
@@ -3619,22 +3619,22 @@ export default function LandingPage() {
 
           {/* Benefits section */}
           <section className="mb-12">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Everything you need to plan your leave — in one place</h2>
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Everything you need to plan your leave, in one place</h2>
             <div className="grid gap-5 sm:grid-cols-3">
               <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-purple-100">
                 <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-xl mb-4">🤖</div>
                 <h3 className="text-base font-semibold text-slate-900 mb-2">AI assistant that knows your plan</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">Ask any question about your specific leave — how FMLA interacts with CFRA, when to file your SDI claim, what your rights are. Get instant, verified answers with cited sources.</p>
+                <p className="text-sm text-slate-600 leading-relaxed">Ask any question about your specific leave, how FMLA interacts with CFRA, when to file your SDI claim, what your rights are. Get instant, verified answers with cited sources.</p>
               </div>
               <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-pink-100">
                 <div className="h-10 w-10 rounded-xl bg-pink-100 flex items-center justify-center text-xl mb-4">📅</div>
                 <h3 className="text-base font-semibold text-slate-900 mb-2">Your full timeline in 5 minutes</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">Get a personalized week-by-week Gantt chart showing exactly which programs cover you each week — SDI, PFL, FMLA, CFRA, employer leave, and SF PPLO — all stacked correctly.</p>
+                <p className="text-sm text-slate-600 leading-relaxed">Get a personalized week-by-week Gantt chart showing exactly which programs cover you each week, SDI, PFL, FMLA, CFRA, employer leave, and SF PPLO, all stacked correctly.</p>
               </div>
               <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
                 <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl mb-4">💵</div>
                 <h3 className="text-base font-semibold text-slate-900 mb-2">Forecasted income during leave</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">See exactly how much money you&apos;ll receive each week — broken down by source. Know your shortfall in advance so you can plan, save, and negotiate with confidence.</p>
+                <p className="text-sm text-slate-600 leading-relaxed">See exactly how much money you&apos;ll receive each week, broken down by source. Know your shortfall in advance so you can plan, save, and negotiate with confidence.</p>
               </div>
             </div>
           </section>
@@ -3672,7 +3672,7 @@ export default function LandingPage() {
             <div className="grid gap-4 sm:grid-cols-3">
               {[
                 { step: "1", title: "Answer a few questions", desc: "Tell us your state, due date, birth type, salary, and employer leave policy. Takes 5 minutes." },
-                { step: "2", title: "Get your personalized plan", desc: "See your week-by-week Gantt chart, income forecast, and key filing deadlines — all specific to your situation." },
+                { step: "2", title: "Get your personalized plan", desc: "See your week-by-week Gantt chart, income forecast, and key filing deadlines, all specific to your situation." },
                 { step: "3", title: "Ask the AI anything", desc: "Use the built-in AI assistant to ask follow-up questions about your plan. Verified answers with cited sources." },
               ].map((item) => (
                 <div key={item.step} className="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-slate-200">
@@ -3691,7 +3691,7 @@ export default function LandingPage() {
           </h2>
           <p className="mt-2 text-sm text-slate-700">
             Answer a few questions and get a week-by-week breakdown of your job
-            protection and pay — specific to your state, employer, and situation.
+            protection and pay, specific to your state, employer, and situation.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <a

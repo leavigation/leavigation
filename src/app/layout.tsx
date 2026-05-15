@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Leavigation — Leave Plan",
+  title: "Leavigation | Leave Plan",
   description: "Map your parental leave week by week: medical recovery, state benefits, and employer policies.",
 };
 
@@ -63,7 +63,9 @@ export default function RootLayout({
                 </nav>
               </div>
               <div className="text-right text-[10px] leading-snug text-slate-500">
-                <p>Information accurate as of March 2026. Laws and benefit rates change — always verify with your employer and a qualified professional.</p>
+                <p>
+                  Information accurate as of May 2026. State laws and benefit rates change regularly. Always verify current details with your state agency or a qualified professional before making decisions. Confirm workplace details with your employer or HR team.
+                </p>
                 <p>This tool provides general information only and does not constitute legal, financial, or employment advice.</p>
               </div>
             </div>

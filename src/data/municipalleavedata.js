@@ -1,5 +1,5 @@
 // ============================================================
-// MUNICIPAL LEAVE LAWS — local ordinances beyond state law
+// MUNICIPAL LEAVE LAWS, local ordinances beyond state law
 // ============================================================
 // Used to show city-specific banners and adjust timeline pay
 // when user enters a city with type 'pay_supplement'.
@@ -30,7 +30,7 @@ export const MUNICIPAL_LEAVE_DATA = [
     type: "pay_supplement",
     employerSizeThreshold: 20,
     description:
-      "requires employers with 20+ employees worldwide to supplement CA PFL during bonding leave so you receive 100% of your normal weekly wages (capped at $2,402/week in 2025). Applies to the 8-week PFL bonding period only — not the SDI disability phase.",
+      "requires employers with 20+ employees worldwide to supplement CA PFL during bonding leave so you receive 100% of your normal weekly wages (capped at $2,402/week in 2025). Applies to the 8-week PFL bonding period only, not the SDI disability phase.",
     impactOnTimeline:
       "During PFL bonding weeks, show pay as ~100% instead of ~60-70% for eligible SF employees.",
     aliases: ["SF", "San Fran"],
