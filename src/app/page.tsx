@@ -1779,11 +1779,14 @@ export function PlanPage() {
               <div className="mt-6 space-y-4">
                 <label className="block text-sm font-medium text-slate-700">
                   State
-                  <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                    ⚠️ Full paid leave program support is available for <span className="font-semibold">California</span>. All other states show FMLA + employer leave + STD only.{" "}
-                    <span className="font-semibold">* State-specific paid leave view is in development.</span>{" "}
-                    <Link href="/leave-guide#notify" className="underline font-medium hover:text-amber-900">Get notified when your state launches →</Link>
-                  </div>
+                  {state !== "" && state !== "CA" && (
+                    <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                      {US_STATES_PAID_LEAVE_COMING_SOON.includes(state)
+                        ? <>✨ We&apos;re building full {ALL_US_STATES.find((s) => s.code === state)?.name} support now. In the meantime, your plan includes FMLA job protection, employer leave, and any private STD coverage you have. <Link href="/leave-guide#notify" className="underline font-medium hover:text-blue-900">Get notified when it launches →</Link></>
+                        : <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program — your plan is built around FMLA job protection, employer leave, and any private STD coverage you have. That&apos;s still a complete picture of your leave.</>
+                      }
+                    </div>
+                  )}
                   <select
                     className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
                     value={state}
