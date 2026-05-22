@@ -1449,7 +1449,7 @@ export function PlanPage() {
           gtag("event", "plan_completed", {
             state_code: state || "unknown",
             birth_type: birthType || "unknown",
-            has_employer_leave: employerLeaveOffered === "yes",
+            has_employer_leave: (employerLeaveOffered as string) === "yes",
             has_std: stdCoverage === "yes",
             has_pre_birth: caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended" || employerPreBirth === "yes",
             has_sf_pplo: city === "San Francisco",
@@ -1464,7 +1464,7 @@ export function PlanPage() {
             gtag("event", "plan_completed", {
               state_code: state || "unknown",
               birth_type: birthType || "unknown",
-              has_employer_leave: employerLeaveOffered === "yes",
+              has_employer_leave: (employerLeaveOffered as string) === "yes",
               has_std: stdCoverage === "yes",
               has_pre_birth: caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended" || employerPreBirth === "yes",
               has_sf_pplo: city === "San Francisco",
