@@ -1,5 +1,7 @@
 "use client";
 
+declare function gtag(command: string, action: string, params?: Record<string, unknown>): void;
+
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import emailjs from "@emailjs/browser";
@@ -1378,7 +1380,7 @@ export function PlanPage() {
 
   useEffect(() => {
     if (step === 5) {
-      const timer = setTimeout(() => setFeedbackVisible(true), 3000);
+      const timer = setTimeout(() => setFeedbackVisible(true), 10000);
       return () => clearTimeout(timer);
     } else {
       setFeedbackVisible(false);
@@ -1389,6 +1391,14 @@ export function PlanPage() {
   }, [step]);
 
   function handleNext() {
+    const stepNames = ["Basics", "Birth & Recovery", "Your Income", "Legal & Employer", "Short-term Disability"];
+    try {
+      gtag("event", "plan_step_completed", {
+        step_number: step,
+        step_name: stepNames[step] ?? `Step ${step}`,
+        state_code: state || "unknown",
+      });
+    } catch {}
     if (step === 0 && !state) {
       alert("Please select your state to continue.");
       return;
@@ -1423,9 +1433,33 @@ export function PlanPage() {
       // When no employer leave, go straight to Results (step 5)
       if (noEmployerLeave) {
         setStep(5);
+        try {
+          gtag("event", "plan_completed", {
+            state_code: state || "unknown",
+            birth_type: birthType || "unknown",
+            has_employer_leave: employerLeaveOffered === "yes",
+            has_std: stdCoverage === "yes",
+            has_pre_birth: caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended" || employerPreBirth === "yes",
+            has_sf_pplo: city === "San Francisco",
+            state_has_paid_leave: US_STATES_SUPPORTED.includes(state),
+          });
+        } catch {}
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         setStep((s) => s + 1);
+        if (step === 4) {
+          try {
+            gtag("event", "plan_completed", {
+              state_code: state || "unknown",
+              birth_type: birthType || "unknown",
+              has_employer_leave: employerLeaveOffered === "yes",
+              has_std: stdCoverage === "yes",
+              has_pre_birth: caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended" || employerPreBirth === "yes",
+              has_sf_pplo: city === "San Francisco",
+              state_has_paid_leave: US_STATES_SUPPORTED.includes(state),
+            });
+          } catch {}
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       return;
@@ -1444,6 +1478,12 @@ export function PlanPage() {
   }
 
   function handleBack() {
+    try {
+      gtag("event", "plan_step_back", {
+        from_step: step,
+        state_code: state || "unknown",
+      });
+    } catch {}
     const noEmployerLeave = employerLeaveOffered === "no";
     if (noEmployerLeave) {
       if (step === 4 && noEmployerLeave) {
@@ -1758,7 +1798,12 @@ export function PlanPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setAssumptionsAcknowledged(true)}
+                  onClick={() => {
+                    setAssumptionsAcknowledged(true);
+                    try {
+                      gtag("event", "plan_started", { state_code: state || "unknown" });
+                    } catch {}
+                  }}
                   className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition"
                 >
                   This applies to me, continue →
