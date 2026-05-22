@@ -145,7 +145,10 @@ function getEstimatedTotalWithCaps(
   employerPayPercent: number
 ): number {
   if (!Number.isFinite(weeklySalary) || weeklySalary <= 0) return 0;
-  const state = getStateLeave((stateCode || "DEFAULT").toUpperCase());
+  const effectiveStateCode = US_STATES_PAID_LEAVE_COMING_SOON.includes((stateCode || "").toUpperCase())
+    ? "DEFAULT"
+    : (stateCode || "DEFAULT").toUpperCase();
+  const state = getStateLeave(effectiveStateCode);
   const sdiCap = state.sdi?.weeklyCapDollars ?? 0;
   const pflCap = state.pfl?.weeklyCapDollars ?? 0;
   const sdiPct = state.sdi?.payPercent ?? 0.7;
@@ -336,7 +339,10 @@ function getKeyDates(
   if (!dueDate) return result;
   const birth = new Date(dueDate + "T00:00:00");
   if (Number.isNaN(birth.getTime())) return result;
-  const state = getStateLeave((stateCode || "DEFAULT").toUpperCase());
+  const effectiveStateCode = US_STATES_PAID_LEAVE_COMING_SOON.includes((stateCode || "").toUpperCase())
+    ? "DEFAULT"
+    : (stateCode || "DEFAULT").toUpperCase();
+  const state = getStateLeave(effectiveStateCode);
   const sdiWeeks =
     birthType === "c-section"
       ? state.sdi.weeksDurationCsection
@@ -449,7 +455,10 @@ function getSituationBullets(options: {
   weeklySalary?: number;
 }): string[] {
   const bullets: string[] = [];
-  const state = getStateLeave((options.stateCode || "DEFAULT").toUpperCase());
+  const effectiveStateCode = US_STATES_PAID_LEAVE_COMING_SOON.includes((options.stateCode || "").toUpperCase())
+    ? "DEFAULT"
+    : (options.stateCode || "DEFAULT").toUpperCase();
+  const state = getStateLeave(effectiveStateCode);
   const { stateName, timeline, keyDates, employerWeeks, hasFmla } = options;
   const hasStateProtection = state.stateProtection?.available ?? false;
   const hasProtectionBeyondFMLA = state.hasProtectionBeyondFMLA === true;
@@ -601,7 +610,10 @@ function buildTimeline(options: {
   } = options;
 
   const code = (stateCode || "DEFAULT").toUpperCase();
-  const state = getStateLeave(code);
+  const effectiveStateCode = US_STATES_PAID_LEAVE_COMING_SOON.includes((stateCode || "").toUpperCase())
+    ? "DEFAULT"
+    : (stateCode || "DEFAULT").toUpperCase();
+  const state = getStateLeave(effectiveStateCode);
   const municipal = getMunicipalLeave(cityInput, code);
 
   const recoveryWeeks =
@@ -3001,7 +3013,9 @@ export function PlanPage() {
                     })()}
 
                     {(() => {
-                      const stateLeave = getStateLeave((state || "DEFAULT").toUpperCase());
+                      const stateLeave = getStateLeave(
+                        US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? "DEFAULT" : (state || "DEFAULT")
+                      );
                       const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
                       const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
