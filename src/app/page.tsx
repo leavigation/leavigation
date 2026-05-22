@@ -637,7 +637,7 @@ function buildTimeline(options: {
   const bondingWeeks = state.pfl.available ? state.pfl.weeksDuration || 0 : 0;
 
   const statePreBirthWeeks =
-    (code === "CA" || code === "NY" || code === "NJ" || code === "RI") &&
+    (effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ" || effectiveStateCode === "RI") &&
     (caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended")
       ? Math.min(20, Math.max(1, parseInt(caPreBirthWeeksStr, 10) || 4))
       : 0;
@@ -645,7 +645,7 @@ function buildTimeline(options: {
 
   const statePaidWeeks = preBirthWeeks + disabilityWeeks + bondingWeeks;
   const employerConcurrent = coordination === "concurrent" || coordination === "unsure" || coordination === "";
-  const cfraExtension = (code === "CA" || code === "NY" || code === "NJ") ? 12 : 0;
+  const cfraExtension = (effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ") ? 12 : 0;
   const jobProtectionEnd = preBirthWeeks + disabilityWeeks + cfraExtension;
   const paidLeaveEnd = preBirthWeeks + disabilityWeeks + bondingWeeks + (employerConcurrent ? 0 : employerWeeks);
   const concurrentEmployerEnd = employerConcurrent ? preBirthWeeks + employerWeeks : 0;
@@ -681,7 +681,7 @@ function buildTimeline(options: {
 
   const fmlaWeeks = hasFmla ? FMLA.weeksProtected : 0;
 
-  if ((code === "CA" || code === "NY" || code === "NJ" || code === "RI") && preBirthWeeks > 0) {
+  if ((effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ" || effectiveStateCode === "RI") && preBirthWeeks > 0) {
     const lastSdiWeek = preBirthWeeks + disabilityWeeks;
     const pflStartWeek = lastSdiWeek + 1;
     const pflEndWeek = pflStartWeek + bondingWeeks - 1;
@@ -689,10 +689,10 @@ function buildTimeline(options: {
     const leaveStartDate = new Date(dueDate + "T00:00:00");
     leaveStartDate.setDate(leaveStartDate.getDate() - preBirthWeeks * 7);
     const caWaitingPeriodDays = state.sdi?.waitingPeriodDays ?? 7;
-    const isCA = code === "CA";
-    const isNY = code === "NY";
-    const isNJ = code === "NJ";
-    const isRI = code === "RI";
+    const isCA = effectiveStateCode === "CA";
+    const isNY = effectiveStateCode === "NY";
+    const isNJ = effectiveStateCode === "NJ";
+    const isRI = effectiveStateCode === "RI";
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -965,7 +965,7 @@ function buildTimeline(options: {
 
     if (streams.includes("State SDI")) {
       const caWaitingPeriod =
-        code === "CA" &&
+        effectiveStateCode === "CA" &&
         (state.sdi?.waitingPeriodDays ?? 7) >= 7 &&
         weekNumber === 1;
       if (!caWaitingPeriod) {
@@ -985,7 +985,7 @@ function buildTimeline(options: {
 
     if (streams.includes("Short‑term disability")) {
       const caWeek1SdiWaiting =
-        code === "CA" &&
+        effectiveStateCode === "CA" &&
         state.sdi.available &&
         (state.sdi?.waitingPeriodDays ?? 7) >= 7 &&
         weekNumber === 1;
@@ -1021,7 +1021,7 @@ function buildTimeline(options: {
     const protectedByState =
       state.stateProtection?.available && weekNumber <= stateProtectedWeeks;
     const protectedByCfra =
-      (code === "CA" || code === "NY" || code === "NJ") &&
+      (effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ") &&
       state.stateProtection?.available &&
       weekNumber > disabilityWeeks &&
       weekNumber <= disabilityWeeks + 12;
@@ -1030,7 +1030,7 @@ function buildTimeline(options: {
     let note = "";
     if (weekNumber === 1) {
       const caWaitingPeriod =
-        code === "CA" &&
+        effectiveStateCode === "CA" &&
         state.sdi?.available &&
         (state.sdi?.waitingPeriodDays ?? 7) >= 7;
       if (caWaitingPeriod) {
