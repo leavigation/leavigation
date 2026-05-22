@@ -51,7 +51,7 @@ export default function AboutPage() {
           <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-yellow-100">
             <h2 className="text-lg font-semibold text-slate-900 mb-3">Where we are today</h2>
             <p className="text-sm leading-relaxed">
-              Leavigation launched in April 2026. We&apos;re currently focused on California, one of the most complex and generous parental leave states in the country, with plans to expand. We&apos;re actively building, listening to users, and improving every week. This is a product built in spare time, driven entirely by feedback from real moms.
+              Leavigation launched in April 2026 in California and expanded to all 50 states and DC in May 2026. The tool covers FMLA, employer parental leave, and short-term disability for every state, and we are building the various state-specific paid leave programs into the tool for the 14 states and DC that have them. We are actively building, listening to users, and improving every week. This is a product built in spare time, driven entirely by feedback from real moms.
             </p>
           </div>
 

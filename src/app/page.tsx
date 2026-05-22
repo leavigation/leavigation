@@ -5,6 +5,13 @@ declare function gtag(command: string, action: string, params?: Record<string, u
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import emailjs from "@emailjs/browser";
+import { StateProgramsReference } from "@/components/StateProgramsReference";
+import {
+  getChatPlaceholder,
+  getChatSuggestedQuestions,
+  getIncomeEstimateFootnote,
+  getStateIncomeProgramLabels,
+} from "@/lib/leaveGuideDisplay";
 import { getStateLeave, FMLA } from "../stateleavedata";
 import { getMunicipalLeave, isMunicipalPaySupplement } from "../data/municipalleavedata";
 
@@ -1172,6 +1179,8 @@ export function PlanPage() {
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
   const showPreBirthNote = state && !PRE_BIRTH_STATES.includes(state);
+  const stateProgramLabels = useMemo(() => getStateIncomeProgramLabels(state), [state]);
+  const chatSuggestedQuestions = useMemo(() => getChatSuggestedQuestions(state), [state]);
 
   const showRecentMoverQuestion =
     (step === 0 || step === 3) &&
@@ -1599,6 +1608,8 @@ export function PlanPage() {
     const weeklySalary = weeklySalaryNum ?? 0;
     const stateCode = (state || "CA").toUpperCase();
     const isCA = stateCode === "CA";
+    const sdiIncomeLabel = stateProgramLabels.sdi ?? "State disability";
+    const pflIncomeLabel = stateProgramLabels.pfl ?? "State paid leave";
     const employerPct = parsePercent(employerLeavePayPercent);
     const employerWks = parseWeeks(employerLeaveWeeks);
     const stdPctForEst = parsePercent(stdPayPercent) || 60;
@@ -1677,15 +1688,15 @@ export function PlanPage() {
       const grossPay = Math.min(weekSdi + weekPfl + weekEmployer + weekStd + weekSfPplo, weeklySalary);
       const pctOfNormal = weeklySalary > 0 ? (grossPay / weeklySalary) * 100 : 0;
       const programs: string[] = [];
-      if (w.streams.includes("State SDI") && weekSdi > 0) programs.push(isCA ? "CA SDI" : "State SDI");
-      if (w.streams.includes("State PFL")) programs.push(isCA ? "CA PFL" : "State PFL");
+      if (w.streams.includes("State SDI") && weekSdi > 0) programs.push(sdiIncomeLabel);
+      if (w.streams.includes("State PFL")) programs.push(pflIncomeLabel);
       if (w.streams.includes("Employer leave")) programs.push("Employer");
       if (w.streams.includes("Short‑term disability")) programs.push("STD");
       if (w.streams.includes("SF PPLO") && weekSfPplo > 0) programs.push("SF PPLO");
       totalLeaveIncomeCapped += grossPay;
       const sources: { label: string; amount: number; pct: number }[] = [];
-      if (weekSdi > 0) sources.push({ label: isCA ? "CA SDI" : "State SDI", amount: weekSdi, pct: grossPay > 0 ? Math.round((weekSdi / grossPay) * 100) : 0 });
-      if (weekPfl > 0) sources.push({ label: isCA ? "CA PFL" : "State PFL", amount: weekPfl, pct: grossPay > 0 ? Math.round((weekPfl / grossPay) * 100) : 0 });
+      if (weekSdi > 0) sources.push({ label: sdiIncomeLabel, amount: weekSdi, pct: grossPay > 0 ? Math.round((weekSdi / grossPay) * 100) : 0 });
+      if (weekPfl > 0) sources.push({ label: pflIncomeLabel, amount: weekPfl, pct: grossPay > 0 ? Math.round((weekPfl / grossPay) * 100) : 0 });
       if (weekEmployer > 0) sources.push({ label: "Employer", amount: weekEmployer, pct: grossPay > 0 ? Math.round((weekEmployer / grossPay) * 100) : 0 });
       if (weekStd > 0) sources.push({ label: "STD", amount: weekStd, pct: grossPay > 0 ? Math.round((weekStd / grossPay) * 100) : 0 });
       if (weekSfPplo > 0) sources.push({ label: "SF PPLO", amount: weekSfPplo, pct: grossPay > 0 ? Math.round((weekSfPplo / grossPay) * 100) : 0 });
@@ -1742,6 +1753,7 @@ export function PlanPage() {
     activeTimelineForEstimator,
     weeklySalaryNum,
     state,
+    stateProgramLabels,
     employerLeavePayPercent,
     employerLeaveWeeks,
     stdPayPercent,
@@ -1876,6 +1888,8 @@ export function PlanPage() {
                     ))}
                   </select>
                 </label>
+
+                {state !== "" && <StateProgramsReference stateCode={state} />}
 
                 {state === "CA" && (
                   <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 shadow-sm">
@@ -2605,7 +2619,7 @@ export function PlanPage() {
                 <span className="font-semibold text-amber-900">Results for {ALL_US_STATES.find((s) => s.code === state)?.name ?? state}, based on these assumptions:</span>
                 {state === "CA" ? (
                   <>
-                    <span>Full-time CA W-2 employee</span>
+                    <span>Full-time {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} W-2 employee</span>
                     <span className="text-amber-300">·</span>
                     <span>Paid into CA SDI in last 18 months</span>
                     <span className="text-amber-300">·</span>
@@ -2621,7 +2635,7 @@ export function PlanPage() {
                   </>
                 ) : (
                   <>
-                    <span>Full-time W-2 employee</span>
+                    <span>Full-time {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} W-2 employee</span>
                     <span className="text-amber-300">·</span>
                     <span>FMLA eligible (employer 50+ employees, 12+ months tenure, 1,250+ hours)</span>
                     <span className="text-amber-300">·</span>
@@ -3288,7 +3302,7 @@ export function PlanPage() {
                         <tbody className="divide-y divide-slate-100">
                           {incomeEstimator.sdiTotal > 0 && (
                             <tr>
-                              <td className="py-2 pr-2 text-slate-700">{(state || "CA").toUpperCase() === "CA" ? "CA SDI" : "State SDI"} (pregnancy disability)</td>
+                              <td className="py-2 pr-2 text-slate-700">{stateProgramLabels.sdi ?? "State disability"} (pregnancy disability)</td>
                               <td className="py-2 text-right font-medium text-slate-900">
                                 {incomeEstimator.sdiPaidWeeks} weeks × ${Math.round(incomeEstimator.sdiWeekly)}/week = ${incomeEstimator.sdiTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                               </td>
@@ -3296,7 +3310,7 @@ export function PlanPage() {
                           )}
                           {incomeEstimator.pflTotal > 0 && (
                             <tr>
-                              <td className="py-2 pr-2 text-slate-700">{(state || "CA").toUpperCase() === "CA" ? "CA PFL" : "State PFL"} (bonding)</td>
+                              <td className="py-2 pr-2 text-slate-700">{stateProgramLabels.pfl ?? "State paid leave"} (bonding)</td>
                               <td className="py-2 text-right font-medium text-slate-900">
                                 {incomeEstimator.pflWeeks} weeks × ${Math.round(incomeEstimator.pflWeekly)}/week = ${incomeEstimator.pflTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                               </td>
@@ -3428,12 +3442,7 @@ export function PlanPage() {
                           SDI and PFL amounts are gross pre-tax estimates. Your employer leave is taxed as regular income. See tax details for more.
                         </p>
                       )}
-                      {state === "CA" && (
-                        <p className="mt-1 text-xs text-slate-500">Estimates are based on 2026 CA EDD rates. Actual benefits depend on your base period wages. This is not financial advice.</p>
-                      )}
-                      {state !== "CA" && (
-                        <p className="mt-1 text-xs text-slate-500">Estimates are based on your employer leave and STD inputs. Actual benefits depend on your employer policy. This is not financial advice.</p>
-                      )}
+                      <p className="mt-1 text-xs text-slate-500">{getIncomeEstimateFootnote(state)}</p>
                     </div>
                     ) : (
                       <p className="mt-4 text-sm text-slate-600">Estimated leave income based on your timeline and salary.</p>
@@ -3582,19 +3591,7 @@ export function PlanPage() {
                     <div className="px-5 py-4 border-b border-slate-100">
                       <p className="text-xs text-slate-500 mb-3">Suggested questions:</p>
                       <div className="flex flex-wrap gap-2">
-                        {(state === "CA" ? [
-                          "When should I file my SDI claim?",
-                          "What happens if I take leave before my due date?",
-                          "How does my employer leave interact with SDI?",
-                          "What is the FMLA cliff?",
-                          "When does CFRA start?",
-                        ] : [
-                          "What does FMLA cover?",
-                          "How does my STD interact with employer leave?",
-                          "What happens after my FMLA runs out?",
-                          "How do I file for FMLA leave?",
-                          "What is the difference between FMLA and employer leave?",
-                        ]).map((q) => (
+                        {chatSuggestedQuestions.map((q) => (
                           <button
                             key={q}
                             type="button"
@@ -3665,7 +3662,7 @@ export function PlanPage() {
                           handleChatSubmit();
                         }
                       }}
-                      placeholder={state === "CA" ? "Ask anything about your leave plan or CA leave law..." : "Ask anything about your leave plan or FMLA..."}
+                      placeholder={getChatPlaceholder(state)}
                       className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 resize-none outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition"
                       rows={2}
                     />
@@ -3789,7 +3786,7 @@ export default function LandingPage() {
               <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-pink-100">
                 <div className="h-10 w-10 rounded-xl bg-pink-100 flex items-center justify-center text-xl mb-4">📅</div>
                 <h3 className="text-base font-semibold text-slate-900 mb-2">Your full timeline in 5 minutes</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">Get a personalized week-by-week Gantt chart showing exactly which programs cover you each week, SDI, PFL, FMLA, CFRA, employer leave, and SF PPLO, all stacked correctly.</p>
+                <p className="text-sm text-slate-600 leading-relaxed">Get a personalized week-by-week Gantt chart showing exactly which programs cover you each week. FMLA, state paid leave, employer leave, and short-term disability, all stacked correctly for your state and situation.</p>
               </div>
               <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
                 <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl mb-4">💵</div>
@@ -3814,8 +3811,8 @@ export default function LandingPage() {
                 </div>
                 <div className="hidden sm:block h-8 w-px bg-slate-200" />
                 <div>
-                  <div className="text-2xl font-bold text-blue-500">CA</div>
-                  <div className="text-xs text-slate-500 mt-1">All CA programs covered</div>
+                  <div className="text-2xl font-bold text-blue-500">All 50 states</div>
+                  <div className="text-xs text-slate-500 mt-1">FMLA + employer + state programs</div>
                 </div>
                 <div className="hidden sm:block h-8 w-px bg-slate-200" />
                 <div>
@@ -3831,7 +3828,7 @@ export default function LandingPage() {
             <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">How it works</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {[
-                { step: "1", title: "Answer a few questions", desc: "Tell us your state, due date, birth type, salary, and employer leave policy. Takes 5 minutes." },
+                { step: "1", title: "Answer a few questions", desc: "Tell us your state, due date, birth type, salary, and employer leave policy. The tool covers all 50 states plus DC. Takes 5 minutes." },
                 { step: "2", title: "Get your personalized plan", desc: "See your week-by-week Gantt chart, income forecast, and key filing deadlines, all specific to your situation." },
                 { step: "3", title: "Ask the AI anything", desc: "Use the built-in AI assistant to ask follow-up questions about your plan. Verified answers with cited sources." },
               ].map((item) => (
@@ -3841,6 +3838,76 @@ export default function LandingPage() {
                   <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Here is what you will get</h2>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-pink-100">
+                <p className="text-xs font-semibold uppercase tracking-wide text-pink-600">Week-by-week leave timeline</p>
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                  A Gantt chart showing every program active each week, color-coded by whether you are protected, paid, both, or neither. Covers FMLA, state programs, employer leave, and STD.
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-lg bg-slate-50 px-2 py-3 ring-1 ring-slate-200">
+                    <div className="text-lg font-bold text-slate-800">18</div>
+                    <div className="text-[10px] text-slate-500 mt-1">Total leave weeks</div>
+                  </div>
+                  <div className="rounded-lg bg-emerald-50 px-2 py-3 ring-1 ring-emerald-200">
+                    <div className="text-lg font-bold text-emerald-700">10</div>
+                    <div className="text-[10px] text-emerald-700 mt-1">Fully paid weeks</div>
+                  </div>
+                  <div className="rounded-lg bg-amber-50 px-2 py-3 ring-1 ring-amber-200">
+                    <div className="text-lg font-bold text-amber-700">4</div>
+                    <div className="text-[10px] text-amber-700 mt-1">Reduced or no pay</div>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Estimated leave income</p>
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                  A full income breakdown by source, week by week. See exactly how much comes from each program, your total estimated leave income, and your projected shortfall so you can plan ahead.
+                </p>
+                <table className="mt-4 w-full text-xs">
+                  <tbody className="divide-y divide-slate-100">
+                    <tr><td className="py-1.5 text-slate-600">State disability</td><td className="py-1.5 text-right font-medium text-slate-800">$12,400</td></tr>
+                    <tr><td className="py-1.5 text-slate-600">State paid leave</td><td className="py-1.5 text-right font-medium text-slate-800">$9,800</td></tr>
+                    <tr><td className="py-1.5 text-slate-600">Employer leave</td><td className="py-1.5 text-right font-medium text-slate-800">$18,000</td></tr>
+                    <tr><td className="py-1.5 text-slate-600">Short-term disability</td><td className="py-1.5 text-right font-medium text-slate-800">$4,200</td></tr>
+                    <tr className="border-t border-slate-200"><td className="py-2 font-semibold text-slate-800">Total</td><td className="py-2 text-right font-semibold text-emerald-700">$44,400</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Coverage by state</h2>
+            <div className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-slate-200">
+              <svg width="100%" viewBox="0 0 680 420" role="img" aria-label="Leavigation coverage by state: inverted trapezoid showing three tiers">
+                <polygon points="40,30 640,30 584,155 96,155" fill="#E6F1FB" stroke="none"/>
+                <polygon points="96,158 584,158 529,280 151,280" fill="#EAF3DE" stroke="none"/>
+                <polygon points="151,283 529,283 480,390 200,390" fill="#FCEBEB" stroke="none"/>
+                <polygon points="40,30 640,30 480,390 200,390" fill="none" stroke="#B4B2A9" strokeWidth="1"/>
+                <line x1="96" y1="156" x2="584" y2="156" stroke="#B4B2A9" strokeWidth="0.75"/>
+                <line x1="151" y1="281" x2="529" y2="281" stroke="#B4B2A9" strokeWidth="0.75"/>
+                <rect x="270" y="37" width="140" height="20" rx="10" fill="#E6F1FB" stroke="#378ADD" strokeWidth="0.5"/>
+                <text fontSize="12" fontFamily="inherit" x="340" y="51" textAnchor="middle" fill="#185FA5">Available now</text>
+                <text fontSize="14" fontWeight="500" fontFamily="inherit" x="340" y="85" textAnchor="middle" fill="#0C447C">All 50 states + DC</text>
+                <text fontSize="12" fontFamily="inherit" x="340" y="107" textAnchor="middle" fill="#185FA5">FMLA + employer leave + short-term disability</text>
+                <text fontSize="12" fontFamily="inherit" x="340" y="127" textAnchor="middle" fill="#185FA5">No state paid program? We still show you what you have.</text>
+                <rect x="264" y="164" width="152" height="20" rx="10" fill="#EAF3DE" stroke="#97C459" strokeWidth="0.5"/>
+                <text fontSize="12" fontFamily="inherit" x="340" y="178" textAnchor="middle" fill="#27500A">Live now, fully built</text>
+                <text fontSize="14" fontWeight="500" fontFamily="inherit" x="340" y="210" textAnchor="middle" fill="#27500A">California</text>
+                <text fontSize="12" fontFamily="inherit" x="340" y="230" textAnchor="middle" fill="#3B6D11">All state and municipal programs built in</text>
+                <text fontSize="12" fontFamily="inherit" x="340" y="250" textAnchor="middle" fill="#3B6D11">SDI, PFL, PDL, CFRA, FMLA, SF PPLO</text>
+                <rect x="244" y="290" width="192" height="20" rx="10" fill="#FCEBEB" stroke="#F09595" strokeWidth="0.5"/>
+                <text fontSize="12" fontFamily="inherit" x="340" y="304" textAnchor="middle" fill="#791F1F">Being built into Leavigation</text>
+                <text fontSize="14" fontWeight="500" fontFamily="inherit" x="340" y="333" textAnchor="middle" fill="#791F1F">State PFL programs being added</text>
+                <text fontSize="12" fontFamily="inherit" x="340" y="353" textAnchor="middle" fill="#A32D2D">CO, CT, DE, DC, HI, ME, MA, MN, NJ, NY, OR, RI, VT, WA</text>
+                <text fontSize="12" fontFamily="inherit" x="340" y="373" textAnchor="middle" fill="#A32D2D">MD and VA programs launching in 2028</text>
+              </svg>
             </div>
           </section>
 

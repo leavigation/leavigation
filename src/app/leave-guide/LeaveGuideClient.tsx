@@ -252,18 +252,6 @@ export default function LeaveGuideClient({ initialSlug = "" }: { initialSlug?: s
               </div>
             )}
           </section>
-
-          <div id="notify" className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-purple-200 scroll-mt-20">
-            <div className="flex items-start gap-3 mb-4">
-              <span className="text-2xl">📬</span>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Get notified when your state launches</h2>
-                <p className="text-sm text-slate-600 mt-1">Leavigation currently supports California in full. We&apos;re actively building NY, NJ, MA, WA, and more. Enter your email and we&apos;ll notify you the moment your state is ready.</p>
-              </div>
-            </div>
-            <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
-            <iframe src="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" className="beehiiv-embed" data-test-id="beehiiv-embed" frameBorder={0} scrolling="no" style={{ width: "100%", maxWidth: "560px", height: "200px", margin: 0, backgroundColor: "transparent", boxShadow: "none", borderRadius: 0 }}></iframe>
-          </div>
         </div>
       </div>
     </main>

@@ -22,8 +22,8 @@ export default function WhyLeavigationPage() {
       tools: { check: false, note: "Rarely include state benefit calculations" },
     },
     {
-      feature: "CA leave stacking logic",
-      leavigation: { check: true, note: "PDL + CFRA + FMLA + SDI + PFL + SF PPLO all handled" },
+      feature: "State and federal leave stacking logic",
+      leavigation: { check: true, note: "FMLA, state paid leave, employer leave, and STD all stacked correctly for your state" },
       consultants: { check: true, note: "Knowledgeable but expensive for ongoing questions" },
       hr: { check: false, note: "HR knows employer policy, not state benefit interactions" },
       tools: { check: false, note: "Most don't handle CA-specific stacking complexity" },
@@ -44,7 +44,7 @@ export default function WhyLeavigationPage() {
     },
     {
       feature: "Covers state + federal + municipal",
-      leavigation: { check: true, note: "FMLA, CA state laws, and SF PPLO all included" },
+      leavigation: { check: true, note: "FMLA, state programs for all 50 states plus DC, and municipal ordinances where applicable" },
       consultants: { check: true, note: "Comprehensive but at a cost" },
       hr: { check: false, note: "Focused on employer policy, not all legal layers" },
       tools: { check: false, note: "Usually federal only or single-state" },
