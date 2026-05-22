@@ -2207,13 +2207,13 @@ export function PlanPage() {
                       At what % of your pay?
                       <div className="mt-2 flex items-center gap-2">
                         <input
-                          type="number"
-                          min={0}
-                          max={100}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
                           placeholder="e.g., 100"
                           value={employerLeavePayPercent}
-                          onChange={(e) => setEmployerLeavePayPercent(e.target.value)}
+                          onChange={(e) => setEmployerLeavePayPercent(e.target.value.replace(/[^0-9]/g, ""))}
                         />
                         <span className="text-sm text-slate-500">%</span>
                       </div>
@@ -2257,13 +2257,13 @@ export function PlanPage() {
                           At what % of your pay?
                           <div className="mt-2 flex items-center gap-2">
                             <input
-                              type="number"
-                              min={0}
-                              max={100}
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                               placeholder="e.g. 100"
                               value={employerPreBirthPayPercent}
-                              onChange={(e) => setEmployerPreBirthPayPercent(e.target.value)}
+                              onChange={(e) => setEmployerPreBirthPayPercent(e.target.value.replace(/[^0-9]/g, ""))}
                             />
                             <span className="text-sm text-slate-500">%</span>
                           </div>
@@ -2470,13 +2470,13 @@ export function PlanPage() {
                         At what % of your pay?
                         <div className="mt-2 flex items-center gap-2">
                           <input
-                            type="number"
-                            min={0}
-                            max={100}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                             placeholder="e.g. 60"
                             value={stdPayPercent}
-                            onChange={(e) => setStdPayPercent(e.target.value)}
+                            onChange={(e) => setStdPayPercent(e.target.value.replace(/[^0-9]/g, ""))}
                           />
                           <span className="text-sm text-slate-500">%</span>
                         </div>
@@ -2509,13 +2509,13 @@ export function PlanPage() {
                             At what % of your pay does STD cover pre-birth leave?
                             <div className="mt-2 flex items-center gap-2">
                               <input
-                                type="number"
-                                min={0}
-                                max={100}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                                 placeholder="e.g. 60"
                                 value={stdPreBirthPayPercent}
-                                onChange={(e) => setStdPreBirthPayPercent(e.target.value)}
+                                onChange={(e) => setStdPreBirthPayPercent(e.target.value.replace(/[^0-9]/g, ""))}
                               />
                               <span className="text-sm text-slate-500">%</span>
                             </div>
