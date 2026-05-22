@@ -2572,14 +2572,92 @@ export function PlanPage() {
                   </>
                 )}
               </div>
-              {!US_STATES_SUPPORTED.includes(state) && US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-purple-200 bg-purple-50 px-4 py-2.5 text-xs text-purple-800">
-                  <span className="text-purple-500">ℹ</span>
-                  <span className="font-semibold">{`Full paid leave support for ${ALL_US_STATES.find((s) => s.code === state)?.name ?? state} is coming soon.`}</span>
-                  <span>Results below show FMLA job protection + employer leave + STD only. Your state&apos;s paid leave program is not yet included.</span>
-                  <a href="https://subscribe-forms.beehiiv.com/69acb8ac-4587-41c0-92b4-df39eb8798ea" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-purple-900">Get notified when it launches →</a>
-                </div>
-              )}
+              {state !== "CA" && US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (() => {
+                const missingPrograms: Record<string, { programs: string[]; note: string }> = {
+                  NY: {
+                    programs: ["NY Disability Benefits Law (DBL) — 50% of wages, max $170/wk, 6–8 weeks recovery", "NY Paid Family Leave (PFL) — 67% of wages, max $1,228/wk, 12 weeks bonding"],
+                    note: "Both filed through your employer's insurance carrier, not a state agency.",
+                  },
+                  NJ: {
+                    programs: ["NJ Temporary Disability Insurance (TDI) — 85% of wages, max $1,119/wk, 6–8 weeks recovery", "NJ Family Leave Insurance (FLI) — 85% of wages, max $1,119/wk, 12 weeks bonding"],
+                    note: "NJ TDI and FLI are among the most generous state programs in the US.",
+                  },
+                  WA: {
+                    programs: ["WA Paid Family & Medical Leave — up to 90% of wages, max $1,647/wk, covers both recovery and bonding (up to 18 weeks combined)"],
+                    note: "Single combined program — no separate disability and bonding claims.",
+                  },
+                  MA: {
+                    programs: ["MA Paid Family and Medical Leave (PFML) — tiered rate up to 80%+, max $1,230/wk, up to 20 weeks medical + 12 weeks bonding"],
+                    note: "Single combined program. 7-day waiting period waived for bonding if following medical leave.",
+                  },
+                  CT: {
+                    programs: ["CT Paid Leave — up to 95% of minimum wage + 60% above, max $1,016/wk, 12 weeks bonding + medical"],
+                    note: "Applies to employers with 1+ employees.",
+                  },
+                  CO: {
+                    programs: ["CO Family and Medical Leave Insurance (FAMLI) — 90% of wages up to 50% of state avg, then 50% above, max $1,381/wk, 12 weeks"],
+                    note: "Covers both medical recovery and bonding.",
+                  },
+                  OR: {
+                    programs: ["OR Paid Leave — 60% of wages up to 65% of state avg, then 5% above, max $1,523/wk, 12 weeks bonding + 12 weeks medical"],
+                    note: "Applies to employers with 25+ employees.",
+                  },
+                  RI: {
+                    programs: ["RI Temporary Disability Insurance (TDI) — 4.62% of highest quarter wages, max $1,103/wk, up to 30 weeks recovery", "RI Temporary Caregiver Insurance (TCI) — same rate, 8 weeks bonding"],
+                    note: "RI TDI was the first state disability program in the US (1942).",
+                  },
+                  MN: {
+                    programs: ["MN Paid Leave — 3-tier rate (90%/66%/55%), max $1,423/wk, up to 12 weeks medical + 12 weeks bonding (20 weeks combined)"],
+                    note: "Brand new program — launched January 2026. No waiting period.",
+                  },
+                  DE: {
+                    programs: ["DE Paid Leave — 80% of wages, max $900/wk, 12 weeks parental leave per year"],
+                    note: "Brand new program — launched January 2026. Employer-administered.",
+                  },
+                  MD: {
+                    programs: ["MD Family and Medical Leave Insurance (FAMLI) — 90% up to 65% of state avg, then 50% above, max $1,000/wk, 12 weeks bonding + 12 weeks medical"],
+                    note: "Not yet active — benefits begin January 2028.",
+                  },
+                  HI: {
+                    programs: ["HI Temporary Disability Insurance (TDI) — 58% of wages, max $871/wk, up to 26 weeks"],
+                    note: "Employer-provided through private carriers or self-insurance. No state bonding pay program.",
+                  },
+                };
+                const info = missingPrograms[state];
+                const stateName = ALL_US_STATES.find((s) => s.code === state)?.name ?? state;
+                return (
+                  <div className="rounded-2xl border border-purple-200 bg-purple-50 px-5 py-4 text-xs text-purple-900">
+                    <div className="flex items-start gap-3">
+                      <span className="text-lg shrink-0">⚠️</span>
+                      <div className="space-y-2 flex-1">
+                        <div className="font-semibold text-sm text-purple-900">
+                          {stateName} has state paid leave programs not yet included in your plan
+                        </div>
+                        <p className="text-purple-700">Your results below show FMLA + employer leave + STD only. The following {stateName} programs are missing from this estimate:</p>
+                        {info ? (
+                          <>
+                            <ul className="space-y-1 mt-1">
+                              {info.programs.map((p, i) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="text-purple-400 shrink-0">•</span>
+                                  <span className="font-medium">{p}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <p className="text-purple-600 italic mt-1">{info.note}</p>
+                          </>
+                        ) : (
+                          <p className="font-medium">State paid leave programs are not yet modeled for {stateName}.</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 pt-2 border-t border-purple-200">
+                          <span className="text-purple-600">Your actual leave income will likely be higher than shown once {stateName} support launches.</span>
+                          <Link href="/leave-guide#notify" className="shrink-0 rounded-full bg-purple-500 px-3 py-1.5 text-white font-medium hover:bg-purple-600 transition">Get notified →</Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
               {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
                   <span className="text-blue-500">ℹ</span>
