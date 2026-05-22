@@ -1423,19 +1423,23 @@ export function PlanPage() {
       // When no employer leave, go straight to Results (step 5)
       if (noEmployerLeave) {
         setStep(5);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         setStep((s) => s + 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
       return;
     }
 
     if (step === 3 && noEmployerLeave) {
       setStep(4);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     if (!isLastStep) {
       setStep((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
