@@ -2692,7 +2692,7 @@ export function PlanPage() {
                       <span className="text-lg shrink-0">⚠️</span>
                       <div className="space-y-2 flex-1">
                         <div className="font-semibold text-sm text-purple-900">
-                          {stateName} has state paid leave programs not yet included in your plan
+                          {stateName} has state paid leave programs not yet included in the Leavigation results below
                         </div>
                         <p className="text-purple-700">Your results below show FMLA + employer leave + STD only. The following {stateName} programs are missing from this estimate:</p>
                         {info ? (
@@ -2711,7 +2711,7 @@ export function PlanPage() {
                           <p className="font-medium">State paid leave programs are not yet modeled for {stateName}.</p>
                         )}
                         <div className="flex items-center gap-3 mt-2 pt-2 border-t border-purple-200">
-                          <span className="text-purple-600">Your actual leave income will likely be higher than shown once {stateName} support launches.</span>
+                          <span className="text-purple-600">Your actual leave income will likely be higher than shown below once {stateName} state programs are built into Leavigation.</span>
                           <Link href="/leave-guide#notify" className="shrink-0 rounded-full bg-purple-500 px-3 py-1.5 text-white font-medium hover:bg-purple-600 transition">Get notified →</Link>
                         </div>
                       </div>
@@ -3245,7 +3245,10 @@ export function PlanPage() {
                           })}
                           {!stateLeave.hasProtectionBeyondFMLA && state !== "CA" && (
                             <div className="mt-2 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] text-slate-600">
-                              No state protection beyond FMLA, this view shows federal job protection (FMLA) plus employer leave and any STD you enter.
+                              {US_STATES_PAID_LEAVE_COMING_SOON.includes(state)
+                                ? `${ALL_US_STATES.find((s) => s.code === state)?.name ?? state} has state paid leave programs not yet built into Leavigation. Results show FMLA + employer leave + STD only.`
+                                : `${ALL_US_STATES.find((s) => s.code === state)?.name ?? state} does not have a state paid leave program. This view shows FMLA job protection + employer leave + STD only.`
+                              }
                             </div>
                           )}
                           {city === "San Francisco" && (
@@ -3253,7 +3256,7 @@ export function PlanPage() {
                               * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
                             </p>
                           )}
-                          {excludedFootnoteRows.length > 0 && (
+                          {excludedFootnoteRows.length > 0 && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
                             <p className="mt-1 text-xs text-slate-400 px-1">
                               † Not shown: {excludedFootnoteRows.join(", ")}. These rows are hidden because they do not apply to your situation.
                             </p>
