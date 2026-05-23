@@ -1838,6 +1838,7 @@ export function PlanPage() {
     let employerTotal = 0;
     let stdTotal = 0;
     let totalLeaveIncomeCapped = 0;
+    const employerIsTopUpMode = isConcurrentLike;
     const weekRows: { weekNumber: number; dateLabel: string; programs: string[]; grossPay: number; pctOfNormal: number; sources: { label: string; amount: number; pct: number }[] }[] = [];
 
     for (const w of activeTimelineForEstimator) {
@@ -1864,7 +1865,18 @@ export function PlanPage() {
             : employerPct;
         weekEmployer = weeklySalary * (employerPctThisWeek / 100);
         employerPaidWeeks += 1;
-        employerTotal += weekEmployer;
+        const employerTarget = Math.min(weekEmployer, weeklySalary);
+        let weekEmployerForDisplay = weekEmployer;
+        if (employerIsTopUpMode) {
+          if (weekSdi > 0) {
+            weekEmployerForDisplay = Math.max(0, employerTarget - weekSdi);
+          } else if (weekPfl > 0) {
+            weekEmployerForDisplay = Math.max(0, employerTarget - weekPfl);
+          } else {
+            weekEmployerForDisplay = employerTarget;
+          }
+        }
+        employerTotal += weekEmployerForDisplay;
       }
       if (w.streams.includes("Short‑term disability")) {
         const isPreBirthPhase = (w.birthRelativeWeek ?? 0) < 0;
@@ -1938,8 +1950,12 @@ export function PlanPage() {
       pflWeekly: isCA ? caWeeklyRate : Math.min(weeklySalary * 0.7, 1620),
       pflTotal,
       employerWeeks: employerPaidWeeks,
-      employerWeekly: weeklySalary * (employerPct / 100),
+      employerWeekly:
+        employerPaidWeeks > 0
+          ? employerTotal / employerPaidWeeks
+          : weeklySalary * (employerPct / 100),
       employerTotal,
+      employerIsTopUpMode,
       stdWeeks: stdWeeksNumForDisplay,
       stdWeekly: stdWeeklyForDisplay,
       stdTotal,
@@ -3390,7 +3406,13 @@ export function PlanPage() {
                         const usePreBirthIndigo = !isJobProtectionRow && !isSdiWaitingWeek;
                         const preBirthInactiveBg = usePreBirthIndigo && isPreBirth && !isActive ? "bg-indigo-50" : "";
                         const preBirthActiveRing = usePreBirthIndigo && isPreBirth && isActive ? "ring-1 ring-inset ring-indigo-200/50" : "";
-                        const preBirthRelativeBg = usePreBirthIndigo && week.birthRelativeWeek !== undefined && week.birthRelativeWeek < 0 ? "bg-indigo-50" : "";
+                        const preBirthRelativeBg =
+                          usePreBirthIndigo &&
+                          week.birthRelativeWeek !== undefined &&
+                          week.birthRelativeWeek < 0 &&
+                          !isActive
+                            ? "bg-indigo-50"
+                            : "";
 
                         return (
                           <button
@@ -3547,7 +3569,9 @@ export function PlanPage() {
                           )}
                           {incomeEstimator.employerTotal > 0 && (
                             <tr>
-                              <td className="py-2 pr-2 text-slate-700">Employer leave</td>
+                              <td className="py-2 pr-2 text-slate-700">
+                                {incomeEstimator.employerIsTopUpMode ? "Employer leave (top-up)" : "Employer leave"}
+                              </td>
                               <td className="py-2 text-right font-medium text-slate-900">
                                 {incomeEstimator.employerWeeks} weeks × ${Math.round(incomeEstimator.employerWeekly)}/week = ${incomeEstimator.employerTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                               </td>
