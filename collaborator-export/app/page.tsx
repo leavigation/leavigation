@@ -3,7 +3,7 @@
 declare function gtag(command: string, action: string, params?: Record<string, unknown>): void;
 
 import Link from "next/link";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import emailjs from "@emailjs/browser";
 import { StateProgramsReference } from "@/components/StateProgramsReference";
 import {
@@ -147,55 +147,16 @@ function getIncomeSourceBarColor(label: string): string {
   return "#85B7EB";
 }
 
-function getIncomeSourceSortOrder(label: string): number {
-  const color = getIncomeSourceBarColor(label);
-  if (color === "#5DCAA5") return 0;
-  if (color === "#7F77DD") return 1;
-  if (color === "#FAC775") return 2;
-  if (color === "#85B7EB") return 3;
-  return 4;
-}
-
-function getIncomeSourceLegendLabel(label: string): string {
-  if (label === "Employer") return "Employer leave";
-  if (label === "STD") return "STD";
-  return label;
-}
-
 function WeekIncomeStackedBar({
   sources,
-  normalWeeklyGrossPay,
+  weeklySalary,
 }: {
   sources: { label: string; amount: number }[];
-  normalWeeklyGrossPay: number;
+  weeklySalary: number;
 }) {
-  const barRef = useRef<HTMLDivElement>(null);
-  const [tooltip, setTooltip] = useState<{ text: string; left: number } | null>(null);
-
   const activeSources = sources.filter((s) => s.amount > 0);
-  const gross = normalWeeklyGrossPay > 0 ? normalWeeklyGrossPay : 1;
-  const totalPct = activeSources.reduce((sum, s) => sum + (s.amount / gross) * 100, 0);
-  const scale = totalPct > 100 ? 100 / totalPct : 1;
-
   return (
     <div className="relative w-full min-w-[100px]">
-      {tooltip && (
-        <div
-          className="pointer-events-none absolute z-20 whitespace-nowrap"
-          style={{
-            left: tooltip.left,
-            bottom: "100%",
-            transform: "translate(-50%, -6px)",
-            background: "#2C2C2A",
-            color: "#fff",
-            fontSize: 12,
-            padding: "4px 8px",
-            borderRadius: 4,
-          }}
-        >
-          {tooltip.text}
-        </div>
-      )}
       <div
         className="absolute top-0 z-10 pointer-events-none"
         style={{
@@ -208,33 +169,17 @@ function WeekIncomeStackedBar({
         }}
         aria-hidden
       />
-      <div ref={barRef} className="flex h-[22px] w-full overflow-hidden rounded-[3px]">
-        {activeSources.map((s, i) => {
-          const widthPct = (s.amount / gross) * 100 * scale;
-          return (
-            <div
-              key={`${s.label}-${i}`}
-              className="relative h-full shrink-0"
-              style={{
-                width: `${widthPct}%`,
-                backgroundColor: getIncomeSourceBarColor(s.label),
-              }}
-              onMouseEnter={(e) => {
-                const segment = e.currentTarget;
-                const bar = barRef.current;
-                if (!bar) return;
-                const segmentRect = segment.getBoundingClientRect();
-                const barRect = bar.getBoundingClientRect();
-                const displayLabel = getIncomeSourceLegendLabel(s.label);
-                setTooltip({
-                  text: `${displayLabel}: $${Math.round(s.amount).toLocaleString("en-US")}`,
-                  left: segmentRect.left - barRect.left + segmentRect.width / 2,
-                });
-              }}
-              onMouseLeave={() => setTooltip(null)}
-            />
-          );
-        })}
+      <div className="flex h-[22px] w-full overflow-hidden rounded-[3px]">
+        {activeSources.map((s, i) => (
+          <div
+            key={`${s.label}-${i}`}
+            style={{
+              width: `${(s.amount / weeklySalary) * 100}%`,
+              backgroundColor: getIncomeSourceBarColor(s.label),
+              flexShrink: 0,
+            }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -1884,17 +1829,6 @@ export function PlanPage() {
     employerRequiresConcurrent,
   ]);
 
-  const incomeBarLegendSources = useMemo(() => {
-    if (!incomeEstimator?.weekRows) return [];
-    const labels = new Set<string>();
-    for (const row of incomeEstimator.weekRows) {
-      for (const s of row.sources) {
-        if (s.amount > 0) labels.add(s.label);
-      }
-    }
-    return [...labels].sort((a, b) => getIncomeSourceSortOrder(a) - getIncomeSourceSortOrder(b));
-  }, [incomeEstimator]);
-
   return (
     <main className="min-h-screen text-slate-900" style={{ background: "#F8FAFC" }}>
       <div className="plan-page-container mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10 print:max-w-none print:px-2">
@@ -3504,26 +3438,6 @@ export function PlanPage() {
                         </button>
                         {incomeWeekByWeekOpen && (
                           <div className="mt-2 overflow-x-auto">
-                            {incomeBarLegendSources.length > 0 && (
-                              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                                {incomeBarLegendSources.map((label) => (
-                                  <div key={label} className="flex items-center gap-1.5">
-                                    <span
-                                      className="shrink-0"
-                                      style={{
-                                        width: 10,
-                                        height: 10,
-                                        borderRadius: 2,
-                                        backgroundColor: getIncomeSourceBarColor(label),
-                                      }}
-                                    />
-                                    <span className="text-xs text-slate-500">
-                                      {getIncomeSourceLegendLabel(label)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                             <table className="w-full min-w-[400px] text-xs">
                               <thead>
                                 <tr className="border-b border-slate-200 text-slate-600">
@@ -3554,7 +3468,7 @@ export function PlanPage() {
                                       ) : (
                                         <WeekIncomeStackedBar
                                           sources={row.sources}
-                                          normalWeeklyGrossPay={weeklySalaryNum ?? 1}
+                                          weeklySalary={weeklySalaryNum ?? 1}
                                         />
                                       )}
                                     </td>
