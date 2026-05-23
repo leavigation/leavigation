@@ -126,6 +126,7 @@ function parsePercent(value: string): number {
 function getIncomeSourceBarColor(label: string): string {
   if (label === "STD") return "#85B7EB";
   if (label === "Employer") return "#FAC775";
+  if (label === "SF PPLO") return "#F0997B";
   const lower = label.toLowerCase();
   if (
     lower.includes("sdi") ||
@@ -138,7 +139,6 @@ function getIncomeSourceBarColor(label: string): string {
   }
   if (
     lower.includes("pfl") ||
-    lower.includes("pplo") ||
     lower.includes("family leave") ||
     lower.includes("paid leave")
   ) {
@@ -151,9 +151,10 @@ function getIncomeSourceSortOrder(label: string): number {
   const color = getIncomeSourceBarColor(label);
   if (color === "#5DCAA5") return 0;
   if (color === "#7F77DD") return 1;
-  if (color === "#FAC775") return 2;
-  if (color === "#85B7EB") return 3;
-  return 4;
+  if (color === "#F0997B") return 2;
+  if (color === "#FAC775") return 3;
+  if (color === "#85B7EB") return 4;
+  return 5;
 }
 
 function getIncomeSourceLegendLabel(label: string): string {
