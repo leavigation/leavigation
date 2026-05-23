@@ -1461,6 +1461,80 @@ export function PlanPage() {
 
     const stateDisplayName = ALL_US_STATES.find((s) => s.code === state)?.name ?? state;
     const hasStatePaidLeave = US_STATES_SUPPORTED.includes(state);
+
+    let weekByWeekBreakdown = "";
+    if (tl) {
+      const weeklySalary = weeklySalaryNum ?? 0;
+      const isCA = (state || "CA").toUpperCase() === "CA";
+      const caWeeklyRate = isCA && weeklySalary > 0 ? getCAWeeklyBenefit2026(weeklySalary) : 0;
+      const employerPct = parsePercent(employerLeavePayPercent);
+      const stdPctForEst = parsePercent(stdPayPercent) || 60;
+      const employerPreBirthPctForEst =
+        parseInt(employerPreBirthPayPercent, 10) || employerPct;
+      const stdPreBirthPctForEst =
+        parseInt(stdPreBirthPayPercent, 10) || stdPctForEst;
+      const breakdownLines: string[] = [];
+      for (const w of tl.slice(0, 30)) {
+        let weekSdi = 0;
+        let weekPfl = 0;
+        let weekEmployer = 0;
+        let weekStd = 0;
+        if (w.streams.includes("State SDI")) {
+          weekSdi = isCA
+            ? w.weekNumber === 1
+              ? 0
+              : caWeeklyRate
+            : Math.min(weeklySalary * 0.7, 1620);
+        }
+        if (w.streams.includes("State PFL")) {
+          weekPfl = isCA ? caWeeklyRate : Math.min(weeklySalary * 0.7, 1620);
+        }
+        if (w.streams.includes("Employer leave")) {
+          const isPreBirthPhase = (w.birthRelativeWeek ?? 0) < 0;
+          const employerPctThisWeek =
+            employerPreBirth === "yes" && isPreBirthPhase
+              ? employerPreBirthPctForEst
+              : employerPct;
+          weekEmployer = weeklySalary * (employerPctThisWeek / 100);
+        }
+        if (w.streams.includes("Short‑term disability")) {
+          const isPreBirthPhase = (w.birthRelativeWeek ?? 0) < 0;
+          const stdPctThisWeek =
+            stdPreBirth === "yes" && isPreBirthPhase
+              ? stdPreBirthPctForEst
+              : stdPctForEst;
+          weekStd = weeklySalary * (stdPctThisWeek / 100);
+        }
+        let weekSfPplo = 0;
+        if (w.streams.includes("SF PPLO")) {
+          const baseWithoutPplo = Math.min(
+            weekSdi + weekPfl + weekEmployer + weekStd,
+            weeklySalary
+          );
+          weekSfPplo = Math.max(0, weeklySalary - baseWithoutPplo);
+        }
+        const totalIncome = Math.round(
+          Math.min(weekSdi + weekPfl + weekEmployer + weekStd + weekSfPplo, weeklySalary)
+        );
+        const date = w.startDateLabel ?? "";
+        const payPct = Math.round(w.payPercent);
+        const sourceParts: string[] = [];
+        if (weekSdi > 0) sourceParts.push(`State SDI $${Math.round(weekSdi)}`);
+        if (weekPfl > 0) sourceParts.push(`State PFL $${Math.round(weekPfl)}`);
+        if (weekEmployer > 0) sourceParts.push(`Employer leave $${Math.round(weekEmployer)}`);
+        if (weekStd > 0) sourceParts.push(`Short‑term disability $${Math.round(weekStd)}`);
+        if (weekSfPplo > 0) sourceParts.push(`SF PPLO $${Math.round(weekSfPplo)}`);
+        const sourcesStr =
+          w.streams.length === 0 ? "None" : sourceParts.length > 0 ? sourceParts.join(", ") : "None";
+        breakdownLines.push(
+          `Week ${w.weekNumber} (${date}): $${totalIncome} (${payPct}%) — Sources: ${sourcesStr}`
+        );
+      }
+      if (breakdownLines.length > 0) {
+        weekByWeekBreakdown = `Week-by-week income breakdown:\n${breakdownLines.join("\n")}`;
+      }
+    }
+
     const planContext = tl ? [
       `State: ${stateDisplayName} (${state})`,
       `State paid leave program: ${hasStatePaidLeave ? "Yes, full CA program" : US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? "Yes but not yet modeled in this tool, showing FMLA + employer + STD only" : "No state program, FMLA + employer + STD only"}`,
@@ -1473,6 +1547,7 @@ export function PlanPage() {
       weeklySalaryNum ? `Weekly salary: $${Math.round(weeklySalaryNum)}` : "Salary: not provided",
       incomeEstimator ? `Estimated total leave income: $${Math.round(incomeEstimator.totalLeaveIncome).toLocaleString()}` : "",
       incomeEstimator ? `Estimated shortfall: $${Math.round(incomeEstimator.shortfall).toLocaleString()}` : "",
+      weekByWeekBreakdown,
     ].filter(Boolean).join("\n") : "";
 
     try {
