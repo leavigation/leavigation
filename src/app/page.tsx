@@ -251,6 +251,13 @@ function getWeeklyFromSalary(amountStr: string, frequency: "weekly" | "biweekly"
   return (amt * 12) / 52; // monthly
 }
 
+/** Annual gross from salary input (matches weekly × 52 used in estimates). */
+function getAnnualFromSalary(amountStr: string, frequency: "weekly" | "biweekly" | "monthly" | "annually"): number | null {
+  const weekly = getWeeklyFromSalary(amountStr, frequency);
+  if (weekly == null || weekly <= 0) return null;
+  return Math.round(weekly * 52);
+}
+
 /** CA EDD 2026: state average weekly wage and max weekly benefit */
 const CA_SAWW_2026 = 1789;
 const CA_MAX_WEEKLY_BENEFIT_2026 = 1765;
@@ -1896,6 +1903,16 @@ export function PlanPage() {
     return [...labels].sort((a, b) => getIncomeSourceSortOrder(a) - getIncomeSourceSortOrder(b));
   }, [incomeEstimator]);
 
+  const incomeSalaryBaseline = useMemo(() => {
+    const annual = getAnnualFromSalary(salaryAmount, salaryFrequency);
+    if (annual == null || annual <= 0) return null;
+    const weeklyGross = Math.round(annual / 52);
+    return {
+      annualFormatted: annual.toLocaleString("en-US"),
+      weeklyFormatted: weeklyGross.toLocaleString("en-US"),
+    };
+  }, [salaryAmount, salaryFrequency]);
+
   return (
     <main className="min-h-screen text-slate-900" style={{ background: "#F8FAFC" }}>
       <div className="plan-page-container mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10 print:max-w-none print:px-2">
@@ -3505,8 +3522,8 @@ export function PlanPage() {
                         </button>
                         {incomeWeekByWeekOpen && (
                           <div className="mt-2 overflow-x-auto">
-                            {incomeBarLegendSources.length > 0 && (
-                              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                            <div className="mb-3">
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                                 {incomeBarLegendSources.map((label) => (
                                   <div key={label} className="flex items-center gap-1.5">
                                     <span
@@ -3523,8 +3540,27 @@ export function PlanPage() {
                                     </span>
                                   </div>
                                 ))}
+                                <div className="flex items-center gap-1.5">
+                                  <svg width="20" height="6" className="shrink-0" aria-hidden>
+                                    <line
+                                      x1="0"
+                                      y1="3"
+                                      x2="20"
+                                      y2="3"
+                                      stroke="#E24B4A"
+                                      strokeWidth="1.5"
+                                      strokeDasharray="4 3"
+                                    />
+                                  </svg>
+                                  <span className="text-xs text-slate-500">Your normal gross pay</span>
+                                </div>
                               </div>
-                            )}
+                              {incomeSalaryBaseline && (
+                                <p className="mt-2 text-xs text-slate-400">
+                                  Based on your annual salary of ${incomeSalaryBaseline.annualFormatted}, we&apos;re using ${incomeSalaryBaseline.weeklyFormatted} per week as your baseline.
+                                </p>
+                              )}
+                            </div>
                             <table className="w-full min-w-[400px] text-xs">
                               <thead>
                                 <tr className="border-b border-slate-200 text-slate-600">
