@@ -328,6 +328,28 @@ function formatWeekStartFromDate(baseDate: Date, weekIndex: number): string | un
   });
 }
 
+/** CA SDI 7-day waiting period applies to week 1 of disability when still unpaid. */
+function isCaSdiWaitingPeriodWeek(week: WeekInfo, stateCode: string): boolean {
+  if (stateCode !== "CA") return false;
+  if (!week.streams.includes("State SDI")) return false;
+  if (week.weekNumber !== 1) return false;
+  const stateLeave = getStateLeave("CA");
+  if (!stateLeave.sdi?.available) return false;
+  if ((stateLeave.sdi.waitingPeriodDays ?? 7) < 7) return false;
+  return week.payPercent === 0;
+}
+
+function formatGanttWeekLabel(week: WeekInfo, waitingMarker: boolean): string {
+  const label = String(week.birthRelativeWeek ?? week.weekNumber);
+  return waitingMarker ? `${label}‡` : label;
+}
+
+/** Pre-birth column tint only when the summary week has no paid/protected status color. */
+function getSummaryPreBirthBg(week: WeekInfo): string {
+  if (week.payPercent > 0 || week.jobProtected) return "";
+  return "bg-indigo-50";
+}
+
 function formatDateLong(date: Date): string {
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString(undefined, {
@@ -3091,16 +3113,6 @@ export function PlanPage() {
                 </div>
               </div>
 
-              {/* SDI waiting period note, only show when week 1 is actually unpaid */}
-              {state === "CA" && (() => {
-                const firstWeek = (displayTimeline ?? timeline)?.find((w) => w.weekNumber === 1);
-                const week1Unpaid = firstWeek && firstWeek.payPercent === 0;
-                return week1Unpaid ? (
-                  <p className="mt-2 text-xs text-slate-500 px-1">
-                    ‡ California SDI has a 7-day unpaid waiting period. The first week of disability leave will appear orange (unpaid but protected) in the summary row. SDI payments begin in week 2.
-                  </p>
-                ) : null;
-              })()}
               {/* Gantt-style timeline */}
               <div className="w-full space-y-3">
                 <div className="text-xs font-medium text-slate-700">Leave types over time</div>
@@ -3228,9 +3240,9 @@ export function PlanPage() {
                                   key={`summary-pre-${week.weekNumber}`}
                                   type="button"
                                   onClick={() => setSelectedWeek(week.weekNumber)}
-                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} bg-indigo-50 ${week.isPast ? "opacity-60" : ""}`}
+                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${getSummaryPreBirthBg(week)} ${week.isPast ? "opacity-60" : ""}`}
                                 >
-                                  {week.birthRelativeWeek ?? week.weekNumber}
+                                  {formatGanttWeekLabel(week, isCaSdiWaitingPeriodWeek(week, state))}
                                 </button>
                               ))}
                               <div className="flex flex-col items-center shrink-0 w-4 min-w-4 max-w-4 h-9 self-stretch" aria-hidden>
@@ -3243,7 +3255,7 @@ export function PlanPage() {
                                   onClick={() => setSelectedWeek(week.weekNumber)}
                                   className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${week.isPast ? "opacity-60" : ""}`}
                                 >
-                                  {week.birthRelativeWeek ?? week.weekNumber}
+                                  {formatGanttWeekLabel(week, isCaSdiWaitingPeriodWeek(week, state))}
                                 </button>
                               ))}
                             </>
@@ -3255,7 +3267,7 @@ export function PlanPage() {
                                 onClick={() => setSelectedWeek(week.weekNumber)}
                                 className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${week.isPast ? "opacity-60" : ""}`}
                               >
-                                {week.birthRelativeWeek ?? week.weekNumber}
+                                {formatGanttWeekLabel(week, isCaSdiWaitingPeriodWeek(week, state))}
                               </button>
                             ))
                           )}
@@ -3371,7 +3383,13 @@ export function PlanPage() {
                         const isPdlRow = stream === "PDL";
                         const isCfraBoundaryWeek = state === "CA" && week.weekNumber === pflStartWeek;
                         const isPdlActive = isPdlRow && week.weekNumber <= pdlEndWeek;
-                        const isActive = isPdlRow ? isPdlActive : (stream === "State PFL" ? week.streams.includes("State PFL") && !week.streams.includes("State SDI") : week.streams.includes(stream as WeekStream));
+                        const isActive = isPdlRow
+                          ? isPdlActive
+                          : stream === "State PFL"
+                            ? week.streams.includes("State PFL") && !week.streams.includes("State SDI")
+                            : stream === "Short‑term disability"
+                              ? stdCoverage === "yes" && week.streams.includes("Short‑term disability")
+                              : week.streams.includes(stream as WeekStream);
                         const isJobProtectionRow = stream === "FMLA" || stream === "PDL";
                         const isPaidLeaveRow = !isJobProtectionRow;
                         let color = "bg-slate-100 border border-slate-200 text-slate-500";
@@ -3380,7 +3398,8 @@ export function PlanPage() {
                           if (isJobProtectionRow) {
                             color = "bg-purple-400/70 border border-purple-500 text-purple-950";
                           } else {
-                            const isSdiFirstWeekWaitingPeriod = stream === "State SDI" && isPreBirth && week.weekNumber === 1;
+                            const isSdiFirstWeekWaitingPeriod =
+                              stream === "State SDI" && isCaSdiWaitingPeriodWeek(week, state);
                             if (isSdiFirstWeekWaitingPeriod) {
                               color = "bg-emerald-50 border border-emerald-300 text-emerald-800";
                             } else {
@@ -3402,7 +3421,8 @@ export function PlanPage() {
                         const cfraBoundaryTitle = isCfraBoundaryWeek
                           ? "PDL ends → CFRA bonding begins. File PFL claim now."
                           : undefined;
-                        const isSdiWaitingWeek = stream === "State SDI" && isActive && isPreBirth && week.weekNumber === 1;
+                        const isSdiWaitingWeek =
+                          stream === "State SDI" && isCaSdiWaitingPeriodWeek(week, state);
                         const usePreBirthIndigo = !isJobProtectionRow && !isSdiWaitingWeek;
                         const preBirthInactiveBg = usePreBirthIndigo && isPreBirth && !isActive ? "bg-indigo-50" : "";
                         const preBirthActiveRing = usePreBirthIndigo && isPreBirth && isActive ? "ring-1 ring-inset ring-indigo-200/50" : "";
@@ -3422,7 +3442,10 @@ export function PlanPage() {
                             title={cfraBoundaryTitle ?? (isPdlRow && isPdlActive ? "Job protection only; pay from SDI row" : undefined)}
                             className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${color} ${preBirthInactiveBg} ${preBirthActiveRing} ${preBirthRelativeBg} ${cfraBoundaryClass} ${week.isPast ? "opacity-60" : ""}`}
                           >
-                            {week.birthRelativeWeek ?? week.weekNumber}
+                            {formatGanttWeekLabel(
+                              week,
+                              stream === "State SDI" && isCaSdiWaitingPeriodWeek(week, state)
+                            )}
                           </button>
                         );
                       };
@@ -3511,6 +3534,12 @@ export function PlanPage() {
                           {city === "San Francisco" && (
                             <p className="mt-2 text-xs text-slate-500 px-1">
                               * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
+                            </p>
+                          )}
+                          {state === "CA" &&
+                            activeTimeline.some((w) => isCaSdiWaitingPeriodWeek(w, state)) && (
+                            <p className="mt-1 text-xs text-slate-500 px-1">
+                              ‡ California SDI has a 7-day unpaid waiting period. SDI payments begin the week after your first week of disability leave.
                             </p>
                           )}
                           {excludedFootnoteRows.length > 0 && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
