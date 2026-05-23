@@ -123,6 +123,68 @@ function parsePercent(value: string): number {
   return n;
 }
 
+function getIncomeSourceBarColor(label: string): string {
+  if (label === "STD") return "#85B7EB";
+  if (label === "Employer") return "#FAC775";
+  const lower = label.toLowerCase();
+  if (
+    lower.includes("sdi") ||
+    lower.includes("tdi") ||
+    lower.includes("dbl") ||
+    lower.includes("disability insurance") ||
+    lower.includes("disability benefits")
+  ) {
+    return "#5DCAA5";
+  }
+  if (
+    lower.includes("pfl") ||
+    lower.includes("pplo") ||
+    lower.includes("family leave") ||
+    lower.includes("paid leave")
+  ) {
+    return "#7F77DD";
+  }
+  return "#85B7EB";
+}
+
+function WeekIncomeStackedBar({
+  sources,
+  weeklySalary,
+}: {
+  sources: { label: string; amount: number }[];
+  weeklySalary: number;
+}) {
+  const activeSources = sources.filter((s) => s.amount > 0);
+  return (
+    <div className="relative w-full min-w-[100px]">
+      <div
+        className="absolute top-0 z-10 pointer-events-none"
+        style={{
+          left: "100%",
+          transform: "translateX(-0.75px)",
+          width: 1.5,
+          height: 22,
+          backgroundImage:
+            "repeating-linear-gradient(to bottom, #E24B4A 0, #E24B4A 4px, transparent 4px, transparent 7px)",
+        }}
+        aria-hidden
+      />
+      <div className="flex h-[22px] w-full overflow-hidden rounded-[3px]">
+        {activeSources.map((s, i) => (
+          <div
+            key={`${s.label}-${i}`}
+            style={{
+              width: `${(s.amount / weeklySalary) * 100}%`,
+              backgroundColor: getIncomeSourceBarColor(s.label),
+              flexShrink: 0,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Convert salary amount + frequency to weekly equivalent. Returns null if invalid. */
 function getWeeklyFromSalary(amountStr: string, frequency: "weekly" | "biweekly" | "monthly" | "annually"): number | null {
   const amt = parseFloat(amountStr.replace(/[^0-9.]/g, ""));
@@ -3401,19 +3463,13 @@ export function PlanPage() {
                                     <td className="py-1.5 text-slate-700">{row.weekNumber}</td>
                                     <td className="py-1.5 text-slate-700">{row.dateLabel}</td>
                                     <td className="py-1.5 text-slate-600">
-                                      {row.sources.length === 0 ? "None" : (
-                                        <div className="flex flex-col gap-1">
-                                          {row.sources.map((s) => (
-                                            <div key={s.label} className="flex items-center gap-1.5">
-                                              <span className="text-slate-500 w-14 shrink-0 text-[10px]">{s.label}</span>
-                                              <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                                                <div className="h-full rounded-full bg-sky-400" style={{ width: `${s.pct}%` }} />
-                                              </div>
-                                              <span className="text-slate-700 font-medium text-[10px] w-6 text-right">{s.pct}%</span>
-                                              <span className="text-slate-500 text-[10px] w-14 text-right">${Math.round(s.amount).toLocaleString("en-US")}</span>
-                                            </div>
-                                          ))}
-                                        </div>
+                                      {row.sources.length === 0 ? (
+                                        "None"
+                                      ) : (
+                                        <WeekIncomeStackedBar
+                                          sources={row.sources}
+                                          weeklySalary={weeklySalaryNum ?? 1}
+                                        />
                                       )}
                                     </td>
                                     <td className="py-1.5 text-right font-medium text-slate-900">${row.grossPay.toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
