@@ -91,7 +91,9 @@ CITATION SOURCES:
 - CA EDD general: https://edd.ca.gov
 `;
 
-const VERIFICATION_PROMPT = `You are a US parental leave law verification expert. Your job is to review an AI-generated answer about parental leave and verify it is 100% accurate before it reaches the user.
+const VERIFICATION_PROMPT = `Return ONLY the final corrected answer ready to show the user. Do not include any reasoning, checks, or explanation of what you verified. No preamble. Just the answer.
+
+You are a US parental leave law verification expert. Your job is to review an AI-generated answer about parental leave and verify it is 100% accurate before it reaches the user.
 
 Check the answer against these rules based on the user's state:
 
@@ -117,8 +119,7 @@ CRITICAL: If the user is NOT in California, do not reference CA SDI, CA PFL, PDL
 
 If the answer contains any factual errors, correct them.
 If the answer references CA-specific programs for a non-CA user, remove those references.
-Always ensure citations are included when laws are referenced.
-Return ONLY the final verified answer, do not explain what you checked or changed.`;
+Always ensure citations are included when laws are referenced.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -126,9 +127,24 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "API key not configured" }, { status: 500 });
 
+    const weekBreakdownMarker = "Week-by-week income breakdown:";
+    const weekBreakdownInstruction =
+      "When answering questions about specific weeks, always reference the Week-by-week income breakdown data above first. Do not calculate or infer -- use the exact figures provided.";
+    let planContextSection = "";
+    if (planContext) {
+      const breakdownIdx = planContext.indexOf(weekBreakdownMarker);
+      if (breakdownIdx !== -1) {
+        const beforeBreakdown = planContext.slice(0, breakdownIdx).trimEnd();
+        const breakdownAndAfter = planContext.slice(breakdownIdx).trimEnd();
+        planContextSection = `USER'S SPECIFIC PLAN CONTEXT:\n${beforeBreakdown ? `${beforeBreakdown}\n\n` : ""}${breakdownAndAfter}\n\n${weekBreakdownInstruction}\n\nUse this context to give personalized answers about their specific situation.`;
+      } else {
+        planContextSection = `USER'S SPECIFIC PLAN CONTEXT:\n${planContext}\n\nUse this context to give personalized answers about their specific situation.`;
+      }
+    }
+
     const systemPrompt = `${CA_LEAVE_KNOWLEDGE}
 
-${planContext ? `USER'S SPECIFIC PLAN CONTEXT:\n${planContext}\n\nUse this context to give personalized answers about their specific situation.` : ""}
+${planContextSection}
 
 RESPONSE FORMAT:
 - Be warm, clear, and direct
