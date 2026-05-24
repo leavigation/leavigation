@@ -382,6 +382,30 @@ function isStdStreamActiveInGantt(
   return stdPreBirth === "yes";
 }
 
+/** Pre-birth Gantt columns use negative birth-relative week labels (e.g. W-4); weekNumber stays 1-based. */
+function isGanttPreBirthWeek(week: WeekInfo): boolean {
+  return (week.birthRelativeWeek ?? 0) < 1;
+}
+
+function getGanttWeekPartitions(activeTimeline: WeekInfo[]) {
+  let birthColIdx = activeTimeline.findIndex((w) => w.birthRelativeWeek === 1);
+  if (birthColIdx < 0) {
+    birthColIdx = activeTimeline.findIndex((w) => (w.birthRelativeWeek ?? 0) >= 1);
+  }
+  const splitAt = birthColIdx >= 0 ? birthColIdx : activeTimeline.length;
+  const preWeeks = activeTimeline.slice(0, splitAt);
+  const postWeeks = activeTimeline.slice(splitAt);
+  const showBirthDivider = preWeeks.length > 0;
+  const gridStyle = showBirthDivider
+    ? {
+        gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))`,
+      }
+    : {
+        gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))`,
+      };
+  return { preWeeks, postWeeks, showBirthDivider, gridStyle };
+}
+
 function formatDateLong(date: Date): string {
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString(undefined, {
@@ -1899,6 +1923,7 @@ export function PlanPage() {
       let weekSdi = 0;
       let weekPfl = 0;
       let weekEmployer = 0;
+      let weekEmployerForDisplay = 0;
       let weekStd = 0;
       if (w.streams.includes("State SDI")) {
         const rate = isCA ? (w.weekNumber === 1 ? 0 : getCAWeeklyBenefit2026(weeklySalary)) : (weeklySalary * 0.7);
@@ -1920,7 +1945,7 @@ export function PlanPage() {
         weekEmployer = weeklySalary * (employerPctThisWeek / 100);
         employerPaidWeeks += 1;
         const employerTarget = Math.min(weekEmployer, weeklySalary);
-        let weekEmployerForDisplay = weekEmployer;
+        weekEmployerForDisplay = weekEmployer;
         if (employerIsTopUpMode) {
           if (weekSdi > 0) {
             weekEmployerForDisplay = Math.max(0, employerTarget - weekSdi);
@@ -1963,7 +1988,7 @@ export function PlanPage() {
       const sources: { label: string; amount: number; pct: number }[] = [];
       if (weekSdi > 0) sources.push({ label: sdiIncomeLabel, amount: weekSdi, pct: grossPay > 0 ? Math.round((weekSdi / grossPay) * 100) : 0 });
       if (weekPfl > 0) sources.push({ label: pflIncomeLabel, amount: weekPfl, pct: grossPay > 0 ? Math.round((weekPfl / grossPay) * 100) : 0 });
-      if (weekEmployer > 0) sources.push({ label: "Employer", amount: weekEmployer, pct: grossPay > 0 ? Math.round((weekEmployer / grossPay) * 100) : 0 });
+      if (weekEmployerForDisplay > 0) sources.push({ label: "Employer", amount: weekEmployerForDisplay, pct: grossPay > 0 ? Math.round((weekEmployerForDisplay / grossPay) * 100) : 0 });
       if (weekStd > 0) sources.push({ label: "STD", amount: weekStd, pct: grossPay > 0 ? Math.round((weekStd / grossPay) * 100) : 0 });
       if (weekSfPplo > 0) sources.push({ label: "SF PPLO", amount: weekSfPplo, pct: grossPay > 0 ? Math.round((weekSfPplo / grossPay) * 100) : 0 });
       weekRows.push({
@@ -3154,16 +3179,8 @@ export function PlanPage() {
                       const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
                       const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
-                      const birthColIdx = Math.max(
-                        0,
-                        activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
-                      );
-                      const preWeeks = activeTimeline.slice(0, birthColIdx);
-                      const postWeeks = activeTimeline.slice(birthColIdx);
-                      const showBirthDivider = preWeeks.length > 0;
-                      const gridStyle = showBirthDivider
-                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
-                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
+                      const { preWeeks, postWeeks, showBirthDivider, gridStyle } =
+                        getGanttWeekPartitions(activeTimeline);
                       return (
                         <>
                     <div className="gantt-header-row gantt-grid grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
@@ -3236,16 +3253,8 @@ export function PlanPage() {
                       const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
                       const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
-                      const birthColIdx = Math.max(
-                        0,
-                        activeTimeline.findIndex((w) => w.birthRelativeWeek === 1)
-                      );
-                      const preWeeks = activeTimeline.slice(0, birthColIdx);
-                      const postWeeks = activeTimeline.slice(birthColIdx);
-                      const showBirthDivider = preWeeks.length > 0;
-                      const gridStyle = showBirthDivider
-                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
-                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
+                      const { preWeeks, postWeeks, showBirthDivider, gridStyle } =
+                        getGanttWeekPartitions(activeTimeline);
                       return (
                         <div className="mt-2 border-y border-slate-300 py-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
                           <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-semibold text-[11px] text-slate-700 flex items-center overflow-hidden sticky left-0 bg-white z-10">
@@ -3300,13 +3309,8 @@ export function PlanPage() {
                       const fullTimeline = (displayTimeline ?? timeline) as WeekInfo[];
                       const lastActiveWeek = fullTimeline.length === 0 ? 0 : Math.max(0, ...fullTimeline.map((w) => (w.streams.length > 0 || w.protectedByCfra ? w.weekNumber : 0)));
                       const activeTimeline = fullTimeline.filter((w) => w.weekNumber <= lastActiveWeek);
-                      const birthColIdx = Math.max(0, activeTimeline.findIndex((w) => w.birthRelativeWeek === 1));
-                      const preWeeks = activeTimeline.slice(0, birthColIdx);
-                      const postWeeks = activeTimeline.slice(birthColIdx);
-                      const showBirthDivider = preWeeks.length > 0;
-                      const gridStyle = showBirthDivider
-                        ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
-                        : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
+                      const { preWeeks, postWeeks, showBirthDivider, gridStyle } =
+                        getGanttWeekPartitions(activeTimeline);
                       const recoveryWeeks =
                         birthType === "c-section"
                           ? (stateLeave.sdi?.weeksDurationCsection ?? 8)
@@ -3502,7 +3506,9 @@ export function PlanPage() {
                                       {postWeeks.map((week) => renderCfraCell(week, false))}
                                     </>
                                   ) : (
-                                    activeTimeline.map((week) => renderCfraCell(week, false))
+                                    activeTimeline.map((week) =>
+                                      renderCfraCell(week, isGanttPreBirthWeek(week))
+                                    )
                                   )}
                                 </div>
                               );
@@ -3534,7 +3540,9 @@ export function PlanPage() {
                                       {postWeeks.map((week) => renderStreamCell(week, false, stream))}
                                     </>
                                   ) : (
-                                    activeTimeline.map((week) => renderStreamCell(week, false, stream))
+                                    activeTimeline.map((week) =>
+                                      renderStreamCell(week, isGanttPreBirthWeek(week), stream)
+                                    )
                                   )}
                                 </div>
                               );
