@@ -328,26 +328,58 @@ function formatWeekStartFromDate(baseDate: Date, weekIndex: number): string | un
   });
 }
 
-/** CA SDI 7-day waiting period applies to week 1 of disability when still unpaid. */
+/** CA SDI 7-day waiting period: first calendar week of disability leave (timeline week 1). */
 function isCaSdiWaitingPeriodWeek(week: WeekInfo, stateCode: string): boolean {
   if (stateCode !== "CA") return false;
   if (!week.streams.includes("State SDI")) return false;
   if (week.weekNumber !== 1) return false;
   const stateLeave = getStateLeave("CA");
   if (!stateLeave.sdi?.available) return false;
-  if ((stateLeave.sdi.waitingPeriodDays ?? 7) < 7) return false;
-  return week.payPercent === 0;
+  return (stateLeave.sdi.waitingPeriodDays ?? 7) >= 7;
 }
+
+const STD_STREAM_NAME = "Short‑term disability" as const;
 
 function formatGanttWeekLabel(week: WeekInfo, waitingMarker: boolean): string {
-  const label = String(week.birthRelativeWeek ?? week.weekNumber);
-  return waitingMarker ? `${label}‡` : label;
+  const brw = week.birthRelativeWeek;
+  const label =
+    brw !== undefined
+      ? `W${brw}`
+      : `W${week.weekNumber}`;
+  return waitingMarker ? `${label}\u2021` : label;
 }
 
-/** Pre-birth column tint only when the summary week has no paid/protected status color. */
-function getSummaryPreBirthBg(week: WeekInfo): string {
-  if (week.payPercent > 0 || week.jobProtected) return "";
-  return "bg-indigo-50";
+/** Summary row: inactive (rose) pre-birth columns only get indigo tint — never override paid/protected fills. */
+function getSummaryCellClassName(week: WeekInfo, isPreBirthColumn: boolean): string {
+  const hasPay = week.payPercent > 0;
+  const isProtected = week.jobProtected;
+  let color: string;
+  if (hasPay && isProtected) {
+    color = "bg-emerald-400 border border-emerald-500 text-emerald-950";
+  } else if (hasPay && !isProtected) {
+    color = "bg-amber-300/80 border border-amber-500 text-amber-950";
+  } else if (!hasPay && isProtected) {
+    color = "bg-orange-300/80 border border-orange-500 text-orange-950";
+  } else {
+    color = "bg-rose-300/80 border border-rose-500 text-rose-950";
+  }
+  const isInactiveSummary = !hasPay && !isProtected;
+  if (isPreBirthColumn && isInactiveSummary) {
+    return `${color} bg-indigo-50`;
+  }
+  return color;
+}
+
+function isStdStreamActiveInGantt(
+  week: WeekInfo,
+  isPreBirth: boolean,
+  stdCoverage: string,
+  stdPreBirth: string
+): boolean {
+  if (stdCoverage !== "yes") return false;
+  if (!week.streams.includes(STD_STREAM_NAME)) return false;
+  if (!isPreBirth) return true;
+  return stdPreBirth === "yes";
 }
 
 function formatDateLong(date: Date): string {
@@ -3214,20 +3246,6 @@ export function PlanPage() {
                       const gridStyle = showBirthDivider
                         ? { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${preWeeks.length}, minmax(2.5rem, 1fr)) minmax(1rem, 1rem) repeat(${postWeeks.length}, minmax(2.5rem, 1fr))` }
                         : { gridTemplateColumns: `minmax(8rem, 8rem) repeat(${activeTimeline.length}, minmax(2.5rem, 1fr))` };
-                      const getSummaryColor = (week: WeekInfo) => {
-                        const hasPay = week.payPercent > 0;
-                        const isProtected = week.jobProtected;
-                        if (hasPay && isProtected) {
-                          return "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
-                        }
-                        if (hasPay && !isProtected) {
-                          return "bg-amber-300/80 border border-amber-500 text-amber-950";
-                        }
-                        if (!hasPay && isProtected) {
-                          return "bg-orange-300/80 border border-orange-500 text-orange-950";
-                        }
-                        return "bg-rose-300/80 border border-rose-500 text-rose-950";
-                      };
                       return (
                         <div className="mt-2 border-y border-slate-300 py-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
                           <div className="min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right font-semibold text-[11px] text-slate-700 flex items-center overflow-hidden sticky left-0 bg-white z-10">
@@ -3240,7 +3258,7 @@ export function PlanPage() {
                                   key={`summary-pre-${week.weekNumber}`}
                                   type="button"
                                   onClick={() => setSelectedWeek(week.weekNumber)}
-                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${getSummaryPreBirthBg(week)} ${week.isPast ? "opacity-60" : ""}`}
+                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryCellClassName(week, true)} ${week.isPast ? "opacity-60" : ""}`}
                                 >
                                   {formatGanttWeekLabel(week, isCaSdiWaitingPeriodWeek(week, state))}
                                 </button>
@@ -3253,7 +3271,7 @@ export function PlanPage() {
                                   key={`summary-post-${week.weekNumber}`}
                                   type="button"
                                   onClick={() => setSelectedWeek(week.weekNumber)}
-                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${week.isPast ? "opacity-60" : ""}`}
+                                  className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryCellClassName(week, false)} ${week.isPast ? "opacity-60" : ""}`}
                                 >
                                   {formatGanttWeekLabel(week, isCaSdiWaitingPeriodWeek(week, state))}
                                 </button>
@@ -3265,7 +3283,7 @@ export function PlanPage() {
                                 key={`summary-${week.weekNumber}`}
                                 type="button"
                                 onClick={() => setSelectedWeek(week.weekNumber)}
-                                className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryColor(week)} ${week.isPast ? "opacity-60" : ""}`}
+                                className={`flex h-9 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${getSummaryCellClassName(week, false)} ${week.isPast ? "opacity-60" : ""}`}
                               >
                                 {formatGanttWeekLabel(week, isCaSdiWaitingPeriodWeek(week, state))}
                               </button>
@@ -3387,8 +3405,8 @@ export function PlanPage() {
                           ? isPdlActive
                           : stream === "State PFL"
                             ? week.streams.includes("State PFL") && !week.streams.includes("State SDI")
-                            : stream === "Short‑term disability"
-                              ? stdCoverage === "yes" && week.streams.includes("Short‑term disability")
+                            : stream === STD_STREAM_NAME
+                              ? isStdStreamActiveInGantt(week, isPreBirth, stdCoverage, stdPreBirth)
                               : week.streams.includes(stream as WeekStream);
                         const isJobProtectionRow = stream === "FMLA" || stream === "PDL";
                         const isPaidLeaveRow = !isJobProtectionRow;
