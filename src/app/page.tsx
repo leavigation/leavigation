@@ -1609,6 +1609,20 @@ export function PlanPage() {
           ? coordination
           : "concurrent";
     const employerIsTopUpModeForChat = coordinationForChat === "concurrent";
+    let fmlaUnlockWeek = 0;
+    if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
+      const startDate = new Date(employmentStartDate);
+      const anniversaryDate = new Date(startDate);
+      anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+      const dueDateObj = new Date(dueDate);
+      const leaveStartDate =
+        caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+          ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeks || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+          : dueDateObj;
+      const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+      const weeksUntilAnniversary = Math.ceil((anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek);
+      fmlaUnlockWeek = Math.max(0, weeksUntilAnniversary);
+    }
     if (tl) {
       const weeklySalary = weeklySalaryNum ?? 0;
       const isCA = (state || "CA").toUpperCase() === "CA";
@@ -1706,6 +1720,25 @@ export function PlanPage() {
       `Employer leave: ${employerLeaveOffered === "yes" ? `Yes, ${employerLeaveWeeks} weeks at ${employerLeavePayPercent}%, ${coordination || "coordination not set"}` : employerLeaveOffered === "no" ? "None" : "Unsure"}`,
       employerIsTopUpModeForChat && employerLeaveOffered === "yes"
         ? "Employer leave coordination: top-up (concurrent). Employer only pays the difference between SDI/PFL and the employer pay target. In weeks where SDI or PFL already meets or exceeds the employer pay percentage, employer contribution is $0."
+        : "",
+      scenario
+        ? `Employment scenario: ${
+            scenario === "employed_long"
+              ? "Employed 12+ months (FMLA/CFRA assumed eligible from day 1 — also requires 1,250 hours worked and 50+ employee employer)"
+              : scenario === "employed_short"
+                ? "Employed under 12 months (FMLA/CFRA unlock at 12-month employment anniversary during leave — SDI/PFL unaffected, based on prior base period wages)"
+                : scenario === "new_job"
+                  ? "Starting a new job (no employer leave until job begins — FMLA/CFRA and employer leave unlock at 12-month anniversary from job start date — SF PPLO available once employment begins if working in SF)"
+                  : scenario === "laid_off"
+                    ? "Laid off or not employed (no employer leave — FMLA job protection does not apply, per DOL regulations employer FMLA obligations cease at time of layoff — SDI and PFL may still be available based on prior base period wages)"
+                    : ""
+          }`
+        : "",
+      (scenario === "employed_short" || scenario === "new_job") && employmentStartDate
+        ? `Employment start date: ${new Date(employmentStartDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+        : "",
+      (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0
+        ? `FMLA/CFRA and employer leave unlock week: Week ${fmlaUnlockWeek} of leave (${new Date(new Date(employmentStartDate).setFullYear(new Date(employmentStartDate).getFullYear() + 1)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })})`
         : "",
       `Total leave weeks: ${lastActive}`,
       `Fully paid weeks: ${fullyPaid}`,
