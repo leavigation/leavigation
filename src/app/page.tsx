@@ -2003,14 +2003,14 @@ export function PlanPage() {
       // SF PPLO tops up PFL to 100% of weekly salary
       let weekSfPplo = 0;
       if (w.streams.includes("SF PPLO")) {
-        const baseWithoutPplo = Math.min(weekSdi + weekPfl + weekEmployer + weekStd, weeklySalary);
+        const baseWithoutPplo = Math.min(weekSdi + weekPfl + weekEmployerForDisplay + weekStd, weeklySalary);
         weekSfPplo = Math.max(0, weeklySalary - baseWithoutPplo);
         if (weekSfPplo > 0) {
           sfPploTotal += weekSfPplo;
           sfPploWeeks += 1;
         }
       }
-      const grossPay = Math.min(weekSdi + weekPfl + weekEmployer + weekStd + weekSfPplo, weeklySalary);
+      const grossPay = Math.min(weekSdi + weekPfl + weekEmployerForDisplay + weekStd + weekSfPplo, weeklySalary);
       const pctOfNormal = weeklySalary > 0 ? (grossPay / weeklySalary) * 100 : 0;
       const programs: string[] = [];
       if (w.streams.includes("State SDI") && weekSdi > 0) programs.push(sdiIncomeLabel);
