@@ -782,6 +782,39 @@ function getSituationBullets(options: {
   return content;
 }
 
+function computeEmployerLeaveUnlockWeek(
+  fmlaUnlockWeek: number,
+  scenario: "employed_long" | "employed_short" | "new_job" | "laid_off" | "",
+  employmentStartDate: string,
+  dueDate: string,
+  caPreBirthLeave: string,
+  caPreBirthWeeksStr: string,
+  employerLeaveEligibilityStart: "day1" | "6months" | "12months" | "unsure" | ""
+): number {
+  let employerLeaveUnlockWeek = fmlaUnlockWeek;
+  if ((scenario === "new_job" || scenario === "employed_short") && employmentStartDate && dueDate) {
+    const startDate = new Date(employmentStartDate);
+    const dueDateObj = new Date(dueDate);
+    const leaveStartDate =
+      caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+        ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeksStr || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+        : dueDateObj;
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    let offsetMonths = 12;
+    if (employerLeaveEligibilityStart === "day1") offsetMonths = 0;
+    else if (employerLeaveEligibilityStart === "6months") offsetMonths = 6;
+    else if (employerLeaveEligibilityStart === "12months") offsetMonths = 12;
+    else if (employerLeaveEligibilityStart === "unsure") offsetMonths = 12;
+    const eligibilityDate = new Date(startDate);
+    eligibilityDate.setMonth(eligibilityDate.getMonth() + offsetMonths);
+    employerLeaveUnlockWeek = Math.max(
+      0,
+      Math.ceil((eligibilityDate.getTime() - leaveStartDate.getTime()) / msPerWeek)
+    );
+  }
+  return employerLeaveUnlockWeek;
+}
+
 function buildTimeline(options: {
   stateCode: string;
   city?: string;
@@ -805,6 +838,7 @@ function buildTimeline(options: {
   caPreBirthWeeks?: string;
   scenario?: "employed_long" | "employed_short" | "new_job" | "laid_off" | "";
   employmentStartDate?: string;
+  employerLeaveEligibilityStart?: "day1" | "6months" | "12months" | "unsure" | "";
 }): WeekInfo[] {
   const {
     stateCode,
@@ -829,6 +863,7 @@ function buildTimeline(options: {
     caPreBirthWeeks: caPreBirthWeeksStr = "4",
     scenario = "",
     employmentStartDate = "",
+    employerLeaveEligibilityStart = "",
   } = options;
 
   const code = (stateCode || "DEFAULT").toUpperCase();
@@ -872,6 +907,15 @@ function buildTimeline(options: {
   const hasFmlaFromStart = hasFmla && fmlaUnlockWeek === 0;
   const hasFmlaDelayed =
     (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0 && employmentStartDate !== "";
+  const employerLeaveUnlockWeek = computeEmployerLeaveUnlockWeek(
+    fmlaUnlockWeek,
+    scenario,
+    employmentStartDate,
+    dueDate,
+    caPreBirthLeave,
+    caPreBirthWeeksStr,
+    employerLeaveEligibilityStart
+  );
   const disabilityWeeks = state.sdi.available ? recoveryWeeks : 0;
   const bondingWeeks = state.pfl.available ? state.pfl.weeksDuration || 0 : 0;
 
@@ -966,7 +1010,10 @@ function buildTimeline(options: {
         const empEnd = hasEmployerPreBirth
           ? employerPreBirthWeeksNum + employerWeeks
           : (employerConcurrent ? birthWeek - 1 + employerWeeks : statePaidWeeks + employerWeeks);
-        const effectiveEmpStart = hasFmlaDelayed ? Math.max(empStart, fmlaUnlockWeek) : empStart;
+        const effectiveEmpStart =
+          (scenario === "employed_short" || scenario === "new_job") && employmentStartDate
+            ? Math.max(empStart, employerLeaveUnlockWeek)
+            : empStart;
         if (weekNumber >= effectiveEmpStart && weekNumber <= empEnd) {
           streams.push("Employer leave");
         }
@@ -1205,9 +1252,10 @@ function buildTimeline(options: {
     }
 
     // Employer leave: concurrent from birth or sequential after state leave
-    const effectiveEmployerStartWeek = hasFmlaDelayed
-      ? Math.max(employerStartWeek, fmlaUnlockWeek)
-      : employerStartWeek;
+    const effectiveEmployerStartWeek =
+      (scenario === "employed_short" || scenario === "new_job") && employmentStartDate
+        ? Math.max(employerStartWeek, employerLeaveUnlockWeek)
+        : employerStartWeek;
     if (employerWeeks > 0 && weekNumber >= effectiveEmployerStartWeek && weekNumber <= employerEndWeek) {
       streams.push("Employer leave");
     }
@@ -1372,6 +1420,9 @@ export function PlanPage() {
   const [city, setCity] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [employmentStartDate, setEmploymentStartDate] = useState("");
+  const [employerLeaveEligibilityStart, setEmployerLeaveEligibilityStart] = useState<
+    "day1" | "6months" | "12months" | "unsure" | ""
+  >("");
   const [birthType, setBirthType] = useState<"vaginal" | "c-section" | "">("");
   // FMLA eligibility hidden, tool currently scoped to full-time employees
   // Re-enable when expanding to part-time, contractor, and self-employed flows
@@ -1482,6 +1533,7 @@ export function PlanPage() {
     setCity("");
     setDueDate("");
     setEmploymentStartDate("");
+    setEmployerLeaveEligibilityStart("");
     setBirthType("");
     setFmlaEligible("yes");
     setEmployerLeaveOffered("");
@@ -1849,6 +1901,7 @@ export function PlanPage() {
         caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
         scenario,
         employmentStartDate,
+        employerLeaveEligibilityStart,
       });
       setTimeline(weeks);
       // When no employer leave, go straight to Results (step 5)
@@ -1972,6 +2025,7 @@ export function PlanPage() {
       caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
       scenario,
       employmentStartDate,
+      employerLeaveEligibilityStart,
     });
     return result;
   }, [
@@ -1984,6 +2038,7 @@ export function PlanPage() {
     fmlaEligible,
     scenario,
     employmentStartDate,
+    employerLeaveEligibilityStart,
     employerLeaveWeeks,
     employerLeavePayPercent,
     stdCoverage,
@@ -2732,8 +2787,13 @@ export function PlanPage() {
                   </div>
                 )}
 
-                {scenario !== "laid_off" && scenario !== "new_job" && (
+                {scenario !== "laid_off" && (
                 <>
+                {(scenario === "new_job" || scenario === "employed_short") && (
+                  <p className="mb-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
+                    If you know your employer&apos;s parental leave policy, enter it below. If you don&apos;t know yet, leave it blank.
+                  </p>
+                )}
                 <div>
                   <div className="text-sm font-medium text-slate-700">
                     Does your employer offer parental leave?
@@ -2742,23 +2802,6 @@ export function PlanPage() {
                     This is separate from state benefits or short-term
                     disability.
                   </p>
-                  {(scenario === "employed_short" || scenario === "new_job") && (
-                    <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
-                      We assume your employer leave begins when you reach 12 months of employment (
-                      {employmentStartDate
-                        ? new Date(
-                            new Date(employmentStartDate).setFullYear(
-                              new Date(employmentStartDate).getFullYear() + 1
-                            )
-                          ).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "your 12-month anniversary"}
-                      ). The ability to enter a custom employer leave start date is coming soon.
-                    </p>
-                  )}
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     {[
                       { value: "yes", label: "Yes" },
@@ -2820,6 +2863,34 @@ export function PlanPage() {
                       </div>
                     </label>
                   </div>
+
+                  {(scenario === "new_job" || scenario === "employed_short") && (
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">When does your employer parental leave become eligible?</div>
+                      <p className="mt-1 text-xs text-slate-500">Some employers require a waiting period before parental leave benefits kick in.</p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {[
+                          { value: "day1" as const, label: "From day 1 of employment" },
+                          { value: "6months" as const, label: "After 6 months" },
+                          { value: "12months" as const, label: "After 12 months" },
+                          { value: "unsure" as const, label: "I'm not sure" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setEmployerLeaveEligibilityStart(opt.value)}
+                            className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
+                              employerLeaveEligibilityStart === opt.value
+                                ? "border-sky-400 bg-sky-50 text-sky-900"
+                                : "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-4">
                     <div className="text-sm font-medium text-slate-700">Does your employer allow parental leave to start before birth?</div>
@@ -3610,6 +3681,15 @@ export function PlanPage() {
                         (scenario === "employed_short" || scenario === "new_job") &&
                         fmlaUnlockWeek > 0 &&
                         employmentStartDate !== "";
+                      const employerLeaveUnlockWeek = computeEmployerLeaveUnlockWeek(
+                        fmlaUnlockWeek,
+                        scenario,
+                        employmentStartDate,
+                        dueDate,
+                        caPreBirthLeave,
+                        caPreBirthWeeks,
+                        employerLeaveEligibilityStart
+                      );
                       const excludedRows: string[] = [];
                       const streamRows: (WeekStream | "PDL" | "CFRA")[] = (() => {
                         const rows: (WeekStream | "PDL" | "CFRA")[] = [];
@@ -3703,7 +3783,9 @@ export function PlanPage() {
                               ? week.weekNumber >= fmlaUnlockWeek && week.weekNumber <= fmlaUnlockWeek + 11
                               : week.streams.includes("FMLA")
                             : stream === "Employer leave"
-                              ? hasFmlaDelayed && week.weekNumber < fmlaUnlockWeek
+                              ? (scenario === "employed_short" || scenario === "new_job") &&
+                                employmentStartDate &&
+                                week.weekNumber < employerLeaveUnlockWeek
                                 ? false
                                 : week.streams.includes("Employer leave")
                             : stream === "State PFL"
