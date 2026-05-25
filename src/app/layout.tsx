@@ -28,6 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-1TPH50KZ9N"></script>
         <script
           dangerouslySetInnerHTML={{

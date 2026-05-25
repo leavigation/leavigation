@@ -1317,6 +1317,7 @@ function buildTimeline(options: {
 
 export function PlanPage() {
   const [step, setStep] = useState(0);
+  const [scenario, setScenario] = useState<"employed_long" | "employed_short" | "new_job" | "laid_off" | "">("");
 
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
@@ -1425,6 +1426,7 @@ export function PlanPage() {
 
   function handleStartOver() {
     setStep(0);
+    setScenario("");
     setAssumptionsAcknowledged(false);
     setState("");
     setCity("");
@@ -2187,6 +2189,7 @@ export function PlanPage() {
           </section>
         )}
 
+        {scenario !== "" && (
         <section className="no-print mb-4">
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
             <div
@@ -2195,8 +2198,88 @@ export function PlanPage() {
             />
           </div>
         </section>
+        )}
 
         <section className="flex-1 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          {scenario === "" && (
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">Which best describes your situation?</h2>
+              <p className="mt-2 text-sm text-slate-600">We&apos;ll personalize your leave plan based on your employment status.</p>
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    key: "employed_long" as const,
+                    icon: "ti-briefcase",
+                    badge: null,
+                    color: { bg: "#E1F5EE", icon: "#0F6E56", pillBg: "#E1F5EE", pillText: "#085041", border: "#9FE1CB" },
+                    title: "Employed 12+ months",
+                    desc: "You're currently employed and will have been at your job for over a year by the time your baby arrives.",
+                  },
+                  {
+                    key: "employed_short" as const,
+                    icon: "ti-briefcase",
+                    badge: "ti-clock",
+                    color: { bg: "#EEEDFE", icon: "#534AB7", pillBg: "#EEEDFE", pillText: "#3C3489", border: "#CECBF6" },
+                    title: "Employed under 12 months",
+                    desc: "You're currently employed but will not have reached the 12-month mark by the time your baby arrives.",
+                  },
+                  {
+                    key: "new_job" as const,
+                    icon: "ti-calendar-plus",
+                    badge: null,
+                    color: { bg: "#FAEEDA", icon: "#854F0B", pillBg: "#FAEEDA", pillText: "#633806", border: "#FAC775" },
+                    title: "Starting a new job soon",
+                    desc: "You have a new job lined up but haven't started yet.",
+                  },
+                  {
+                    key: "laid_off" as const,
+                    icon: "ti-user-off",
+                    badge: null,
+                    color: { bg: "#FAECE7", icon: "#993C1D", pillBg: "#FAECE7", pillText: "#712B13", border: "#F5C4B3" },
+                    title: "Laid off or not employed",
+                    desc: "You were recently laid off or are not currently employed.",
+                  },
+                ].map((tile) => (
+                  <button
+                    key={tile.key}
+                    type="button"
+                    onClick={() => {
+                      setScenario(tile.key);
+                      if (tile.key === "laid_off") {
+                        setFmlaEligible("no");
+                        setEmployerLeaveOffered("no");
+                      } else if (tile.key === "employed_long") {
+                        setFmlaEligible("yes");
+                      } else {
+                        setFmlaEligible("no");
+                      }
+                    }}
+                    className="flex flex-col gap-3 rounded-2xl border bg-white p-5 text-left shadow-sm transition hover:shadow-md"
+                    style={{ borderColor: tile.color.border }}
+                  >
+                    <div className="relative w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: tile.color.bg }}>
+                      <i className={`ti ${tile.icon}`} style={{ color: tile.color.icon }} aria-hidden="true" />
+                      {tile.badge && (
+                        <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white" style={{ background: tile.color.bg }}>
+                          <i className={`ti ${tile.badge}`} style={{ color: tile.color.icon, fontSize: "10px" }} aria-hidden="true" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">{tile.title}</p>
+                      <p className="mt-1 text-xs text-slate-500 leading-relaxed">{tile.desc}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium" style={{ background: tile.color.pillBg, color: tile.color.pillText }}>
+                      Build my plan <i className="ti ti-arrow-right text-xs" aria-hidden="true" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-4 text-center text-xs text-slate-400">Not sure? Start with your best guess — you can adjust later.</p>
+            </div>
+          )}
+          {scenario !== "" && (
+          <>
           {step === 0 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
@@ -3834,6 +3917,8 @@ export function PlanPage() {
                 </div>
 
             </div>
+          )}
+          </>
           )}
         </section>
 
