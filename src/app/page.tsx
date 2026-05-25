@@ -370,6 +370,14 @@ function getSummaryCellClassName(week: WeekInfo, isPreBirthColumn: boolean): str
   return color;
 }
 
+function isStdGanttStream(stream: WeekStream | "PDL" | "CFRA"): boolean {
+  return stream === STD_STREAM_NAME;
+}
+
+function weekHasStdStream(streams: WeekStream[]): boolean {
+  return streams.some((s) => s === STD_STREAM_NAME);
+}
+
 function isStdStreamActiveInGantt(
   week: WeekInfo,
   isPreBirth: boolean,
@@ -377,7 +385,7 @@ function isStdStreamActiveInGantt(
   stdPreBirth: string
 ): boolean {
   if (stdCoverage !== "yes") return false;
-  if (!week.streams.includes(STD_STREAM_NAME)) return false;
+  if (!weekHasStdStream(week.streams)) return false;
   if (!isPreBirth) return true;
   return stdPreBirth === "yes";
 }
@@ -3397,7 +3405,7 @@ export function PlanPage() {
                             onClick={() => setSelectedWeek(week.weekNumber)}
                             className={`flex h-7 items-center justify-center rounded-md text-[10px] transition hover:opacity-90 ${preBirthUnprotectedBg} ${color} ${week.isPast ? "opacity-60" : ""}`}
                           >
-                            {week.birthRelativeWeek ?? week.weekNumber}
+                            {formatGanttWeekLabel(week, false)}
                           </button>
                         );
                       };
@@ -3409,7 +3417,7 @@ export function PlanPage() {
                           ? isPdlActive
                           : stream === "State PFL"
                             ? week.streams.includes("State PFL") && !week.streams.includes("State SDI")
-                            : stream === STD_STREAM_NAME
+                            : isStdGanttStream(stream)
                               ? isStdStreamActiveInGantt(week, isPreBirth, stdCoverage, stdPreBirth)
                               : week.streams.includes(stream as WeekStream);
                         const isJobProtectionRow = stream === "FMLA" || stream === "PDL";
@@ -3424,10 +3432,26 @@ export function PlanPage() {
                               stream === "State SDI" && isCaSdiWaitingPeriodWeek(week, state);
                             if (isSdiFirstWeekWaitingPeriod) {
                               color = "bg-emerald-50 border border-emerald-300 text-emerald-800";
+                            } else if (isStdGanttStream(stream)) {
+                              const stdActive = isStdStreamActiveInGantt(
+                                week,
+                                isPreBirth,
+                                stdCoverage,
+                                stdPreBirth
+                              );
+                              if (!stdActive) {
+                                color = "bg-slate-100 border border-slate-200 text-slate-500";
+                              } else {
+                                color =
+                                  week.payPercent > 0
+                                    ? "bg-emerald-400/70 border border-emerald-500 text-emerald-950"
+                                    : "bg-emerald-100/70 border border-emerald-300 text-emerald-900";
+                              }
                             } else {
                               const hasPay = week.payPercent > 0;
                               const employerPayPct = parseFloat(employerLeavePayPercent) || 0;
-                              const streamHasPay = stream === "Employer leave" ? employerPayPct > 0 : hasPay;
+                              const streamHasPay =
+                                stream === "Employer leave" ? employerPayPct > 0 : hasPay;
                               if (stream === "State SDI" && isActive) {
                                 color = "bg-emerald-400/70 border border-emerald-500 text-emerald-950";
                               } else if (streamHasPay) {
