@@ -3432,6 +3432,13 @@ export function PlanPage() {
                     if (lastActive === 0) return null;
                     const fullyPaidWeeks = tl.filter((w) => w.weekNumber <= lastActive && w.payPercent >= 95).length;
                     return (
+                      <>
+                      {scenario === "laid_off" && (
+                        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+                          <p className="text-sm font-semibold text-amber-900">Your plan is based on your previous wages.</p>
+                          <p className="mt-1 text-xs text-amber-800">CA SDI and PFL eligibility is determined by your base period earnings from the 12–18 months before your claim, not your current employment status. FMLA job protection does not apply after a layoff. PDL and CFRA may still apply depending on your separation terms — consult an employment attorney for your specific situation.</p>
+                        </div>
+                      )}
                       <div className="mt-4 flex flex-wrap gap-4">
                         <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-50 px-6 py-3 ring-1 ring-slate-200">
                           <span className="text-3xl font-bold text-slate-900">🎉 {lastActive}</span>
@@ -3446,6 +3453,7 @@ export function PlanPage() {
                           <span className="mt-1 text-xs font-medium text-rose-400">weeks at reduced or no pay</span>
                         </div>
                       </div>
+                      </>
                     );
                   })()}
                 </div>
