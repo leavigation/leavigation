@@ -803,6 +803,8 @@ function buildTimeline(options: {
   coordination: Coordination;
   caPreBirthLeave?: "yes_standard" | "yes_extended" | "no" | "";
   caPreBirthWeeks?: string;
+  scenario?: "employed_long" | "employed_short" | "new_job" | "laid_off" | "";
+  employmentStartDate?: string;
 }): WeekInfo[] {
   const {
     stateCode,
@@ -825,6 +827,8 @@ function buildTimeline(options: {
     coordination,
     caPreBirthLeave = "",
     caPreBirthWeeks: caPreBirthWeeksStr = "4",
+    scenario = "",
+    employmentStartDate = "",
   } = options;
 
   const code = (stateCode || "DEFAULT").toUpperCase();
@@ -851,6 +855,23 @@ function buildTimeline(options: {
   const hasEmployerPreBirth = employerPreBirth === "yes";
   const employerPreBirthWeeksNum = hasEmployerPreBirth ? (parseInt(employerPreBirthWeeksStr, 10) || 2) : 0;
   const hasFmla = fmlaEligible === "yes";
+  let fmlaUnlockWeek = 0;
+  if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
+    const startDate = new Date(employmentStartDate);
+    const anniversaryDate = new Date(startDate);
+    anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+    const dueDateObj = new Date(dueDate);
+    const leaveStartDate =
+      caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+        ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeksStr || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+        : dueDateObj;
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const weeksUntilAnniversary = Math.ceil((anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek);
+    fmlaUnlockWeek = Math.max(0, weeksUntilAnniversary);
+  }
+  const hasFmlaFromStart = hasFmla && fmlaUnlockWeek === 0;
+  const hasFmlaDelayed =
+    (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0 && employmentStartDate !== "";
   const disabilityWeeks = state.sdi.available ? recoveryWeeks : 0;
   const bondingWeeks = state.pfl.available ? state.pfl.weeksDuration || 0 : 0;
 
@@ -919,7 +940,12 @@ function buildTimeline(options: {
       const weekNumber = i + 1;
       const streams: WeekStream[] = [];
 
-      if (hasFmla && weekNumber <= 12) streams.push("FMLA");
+      const fmlaWeekActive = hasFmlaFromStart
+        ? weekNumber <= 12
+        : hasFmlaDelayed
+          ? weekNumber >= fmlaUnlockWeek && weekNumber <= fmlaUnlockWeek + 11
+          : false;
+      if (fmlaWeekActive) streams.push("FMLA");
 
       if (weekNumber <= preBirthWeeks) {
         streams.push("State SDI");
@@ -940,7 +966,8 @@ function buildTimeline(options: {
         const empEnd = hasEmployerPreBirth
           ? employerPreBirthWeeksNum + employerWeeks
           : (employerConcurrent ? birthWeek - 1 + employerWeeks : statePaidWeeks + employerWeeks);
-        if (weekNumber >= empStart && weekNumber <= empEnd) {
+        const effectiveEmpStart = hasFmlaDelayed ? Math.max(empStart, fmlaUnlockWeek) : empStart;
+        if (weekNumber >= effectiveEmpStart && weekNumber <= empEnd) {
           streams.push("Employer leave");
         }
       }
@@ -1047,12 +1074,19 @@ function buildTimeline(options: {
         streams.push("SF PPLO");
       }
 
-      const protectedByFmla = hasFmla && weekNumber <= 12;
+      const protectedByFmla = hasFmlaFromStart
+        ? weekNumber <= 12
+        : hasFmlaDelayed
+          ? weekNumber >= fmlaUnlockWeek && weekNumber <= fmlaUnlockWeek + 11
+          : false;
       const pdlProtected = isCA && weekNumber <= preBirthWeeks + disabilityWeeks;
-      const stateBondingProtected =
+      const baseStateBondingProtected =
         (isCA || isNY || isNJ) &&
         weekNumber >= pflStartWeek &&
         weekNumber <= pflStartWeek + 11;
+      const stateBondingProtected = hasFmlaDelayed
+        ? baseStateBondingProtected && weekNumber >= fmlaUnlockWeek
+        : baseStateBondingProtected;
       const jobProtected =
         protectedByFmla || pdlProtected || stateBondingProtected;
 
@@ -1138,7 +1172,12 @@ function buildTimeline(options: {
     const weekNumber = i + 1;
     const streams: WeekStream[] = [];
 
-    if (weekNumber <= fmlaWeeks) {
+    const fmlaWeekActive = hasFmlaFromStart
+      ? weekNumber <= 12
+      : hasFmlaDelayed
+        ? weekNumber >= fmlaUnlockWeek && weekNumber <= fmlaUnlockWeek + 11
+        : false;
+    if (fmlaWeekActive) {
       streams.push("FMLA");
     }
 
@@ -1166,7 +1205,10 @@ function buildTimeline(options: {
     }
 
     // Employer leave: concurrent from birth or sequential after state leave
-    if (employerWeeks > 0 && weekNumber >= employerStartWeek && weekNumber <= employerEndWeek) {
+    const effectiveEmployerStartWeek = hasFmlaDelayed
+      ? Math.max(employerStartWeek, fmlaUnlockWeek)
+      : employerStartWeek;
+    if (employerWeeks > 0 && weekNumber >= effectiveEmployerStartWeek && weekNumber <= employerEndWeek) {
       streams.push("Employer leave");
     }
 
@@ -1235,14 +1277,21 @@ function buildTimeline(options: {
         ? state.stateProtection.weeksProtected
         : 0;
 
-    const protectedByFmla = hasFmla && weekNumber <= fmlaWeeks;
+    const protectedByFmla = hasFmlaFromStart
+      ? weekNumber <= 12
+      : hasFmlaDelayed
+        ? weekNumber >= fmlaUnlockWeek && weekNumber <= fmlaUnlockWeek + 11
+        : false;
     const protectedByState =
       state.stateProtection?.available && weekNumber <= stateProtectedWeeks;
-    const protectedByCfra =
+    const baseProtectedByCfra =
       (effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ") &&
       state.stateProtection?.available &&
       weekNumber > disabilityWeeks &&
       weekNumber <= disabilityWeeks + 12;
+    const protectedByCfra = hasFmlaDelayed
+      ? baseProtectedByCfra && weekNumber >= fmlaUnlockWeek
+      : baseProtectedByCfra;
     const jobProtected = protectedByFmla || protectedByState || protectedByCfra;
 
     let note = "";
@@ -1765,6 +1814,8 @@ export function PlanPage() {
         coordination,
         caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
         caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
+        scenario,
+        employmentStartDate,
       });
       setTimeline(weeks);
       // When no employer leave, go straight to Results (step 5)
@@ -1886,6 +1937,8 @@ export function PlanPage() {
       coordination: coordinationForTimeline,
       caPreBirthLeave: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthLeave : undefined,
       caPreBirthWeeks: ["CA", "NY", "NJ", "RI"].includes(state || "") ? caPreBirthWeeks : undefined,
+      scenario,
+      employmentStartDate,
     });
     return result;
   }, [
@@ -1896,6 +1949,8 @@ export function PlanPage() {
     dueDate,
     birthType,
     fmlaEligible,
+    scenario,
+    employmentStartDate,
     employerLeaveWeeks,
     employerLeavePayPercent,
     stdCoverage,
@@ -2150,7 +2205,9 @@ export function PlanPage() {
                       <p>✓ Employees who have worked for their current employer for at least 12 months</p>
                       <p>✓ Employers with 5 or more employees</p>
                       <p>STD is estimated from the weeks and % you enter on the STD step (policies still vary — confirm with HR).</p>
-                      <p className="mt-2 text-amber-700">If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage. <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium">Visit CA EDD directly</a> for the most complete information.</p>
+                      {scenario !== "laid_off" && (
+                        <p className="mt-2 text-amber-700">If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage. <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium">Visit CA EDD directly</a> for the most complete information.</p>
+                      )}
                     </>
                   ) : state === "" ? (
                     <>
@@ -2652,6 +2709,23 @@ export function PlanPage() {
                     This is separate from state benefits or short-term
                     disability.
                   </p>
+                  {(scenario === "employed_short" || scenario === "new_job") && (
+                    <p className="mt-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-xs text-sky-800">
+                      We assume your employer leave begins when you reach 12 months of employment (
+                      {employmentStartDate
+                        ? new Date(
+                            new Date(employmentStartDate).setFullYear(
+                              new Date(employmentStartDate).getFullYear() + 1
+                            )
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "your 12-month anniversary"}
+                      ). The ability to enter a custom employer leave start date is coming soon.
+                    </p>
+                  )}
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     {[
                       { value: "yes", label: "Yes" },
@@ -2818,12 +2892,16 @@ export function PlanPage() {
           {step === 2 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
-                What is your current pre-tax salary?
+                {scenario === "laid_off"
+                  ? "What was your pre-tax salary at your last job?"
+                  : "What is your current pre-tax salary?"}
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                {state === "CA"
-                  ? "Used to estimate your SDI, PFL, and employer leave income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."
-                  : "Used to estimate your employer leave and STD income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."}
+                {scenario === "laid_off"
+                  ? "Used to estimate your CA SDI and PFL benefits. SDI and PFL are calculated based on your base period wages from the past 12–18 months. This is optional and stays on your device."
+                  : state === "CA"
+                    ? "Used to estimate your SDI, PFL, and employer leave income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."
+                    : "Used to estimate your employer leave and STD income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."}
               </p>
 
               {/* Max benefit callout, CA only */}
@@ -3479,10 +3557,31 @@ export function PlanPage() {
                           : 0;
                       const pdlEndWeek = preBirthWeeks + disabilityWeeks;
                       const pflStartWeek = pdlEndWeek + 1;
+                      let fmlaUnlockWeek = 0;
+                      if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
+                        const startDate = new Date(employmentStartDate);
+                        const anniversaryDate = new Date(startDate);
+                        anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+                        const dueDateObj = new Date(dueDate);
+                        const leaveStartDate =
+                          caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+                            ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeks || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+                            : dueDateObj;
+                        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+                        const weeksUntilAnniversary = Math.ceil(
+                          (anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek
+                        );
+                        fmlaUnlockWeek = Math.max(0, weeksUntilAnniversary);
+                      }
+                      const hasFmlaDelayed =
+                        (scenario === "employed_short" || scenario === "new_job") &&
+                        fmlaUnlockWeek > 0 &&
+                        employmentStartDate !== "";
                       const excludedRows: string[] = [];
                       const streamRows: (WeekStream | "PDL" | "CFRA")[] = (() => {
                         const rows: (WeekStream | "PDL" | "CFRA")[] = [];
-                        const hasFmlaEligible = fmlaEligible === "yes";
+                        const hasFmlaEligible =
+                          fmlaEligible === "yes" || scenario === "employed_short" || scenario === "new_job";
                         const hasEmployer = parseFloat(employerLeaveWeeks) > 0;
                         const hasStdCoverage = stdCoverage === "yes";
                         const isSF = city === "San Francisco";
@@ -3538,7 +3637,10 @@ export function PlanPage() {
                         return m?.[1] || primaryLaw.name;
                       })();
                       const renderCfraCell = (week: WeekInfo, isPreBirth: boolean) => {
-                        const isProtected = week.protectedByCfra;
+                        const isProtected =
+                          hasFmlaDelayed && week.weekNumber < fmlaUnlockWeek
+                            ? false
+                            : week.protectedByCfra;
                         const color = isProtected
                           ? "bg-purple-400/70 border border-purple-500 text-purple-950"
                           : "bg-slate-100 border border-slate-200 text-slate-600";
@@ -3563,11 +3665,19 @@ export function PlanPage() {
                         const isPdlActive = isPdlRow && week.weekNumber <= pdlEndWeek;
                         const isActive = isPdlRow
                           ? isPdlActive
-                          : stream === "State PFL"
-                            ? week.streams.includes("State PFL") && !week.streams.includes("State SDI")
-                            : isStdGanttStream(stream)
-                              ? isStdStreamActiveInGantt(week, isPreBirth, stdCoverage, stdPreBirth)
-                              : week.streams.includes(stream as WeekStream);
+                          : stream === "FMLA"
+                            ? hasFmlaDelayed
+                              ? week.weekNumber >= fmlaUnlockWeek && week.weekNumber <= fmlaUnlockWeek + 11
+                              : week.streams.includes("FMLA")
+                            : stream === "Employer leave"
+                              ? hasFmlaDelayed && week.weekNumber < fmlaUnlockWeek
+                                ? false
+                                : week.streams.includes("Employer leave")
+                            : stream === "State PFL"
+                              ? week.streams.includes("State PFL") && !week.streams.includes("State SDI")
+                              : isStdGanttStream(stream)
+                                ? isStdStreamActiveInGantt(week, isPreBirth, stdCoverage, stdPreBirth)
+                                : week.streams.includes(stream as WeekStream);
                         const isJobProtectionRow = stream === "FMLA" || stream === "PDL";
                         const isPaidLeaveRow = !isJobProtectionRow;
                         let color = "bg-slate-100 border border-slate-200 text-slate-500";
@@ -3738,6 +3848,21 @@ export function PlanPage() {
                             activeTimeline.some((w) => isCaSdiWaitingPeriodWeek(w, state)) && (
                             <p className="mt-1 text-xs text-slate-500 px-1">
                               ‡ California SDI has a 7-day unpaid waiting period. SDI payments begin the week after your first week of disability leave.
+                            </p>
+                          )}
+                          {hasFmlaDelayed && fmlaUnlockWeek > 0 && (
+                            <p className="mt-1 text-xs text-slate-500">
+                              § FMLA and CFRA job protection become available at week {fmlaUnlockWeek} of your leave (
+                              {new Date(
+                                new Date(employmentStartDate).setFullYear(
+                                  new Date(employmentStartDate).getFullYear() + 1
+                                )
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                              ), once you reach 12 months of employment.
                             </p>
                           )}
                           {excludedFootnoteRows.length > 0 && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
