@@ -1549,6 +1549,13 @@ export function PlanPage() {
     const hasStatePaidLeave = US_STATES_SUPPORTED.includes(state);
 
     let weekByWeekBreakdown = "";
+    const coordinationForChat: "concurrent" | "sequential" =
+      employerRequiresConcurrent
+        ? "concurrent"
+        : coordination === "concurrent" || coordination === "sequential"
+          ? coordination
+          : "concurrent";
+    const employerIsTopUpModeForChat = coordinationForChat === "concurrent";
     if (tl) {
       const weeklySalary = weeklySalaryNum ?? 0;
       const isCA = (state || "CA").toUpperCase() === "CA";
@@ -1564,6 +1571,7 @@ export function PlanPage() {
         let weekSdi = 0;
         let weekPfl = 0;
         let weekEmployer = 0;
+        let weekEmployerForDisplay = 0;
         let weekStd = 0;
         if (w.streams.includes("State SDI")) {
           weekSdi = isCA
@@ -1582,6 +1590,17 @@ export function PlanPage() {
               ? employerPreBirthPctForEst
               : employerPct;
           weekEmployer = weeklySalary * (employerPctThisWeek / 100);
+          const employerTarget = Math.min(weekEmployer, weeklySalary);
+          weekEmployerForDisplay = weekEmployer;
+          if (employerIsTopUpModeForChat) {
+            if (weekSdi > 0) {
+              weekEmployerForDisplay = Math.max(0, employerTarget - weekSdi);
+            } else if (weekPfl > 0) {
+              weekEmployerForDisplay = Math.max(0, employerTarget - weekPfl);
+            } else {
+              weekEmployerForDisplay = employerTarget;
+            }
+          }
         }
         if (w.streams.includes("Short‑term disability")) {
           const isPreBirthPhase = (w.birthRelativeWeek ?? 0) < 0;
@@ -1600,14 +1619,18 @@ export function PlanPage() {
           weekSfPplo = Math.max(0, weeklySalary - baseWithoutPplo);
         }
         const totalIncome = Math.round(
-          Math.min(weekSdi + weekPfl + weekEmployer + weekStd + weekSfPplo, weeklySalary)
+          Math.min(
+            weekSdi + weekPfl + weekEmployerForDisplay + weekStd + weekSfPplo,
+            weeklySalary
+          )
         );
         const date = w.startDateLabel ?? "";
         const payPct = Math.round(w.payPercent);
         const sourceParts: string[] = [];
         if (weekSdi > 0) sourceParts.push(`State SDI $${Math.round(weekSdi)}`);
         if (weekPfl > 0) sourceParts.push(`State PFL $${Math.round(weekPfl)}`);
-        if (weekEmployer > 0) sourceParts.push(`Employer leave $${Math.round(weekEmployer)}`);
+        if (weekEmployerForDisplay > 0)
+          sourceParts.push(`Employer leave $${Math.round(weekEmployerForDisplay)}`);
         if (weekStd > 0) sourceParts.push(`Short‑term disability $${Math.round(weekStd)}`);
         if (weekSfPplo > 0) sourceParts.push(`SF PPLO $${Math.round(weekSfPplo)}`);
         const sourcesStr =
@@ -1628,6 +1651,9 @@ export function PlanPage() {
       `Pre-birth leave: ${caPreBirthLeave === "yes_standard" ? "Yes, standard (<=4 weeks)" : caPreBirthLeave === "yes_extended" ? `Yes, extended (${caPreBirthWeeks} weeks)` : "None"}`,
       `SF PPLO: ${city === "San Francisco" ? "Yes" : "No"}`,
       `Employer leave: ${employerLeaveOffered === "yes" ? `Yes, ${employerLeaveWeeks} weeks at ${employerLeavePayPercent}%, ${coordination || "coordination not set"}` : employerLeaveOffered === "no" ? "None" : "Unsure"}`,
+      employerIsTopUpModeForChat && employerLeaveOffered === "yes"
+        ? "Employer leave coordination: top-up (concurrent). Employer only pays the difference between SDI/PFL and the employer pay target. In weeks where SDI or PFL already meets or exceeds the employer pay percentage, employer contribution is $0."
+        : "",
       `Total leave weeks: ${lastActive}`,
       `Fully paid weeks: ${fullyPaid}`,
       weeklySalaryNum ? `Weekly salary: $${Math.round(weeklySalaryNum)}` : "Salary: not provided",
