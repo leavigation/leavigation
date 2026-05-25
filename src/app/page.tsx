@@ -1111,6 +1111,7 @@ function buildTimeline(options: {
       if (payPercent > 100) payPercent = 100;
 
       if (
+        scenario !== "laid_off" &&
         municipal &&
         isMunicipalPaySupplement(municipal) &&
         municipal.city === "San Francisco" &&
@@ -1310,6 +1311,7 @@ function buildTimeline(options: {
 
     // Municipal pay supplement (e.g. SF PPLO: PFL bonding weeks at 100%)
     if (
+      scenario !== "laid_off" &&
       municipal &&
       isMunicipalPaySupplement(municipal) &&
       municipal.city === "San Francisco" &&
@@ -3726,7 +3728,7 @@ export function PlanPage() {
                           excludedRows.push("State PFL (no state program)");
                         }
 
-                        if (isSF) rows.push("SF PPLO" as WeekStream);
+                        if (isSF && scenario !== "laid_off") rows.push("SF PPLO" as WeekStream);
 
                         if (hasEmployer) {
                           rows.push("Employer leave");
@@ -4184,7 +4186,7 @@ export function PlanPage() {
                       </p>
                       {state === "CA" && (
                         <p className="text-[11px] text-slate-500 leading-snug">
-                          SDI and PFL amounts are gross pre-tax estimates. Your employer leave is taxed as regular income. See tax details for more.
+                          SDI and PFL amounts are gross pre-tax estimates. Your employer leave is taxed as regular income.
                         </p>
                       )}
                       <p className="mt-1 text-xs text-slate-500">{getIncomeEstimateFootnote(state)}</p>
