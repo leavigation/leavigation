@@ -1322,6 +1322,7 @@ export function PlanPage() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [employmentStartDate, setEmploymentStartDate] = useState("");
   const [birthType, setBirthType] = useState<"vaginal" | "c-section" | "">("");
   // FMLA eligibility hidden, tool currently scoped to full-time employees
   // Re-enable when expanding to part-time, contractor, and self-employed flows
@@ -1431,6 +1432,7 @@ export function PlanPage() {
     setState("");
     setCity("");
     setDueDate("");
+    setEmploymentStartDate("");
     setBirthType("");
     setFmlaEligible("yes");
     setEmployerLeaveOffered("");
@@ -2607,6 +2609,41 @@ export function PlanPage() {
                 </div>
                 */}
 
+                {scenario === "employed_short" && (
+                  <div>
+                    <div className="text-sm font-medium text-slate-700">When did you start your current job?</div>
+                    <p className="mt-1 text-xs text-slate-500">We&apos;ll use this to calculate when FMLA and CFRA protections kick in relative to your due date.</p>
+                    <input
+                      type="date"
+                      className="mt-2 w-full max-w-xs rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
+                      value={employmentStartDate}
+                      onChange={(e) => setEmploymentStartDate(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {scenario === "new_job" && (
+                  <div>
+                    <div className="text-sm font-medium text-slate-700">When do you start your new job?</div>
+                    <p className="mt-1 text-xs text-slate-500">We&apos;ll use this to calculate when employer benefits and FMLA protections become available relative to your due date.</p>
+                    <input
+                      type="date"
+                      className="mt-2 w-full max-w-xs rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
+                      value={employmentStartDate}
+                      onChange={(e) => setEmploymentStartDate(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {scenario === "laid_off" && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-medium text-amber-900">CA SDI and PFL are based on past wages, not current employment.</p>
+                    <p className="mt-1 text-xs text-amber-800">You may still be eligible for CA SDI and PFL even if you were recently laid off. Your eligibility is based on wages earned in your base period. Job protection programs (FMLA, PDL, CFRA) may still apply depending on your separation terms — consult an employment attorney for your specific situation.</p>
+                  </div>
+                )}
+
+                {scenario !== "laid_off" && scenario !== "new_job" && (
+                <>
                 <div>
                   <div className="text-sm font-medium text-slate-700">
                     Does your employer offer parental leave?
@@ -2640,8 +2677,6 @@ export function PlanPage() {
                     ))}
                   </div>
                 </div>
-              </div>
-              </div>
 
               {/* Employer leave details, show when employer leave = yes */}
               {employerLeaveOffered !== "no" && employerLeaveOffered !== "" && (
@@ -2773,6 +2808,10 @@ export function PlanPage() {
                   </div>
                 </div>
               )}
+                </>
+                )}
+              </div>
+              </div>
             </div>
           )}
 
