@@ -55,13 +55,19 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "jobProtection",
       name: "CO Family and Medical Leave Insurance job protection (FAMLI)",
       description:
-        "Job protection for employers with 10+ employees. Employees at smaller employers receive pay only.",
+        "No employer size threshold — job protection available to any employee who has worked 180+ days with their employer.",
     },
     {
       pill: "pfl",
       name: "CO Family and Medical Leave Insurance (FAMLI)",
       description:
-        "90% of wages up to 50% of state average weekly wage, then 50% above that. Max approx. $1,100/week. Up to 12 weeks, or 16 weeks with pregnancy complications. File with CO FAMLI Division.",
+        "90% of wages up to 50% of state average weekly wage, then 50% above that. Max $1,381.45/week (Jan–Jun 2026); $1,448.02/week from July 1, 2026. Up to 12 weeks, or 16 weeks with pregnancy complications. File with CO FAMLI Division.",
+    },
+    {
+      pill: "pfl",
+      name: "CO FAMLI Neonatal Care Leave (NICU)",
+      description:
+        "Up to 12 additional paid weeks for parents of infants admitted to the NICU. Entirely separate from and in addition to the standard 12-week bonding leave. Same wage replacement as FAMLI. Effective January 1, 2026. First state in the US with dedicated paid NICU leave.",
     },
   ],
   CT: [
@@ -74,13 +80,13 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "jobProtection",
       name: "CT Family and Medical Leave Act (CT FMLA)",
       description:
-        "12 weeks job protection at employers with 3+ employees, a lower threshold than federal FMLA.",
+        "12 weeks job protection at employers with 1+ employee — far lower threshold than federal FMLA.",
     },
     {
       pill: "pfl",
       name: "CT Paid Leave (CTPL)",
       description:
-        "95% of wages up to 40x the minimum wage, then 60% above that threshold. Up to 12 weeks, or 14 weeks with pregnancy complications. Employee funded. File with CT Paid Leave Authority.",
+        "95% of wages up to 40x the minimum wage ($677.60 in 2026), then 60% above that, capped at 60x minimum wage ($1,016.40/week in 2026). Up to 12 weeks, or 14 weeks with pregnancy complications. Employee funded. File with CT Paid Leave Authority.",
     },
   ],
   DE: [
@@ -98,7 +104,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "DE Paid Family and Medical Leave (PFML)",
       description:
-        "80% of wages, capped at 80% of state average weekly wage. Up to 12 weeks family leave plus 6 weeks medical leave per year. Benefits live January 2026. File with DE Department of Labor.",
+        "80% of wages, flat cap of $900/week (2026 and 2027). Up to 12 weeks family leave plus 6 weeks medical/family care per 24-MONTH period (not annual). Benefits live January 2026. File with DE Department of Labor.",
     },
   ],
   DC: [
@@ -117,7 +123,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "DC Paid Family Leave (PFL)",
       description:
-        "90% of wages up to 150% of DC minimum wage, then 50% above that. Up to 12 weeks bonding plus 12 weeks medical plus 2 weeks prenatal. Employer funded. File with DC DOES.",
+        "90% of wages up to 150% of DC minimum wage, then 50% above that. Up to 12 weeks bonding plus 2 weeks prenatal (14 weeks total for birthing parents) plus 12 weeks medical leave. Employer funded. File with DC DOES.",
     },
   ],
   HI: [
@@ -135,7 +141,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "sdi",
       name: "HI Temporary Disability Insurance (TDI)",
       description:
-        "Mandatory employer provided coverage. Pays 58% of wages up to $871/week. Up to 26 weeks. Covers pregnancy and postpartum recovery. 7 day waiting period. No state fund exists. Coverage is provided through your employer's private plan.",
+        "Mandatory employer provided coverage. Pays 58% of wages up to $871/week. Up to 26 weeks. Covers pregnancy and postpartum recovery. 7 day waiting period. No state fund exists. Coverage is provided through your employer's private plan. Important: Hawaii has no state paid family leave program for bonding. TDI covers pregnancy disability only.",
     },
   ],
   ME: [
@@ -173,7 +179,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "MA Paid Family and Medical Leave (PFML)",
       description:
-        "80% of wages up to 50% of state average weekly wage, then 50% above that. Max approx. $1,149/week. Up to 12 weeks family plus 20 weeks medical; combined maximum 26 weeks. File with MA DUA.",
+        "80% of wages up to 50% of state average weekly wage, then 50% above that. Max $1,230.39/week (2026). Up to 12 weeks family plus 20 weeks medical; combined maximum 26 weeks. File with MA DUA. Note: municipal and local government employees are only covered if their municipality has voted to opt in.",
     },
   ],
   MN: [
@@ -185,13 +191,13 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
     {
       pill: "jobProtection",
       name: "MN Paid Leave job protection (MNPL)",
-      description: "Job protection for employers with 30+ employees.",
+      description: "All employers; employees need 90 days tenure for job protection.",
     },
     {
       pill: "pfl",
       name: "MN Paid Family and Medical Leave (MNPL)",
       description:
-        "90% of wages up to 33% of state average weekly wage, then 66% above that. Up to 12 weeks family plus 12 weeks medical; combined maximum 20 weeks. Benefits began January 2026. File with MN DEED.",
+        "90% up to 50% of state average weekly wage, then 66% between 50–100%, then 55% above 100%. Max $1,423/week (2026). Up to 12 weeks family plus 12 weeks medical; combined maximum 20 weeks. Benefits began January 2026. File with MN DEED.",
     },
   ],
   NJ: [
@@ -203,7 +209,8 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
     {
       pill: "jobProtection",
       name: "NJ Family Leave Act (FLA)",
-      description: "12 weeks job protection at employers with 30+ employees. Runs concurrently with FMLA.",
+      description:
+        "12 weeks job protection. Effective July 17, 2026, threshold drops from 30 to 15 employees (then 10+ in 2027, 5+ in 2028). Eligibility also drops to 3 months/250 hours. Receipt of TDI or FLI benefits now independently triggers job protection as of July 17, 2026.",
     },
     {
       pill: "sdi",
@@ -239,7 +246,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "NY Paid Family Leave (PFL)",
       description:
-        "Pays 67% of the statewide average weekly wage. 12 weeks bonding. Employee funded via payroll deduction. File through employer's insurance carrier.",
+        "Pays 67% of the statewide average weekly wage. 12 weeks bonding. Max $1,228.53/week (2026). Employee contribution rate: 0.432% of gross wages, max $411.91/year. Employee funded via payroll deduction. File through employer's insurance carrier.",
     },
   ],
   OR: [
@@ -257,7 +264,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "OR Paid Leave (OPL)",
       description:
-        "60 to 100% of wages (income based). Up to 12 weeks, or 14 weeks with pregnancy complications. File with OR Employment Department.",
+        "100% of wages up to 65% of state average weekly wage, then a blended rate above. Max $1,636.56/week through June 27, 2026; $1,692.16/week from June 28, 2026. Up to 12 weeks, or 14 weeks with pregnancy complications. File with OR Employment Department.",
     },
   ],
   RI: [
@@ -281,7 +288,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "RI Temporary Caregiver Insurance (TCI)",
       description:
-        "Same rate as TDI, max $1,103/week. Up to 8 weeks bonding. Employee funded. File with RI Department of Labor and Training.",
+        "Same rate as TDI, max $1,103/week. Up to 8 weeks bonding (increased from 7 weeks effective January 1, 2026). Employee funded. File with RI Department of Labor and Training.",
     },
   ],
   VT: [
@@ -319,7 +326,7 @@ export const TIER1_PROGRAM_ROWS: Record<string, LeaveGuideProgramRow[]> = {
       pill: "pfl",
       name: "WA Paid Family and Medical Leave (PFML)",
       description:
-        "Pays 70 to 90% of wages (income based), capped at 90% of state average weekly wage. Up to 12 weeks family leave plus 12 weeks medical leave; combined maximum 16 weeks, or 18 weeks with pregnancy complications. File with WA ESD.",
+        "Pays 70 to 90% of wages (income based), capped at 90% of state average weekly wage. Max $1,647/week (2026). Up to 12 weeks family leave plus 12 weeks medical leave; combined maximum 16 weeks, or 18 weeks with pregnancy complications. File with WA ESD.",
     },
   ],
 };
