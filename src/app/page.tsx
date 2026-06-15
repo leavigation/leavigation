@@ -938,7 +938,9 @@ function buildTimeline(options: {
     paidLeaveEnd,
     concurrentEmployerEnd,
     fmlaProtectionEnd,
-    preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2
+    preBirthWeeks + disabilityWeeks + bondingWeeks + employerWeeks + 2,
+    hasFmlaDelayed ? fmlaUnlockWeek + 12 : 0,
+    hasFmlaDelayed && employerWeeks > 0 ? employerLeaveUnlockWeek + employerWeeks : 0
   );
   const employerStartWeek = hasEmployerPreBirth ? 1 : (employerConcurrent ? preBirthWeeks + 1 : statePaidWeeks + 1);
   const employerEndWeek = hasEmployerPreBirth
@@ -1005,10 +1007,10 @@ function buildTimeline(options: {
 
       if (employerWeeks > 0) {
         const empStart = hasEmployerPreBirth
-          ? 1
+          ? preBirthWeeks - employerPreBirthWeeksNum + 1
           : (employerConcurrent ? birthWeek : statePaidWeeks + 1);
         const empEnd = hasEmployerPreBirth
-          ? employerPreBirthWeeksNum + employerWeeks
+          ? preBirthWeeks + employerWeeks
           : (employerConcurrent ? birthWeek - 1 + employerWeeks : statePaidWeeks + employerWeeks);
         const effectiveEmpStart =
           (scenario === "employed_short" || scenario === "new_job") && employmentStartDate
@@ -1133,7 +1135,9 @@ function buildTimeline(options: {
         weekNumber >= pflStartWeek &&
         weekNumber <= pflStartWeek + 11;
       const stateBondingProtected = hasFmlaDelayed
-        ? baseStateBondingProtected && weekNumber >= fmlaUnlockWeek
+        ? (isCA || isNY || isNJ) &&
+          weekNumber >= fmlaUnlockWeek &&
+          weekNumber <= fmlaUnlockWeek + 11
         : baseStateBondingProtected;
       const jobProtected =
         protectedByFmla || pdlProtected || stateBondingProtected;
@@ -1333,14 +1337,20 @@ function buildTimeline(options: {
         ? weekNumber >= fmlaUnlockWeek && weekNumber <= fmlaUnlockWeek + 11
         : false;
     const protectedByState =
-      state.stateProtection?.available && weekNumber <= stateProtectedWeeks;
+      state.stateProtection?.available &&
+      (effectiveStateCode === "CA"
+        ? weekNumber <= disabilityWeeks
+        : weekNumber <= stateProtectedWeeks);
     const baseProtectedByCfra =
       (effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ") &&
       state.stateProtection?.available &&
       weekNumber > disabilityWeeks &&
       weekNumber <= disabilityWeeks + 12;
     const protectedByCfra = hasFmlaDelayed
-      ? baseProtectedByCfra && weekNumber >= fmlaUnlockWeek
+      ? (effectiveStateCode === "CA" || effectiveStateCode === "NY" || effectiveStateCode === "NJ") &&
+        state.stateProtection?.available &&
+        weekNumber >= fmlaUnlockWeek &&
+        weekNumber <= fmlaUnlockWeek + 11
       : baseProtectedByCfra;
     const jobProtected = protectedByFmla || protectedByState || protectedByCfra;
 
@@ -1525,6 +1535,17 @@ export function PlanPage() {
     if (typeof window !== "undefined") {
       window.print();
     }
+  }
+
+  function resetEmployerLeaveFields() {
+    setEmployerLeaveWeeks("");
+    setEmployerLeavePayPercent("");
+    setCoordination("");
+    setEmployerPreBirth("");
+    setEmployerPreBirthWeeks("");
+    setEmployerPreBirthPayPercent("");
+    setEmployerRequiresConcurrent(false);
+    setEmployerLeaveEligibilityStart("");
   }
 
   function handleStartOver() {
@@ -2397,6 +2418,7 @@ export function PlanPage() {
                       if (tile.key === "laid_off") {
                         setFmlaEligible("no");
                         setEmployerLeaveOffered("no");
+                        resetEmployerLeaveFields();
                       } else if (tile.key === "employed_long") {
                         setFmlaEligible("yes");
                       } else {
@@ -2813,11 +2835,13 @@ export function PlanPage() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() =>
-                          setEmployerLeaveOffered(
-                            option.value as "yes" | "no" | "unsure"
-                          )
-                        }
+                        onClick={() => {
+                          const value = option.value as "yes" | "no" | "unsure";
+                          setEmployerLeaveOffered(value);
+                          if (value === "no") {
+                            resetEmployerLeaveFields();
+                          }
+                        }}
                         className={`rounded-xl border px-3 py-2 text-sm shadow-sm transition ${
                           employerLeaveOffered === option.value
                             ? "border-sky-400 bg-sky-50 text-sky-900"
@@ -3389,12 +3413,17 @@ export function PlanPage() {
                   </div>
                 );
               })()}
-              {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && (
+              {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && scenario !== "laid_off" && (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
                   <span className="text-blue-500">ℹ</span>
                   <span className="font-semibold">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} does not have a state paid leave program.</span>
                   <span>Income during leave comes from your employer and any private STD coverage you have. FMLA provides 12 weeks of unpaid job protection only.</span>
                   <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">Learn more at DOL.gov →</a>
+                </div>
+              )}
+              {!US_STATES_SUPPORTED.includes(state) && !US_STATES_PAID_LEAVE_COMING_SOON.includes(state) && scenario === "laid_off" && (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs text-blue-800">
+                  <span className="font-semibold">You were laid off.</span> FMLA job protection does not apply after a layoff per DOL regulations. Income during leave depends on any private STD policy you hold.
                 </div>
               )}
               {/* FMLA cliff warning, show when pre-birth leave causes FMLA to exhaust before PDL ends */}
@@ -3713,15 +3742,19 @@ export function PlanPage() {
                         if (hasFmlaEligible) {
                           rows.push("FMLA");
                         } else {
-                          excludedRows.push("FMLA (not eligible)");
+                          excludedRows.push(
+                            scenario === "laid_off"
+                              ? "FMLA (not applicable — laid off)"
+                              : "FMLA (not eligible)"
+                          );
                         }
 
-                        if (isCA) {
+                        if (isCA && scenario !== "laid_off") {
                           rows.push("PDL");
                           rows.push("CFRA");
-                        } else if (stateLeave.stateProtection?.available && stateLeave.hasProtectionBeyondFMLA) {
+                        } else if (scenario !== "laid_off" && stateLeave.stateProtection?.available && stateLeave.hasProtectionBeyondFMLA) {
                           rows.push("CFRA");
-                        } else {
+                        } else if (scenario !== "laid_off") {
                           excludedRows.push("No state protection beyond FMLA");
                         }
 
