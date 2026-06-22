@@ -945,7 +945,9 @@ function buildTimeline(options: {
   const employerStartWeek = hasEmployerPreBirth ? 1 : (employerConcurrent ? preBirthWeeks + 1 : statePaidWeeks + 1);
   const employerEndWeek = hasEmployerPreBirth
     ? employerPreBirthWeeksNum + employerWeeks
-    : (employerConcurrent ? preBirthWeeks + employerWeeks : statePaidWeeks + employerWeeks);
+    : hasFmlaDelayed && employerLeaveUnlockWeek > 0
+      ? employerLeaveUnlockWeek + employerWeeks - 1
+      : (employerConcurrent ? preBirthWeeks + employerWeeks : statePaidWeeks + employerWeeks);
   const weeks: WeekInfo[] = [];
 
   const stdCoordMode = stdCoordinatesWithEmployer;
@@ -1011,7 +1013,9 @@ function buildTimeline(options: {
           : (employerConcurrent ? birthWeek : statePaidWeeks + 1);
         const empEnd = hasEmployerPreBirth
           ? preBirthWeeks + employerWeeks
-          : (employerConcurrent ? birthWeek - 1 + employerWeeks : statePaidWeeks + employerWeeks);
+          : hasFmlaDelayed && employerLeaveUnlockWeek > 0
+            ? employerLeaveUnlockWeek + employerWeeks - 1
+            : (employerConcurrent ? birthWeek - 1 + employerWeeks : statePaidWeeks + employerWeeks);
         const effectiveEmpStart =
           (scenario === "employed_short" || scenario === "new_job") && employmentStartDate
             ? Math.max(empStart, employerLeaveUnlockWeek)
