@@ -123,6 +123,17 @@ function parsePercent(value: string): number {
   return n;
 }
 
+function addOneYear(dateStr: string): Date {
+  const d = new Date(dateStr);
+  d.setFullYear(d.getFullYear() + 1);
+  // Correct for month-end edge case (e.g. Dec 1 → Nov 30 due to setFullYear)
+  const original = new Date(dateStr);
+  if (d.getDate() !== original.getDate()) {
+    d.setDate(original.getDate());
+  }
+  return d;
+}
+
 function getIncomeSourceBarColor(label: string): string {
   if (label === "STD") return "#85B7EB";
   if (label === "Employer") return "#FAC775";
@@ -1817,7 +1828,7 @@ export function PlanPage() {
         ? `Employment start date: ${new Date(employmentStartDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
         : "",
       (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0
-        ? `FMLA/CFRA and employer leave unlock week: Week ${fmlaUnlockWeek} of leave (${new Date(new Date(employmentStartDate).setFullYear(new Date(employmentStartDate).getFullYear() + 1)).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })})`
+        ? `FMLA/CFRA and employer leave unlock week: Week ${fmlaUnlockWeek} of leave (${addOneYear(employmentStartDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })})`
         : "",
       `Total leave weeks: ${lastActive}`,
       `Fully paid weeks: ${fullyPaid}`,
@@ -4052,11 +4063,7 @@ export function PlanPage() {
                           {hasFmlaDelayed && fmlaUnlockWeek > 0 && (
                             <p className="mt-1 text-xs text-slate-500">
                               § FMLA and CFRA job protection become available at week {fmlaUnlockWeek} of your leave (
-                              {new Date(
-                                new Date(employmentStartDate).setFullYear(
-                                  new Date(employmentStartDate).getFullYear() + 1
-                                )
-                              ).toLocaleDateString("en-US", {
+                              {addOneYear(employmentStartDate).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
