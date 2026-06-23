@@ -1542,6 +1542,7 @@ export function PlanPage() {
   const isMoverSelfEmployed = moverPayrollUpdated === "self_employed";
 
   const isFirstStep = step === 0;
+  const isBackDisabled = step === 0 && scenario === "";
   const isLastStep = step === steps.length - 1;
   const progressPercent = ((step + 1) / steps.length) * 100;
 
@@ -1996,6 +1997,10 @@ export function PlanPage() {
         state_code: state || "unknown",
       });
     } catch {}
+    if (step === 0 && scenario !== "") {
+      setScenario("");
+      return;
+    }
     const noEmployerLeave = employerLeaveOffered === "no";
     if (noEmployerLeave) {
       if (step === 4 && noEmployerLeave) {
@@ -2135,7 +2140,7 @@ export function PlanPage() {
     let employerTotal = 0;
     let stdTotal = 0;
     let totalLeaveIncomeCapped = 0;
-    const employerIsTopUpMode = isConcurrentLike;
+    const employerIsTopUpMode = isConcurrentLike && coordination !== "sequential";
     const weekRows: { weekNumber: number; dateLabel: string; programs: string[]; grossPay: number; pctOfNormal: number; sources: { label: string; amount: number; pct: number }[] }[] = [];
 
     for (const w of activeTimelineForEstimator) {
@@ -4545,13 +4550,13 @@ export function PlanPage() {
           </div>
         )}
 
-        <footer className="no-print mt-6 flex items-center justify-between">
+        <footer className="no-print mt-6 flex items-center justify-between pb-6">
           <button
             type="button"
             onClick={handleBack}
-            disabled={isFirstStep}
+            disabled={isBackDisabled}
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              isFirstStep
+              isBackDisabled
                 ? "cursor-not-allowed text-slate-300"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
