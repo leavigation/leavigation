@@ -2768,12 +2768,21 @@ export function PlanPage() {
           {step === 3 && (
             <div className="space-y-8">
               <div>
-              <h2 className="text-xl font-semibold text-slate-900">
-                Legal protections and company policies
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                These questions help us understand what job protections and employer benefits you have.
-              </p>
+              {scenario !== "laid_off" ? (
+                <>
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Legal protections and company policies
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    These questions help us understand what job protections and employer benefits you have.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-semibold text-slate-900">Your situation</h2>
+                  <p className="mt-2 text-sm text-slate-600">Since you are not currently employed, we have pre-filled what applies to your situation below.</p>
+                </>
+              )}
 
               <div className="mt-6 space-y-6">
                 {/* FMLA ELIGIBILITY QUESTION, hidden for now, tool is scoped to full-time employees
@@ -4019,7 +4028,7 @@ export function PlanPage() {
                               }
                             </div>
                           )}
-                          {city === "San Francisco" && (
+                          {city === "San Francisco" && scenario !== "laid_off" && (
                             <p className="mt-2 text-xs text-slate-500 px-1">
                               * SF Paid Parental Leave Ordinance (SF PPLO) tops up CA PFL to 100% of your weekly salary during bonding weeks where CA PFL is your only pay source. Weeks where employer leave or SDI already covers a portion of your pay may receive a partial or no top-up.
                             </p>
