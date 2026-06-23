@@ -2472,7 +2472,9 @@ export function PlanPage() {
                     <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
                       {US_STATES_PAID_LEAVE_COMING_SOON.includes(state)
                         ? <>✨ We&apos;re building full {ALL_US_STATES.find((s) => s.code === state)?.name} support now. In the meantime, your plan includes FMLA job protection, employer leave, and any private STD coverage you have. <Link href="/leave-guide#notify" className="underline font-medium hover:text-blue-900">Get notified when it launches →</Link></>
-                        : <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program — your plan is built around FMLA job protection, employer leave, and any private STD coverage you have. That&apos;s still a complete picture of your leave.</>
+                        : scenario === "laid_off"
+                          ? <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program. Since you were laid off, FMLA job protection does not apply. Your income during leave depends on any private STD coverage you hold.</>
+                          : <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program — your plan is built around FMLA job protection, employer leave, and any private STD coverage you have. That&apos;s still a complete picture of your leave.</>
                       }
                     </div>
                   )}
@@ -2810,8 +2812,22 @@ export function PlanPage() {
 
                 {scenario === "laid_off" && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-medium text-amber-900">CA SDI and PFL are based on past wages, not current employment.</p>
-                    <p className="mt-1 text-xs text-amber-800">You may still be eligible for CA SDI and PFL even if you were recently laid off. Your eligibility is based on wages earned in your base period. Job protection programs (FMLA, PDL, CFRA) may still apply depending on your separation terms — consult an employment attorney for your specific situation.</p>
+                    {state === "CA" ? (
+                      <>
+                        <p className="text-sm font-medium text-amber-900">CA SDI and PFL are based on past wages, not current employment.</p>
+                        <p className="mt-1 text-xs text-amber-800">You may still be eligible for CA SDI and PFL even if you were recently laid off. Your eligibility is based on wages earned in your base period. Job protection programs (FMLA, PDL, CFRA) may still apply depending on your separation terms — consult an employment attorney for your specific situation.</p>
+                      </>
+                    ) : US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? (
+                      <>
+                        <p className="text-sm font-medium text-amber-900">Your income during leave depends on any private STD coverage you hold.</p>
+                        <p className="mt-1 text-xs text-amber-800">You were laid off. While {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} has a paid leave program, eligibility typically requires active employment. Your main income source during leave would be a private STD policy if you have one. Consult an employment attorney regarding your separation terms and eligibility.</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-amber-900">Your income during leave depends on any private STD coverage you hold.</p>
+                        <p className="mt-1 text-xs text-amber-800">You were laid off. Since {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} does not have a state paid leave program, your main income source during leave would be a private short-term disability (STD) policy if you have one. FMLA job protection does not apply after a layoff. Consult an employment attorney regarding your separation terms.</p>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -3032,7 +3048,9 @@ export function PlanPage() {
               </h2>
               <p className="mt-2 text-sm text-slate-600">
                 {scenario === "laid_off"
-                  ? "Used to estimate your CA SDI and PFL benefits. SDI and PFL are calculated based on your base period wages from the past 12–18 months. This is optional and stays on your device."
+                  ? state === "CA"
+                    ? "Used to estimate your CA SDI and PFL benefits. SDI and PFL are calculated based on your base period wages from the past 12–18 months. This is optional and stays on your device."
+                    : "Used to estimate your short-term disability benefits if applicable. This is optional and stays on your device."
                   : state === "CA"
                     ? "Used to estimate your SDI, PFL, and employer leave income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."
                     : "Used to estimate your employer leave and STD income. This is optional. We don\u2019t store or share your salary. It stays on your device and is only used to calculate your estimated pay during leave."}
