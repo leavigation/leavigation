@@ -44,6 +44,7 @@ export default function RootLayout({
           }}
         />
         <script type="text/javascript" async src="https://subscribe-forms.beehiiv.com/attribution.js"></script>
+        <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="69acb8ac-4587-41c0-92b4-df39eb8798ea"></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-slate-900`}

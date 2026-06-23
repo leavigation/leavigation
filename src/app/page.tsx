@@ -2339,7 +2339,7 @@ export function PlanPage() {
                       <p>✓ FMLA eligible employees (employer 50+ employees, 12+ months tenure, 1,250+ hours worked)</p>
                       <p>✓ Employer leave and STD estimated from your inputs</p>
                       {US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? (
-                        <p className="mt-2 text-amber-700">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} has a paid leave program, but full support is not yet available in Leavigation. Results show FMLA + employer leave + STD only. <Link href="/leave-guide#notify" className="underline font-medium">Get notified when it launches →</Link></p>
+                        <p className="mt-2 text-amber-700">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} has a paid leave program, but full support is not yet available in Leavigation. Results show FMLA + employer leave + STD only. <button type="button" onClick={() => { if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) { (window as unknown as Record<string, { open: () => void }>).beehiiv.open(); } }} className="underline font-medium">Get notified when it launches →</button></p>
                       ) : (
                         <p className="mt-2 text-amber-700">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} does not have a state paid leave program. This tool shows FMLA job protection + employer leave + STD only. <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="underline font-medium">Learn about FMLA at DOL.gov →</a></p>
                       )}
@@ -2471,7 +2471,7 @@ export function PlanPage() {
                   {state !== "" && state !== "CA" && (
                     <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
                       {US_STATES_PAID_LEAVE_COMING_SOON.includes(state)
-                        ? <>✨ We&apos;re building full {ALL_US_STATES.find((s) => s.code === state)?.name} support now. In the meantime, your plan includes FMLA job protection, employer leave, and any private STD coverage you have. <Link href="/leave-guide#notify" className="underline font-medium hover:text-blue-900">Get notified when it launches →</Link></>
+                        ? <>✨ We&apos;re building full {ALL_US_STATES.find((s) => s.code === state)?.name} support now. In the meantime, your plan includes FMLA job protection, employer leave, and any private STD coverage you have. <button type="button" onClick={() => { if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) { (window as unknown as Record<string, { open: () => void }>).beehiiv.open(); } }} className="underline font-medium hover:text-blue-900">Get notified when it launches →</button></>
                         : scenario === "laid_off"
                           ? <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program. Since you were laid off, FMLA job protection does not apply. Your income during leave depends on any private STD coverage you hold.</>
                           : <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program — your plan is built around FMLA job protection, employer leave, and any private STD coverage you have. That&apos;s still a complete picture of your leave.</>
@@ -3437,7 +3437,17 @@ export function PlanPage() {
                         )}
                         <div className="flex items-center gap-3 mt-2 pt-2 border-t border-purple-200">
                           <span className="text-purple-600">Your actual leave income will likely be higher than shown below once {stateName} state programs are built into Leavigation.</span>
-                          <Link href="/leave-guide#notify" className="shrink-0 rounded-full bg-purple-500 px-3 py-1.5 text-white font-medium hover:bg-purple-600 transition">Get notified →</Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) {
+                                (window as unknown as Record<string, { open: () => void }>).beehiiv.open();
+                              }
+                            }}
+                            className="shrink-0 rounded-full bg-purple-500 px-3 py-1.5 text-white font-medium hover:bg-purple-600 transition"
+                          >
+                            Get notified →
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -4109,14 +4119,25 @@ export function PlanPage() {
                             </tr>
                           )}
                           {incomeEstimator.employerTotal > 0 && (
+                            <>
                             <tr>
                               <td className="py-2 pr-2 text-slate-700">
                                 {incomeEstimator.employerIsTopUpMode ? "Employer leave (top-up)" : "Employer leave"}
                               </td>
                               <td className="py-2 text-right font-medium text-slate-900">
-                                {incomeEstimator.employerWeeks} weeks × ${Math.round(incomeEstimator.employerWeekly)}/week = ${incomeEstimator.employerTotal.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                                {incomeEstimator.employerIsTopUpMode
+                                  ? `${incomeEstimator.employerWeeks} weeks (variable top-up) = $${Math.round(incomeEstimator.employerTotal).toLocaleString()}`
+                                  : `${incomeEstimator.employerWeeks} weeks × $${Math.round(incomeEstimator.employerWeekly)}/week = $${Math.round(incomeEstimator.employerTotal).toLocaleString()}`}
                               </td>
                             </tr>
+                            {incomeEstimator.employerIsTopUpMode && (
+                              <tr>
+                                <td colSpan={2} className="pb-2">
+                                  <p className="mt-1 text-xs text-slate-400">Top-up amount varies week by week. See the weekly breakdown below for exact amounts.</p>
+                                </td>
+                              </tr>
+                            )}
+                            </>
                           )}
                           {incomeEstimator.stdTotal > 0 && (
                             <tr>
