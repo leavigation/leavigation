@@ -1516,6 +1516,12 @@ export function PlanPage() {
   const [stdExplainerOpen, setStdExplainerOpen] = useState(false);
   const [sdiExplainerOpen, setSdiExplainerOpen] = useState(false);
 
+  const [gateEmail, setGateEmail] = useState("");
+  const [gateAgreed, setGateAgreed] = useState(false);
+  const [gateSubmitted, setGateSubmitted] = useState(false);
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateError, setGateError] = useState("");
+
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
   const showPreBirthNote = state && !PRE_BIRTH_STATES.includes(state);
@@ -1611,6 +1617,11 @@ export function PlanPage() {
     setMoverPayrollUpdated("");
     setMoverNotifiedEmployer("");
     setMoverBannerResolved(false);
+    setGateEmail("");
+    setGateAgreed(false);
+    setGateSubmitted(false);
+    setGateLoading(false);
+    setGateError("");
   }
 
   function handleShareLink() {
@@ -2013,6 +2024,29 @@ export function PlanPage() {
       }
     }
     if (!isFirstStep) setStep((s) => s - 1);
+  }
+
+  async function handleGateSubmit() {
+    if (!gateEmail.trim() || !gateAgreed) return;
+    setGateLoading(true);
+    setGateError("");
+    try {
+      await fetch("https://api.beehiiv.com/v2/publications/pub_403dd5fa-1c13-41b2-af33-927de9e3a5ac/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: gateEmail.trim(),
+          reactivate_existing: true,
+          send_welcome_email: false,
+          utm_source: "leavigation_plan_gate",
+        }),
+      });
+    } catch {
+      // Silent fail — don't block the user if Beehiiv is down
+    }
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    setGateLoading(false);
+    setGateSubmitted(true);
   }
 
   function handleSendFeedback() {
@@ -3338,7 +3372,69 @@ export function PlanPage() {
             </div>
           )}
 
-          {step === 5 && (displayTimeline ?? timeline) && (
+          {step === 5 && !gateSubmitted && (
+            <div className="flex flex-col items-center text-center gap-6 py-4">
+              {gateLoading ? (
+                <div className="flex flex-col items-center gap-4 py-8">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
+                  <p className="text-sm text-slate-500">Building your personalized leave plan...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="text-4xl">🎉</div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900">Intake form complete!</h2>
+                    <p className="mt-2 text-sm text-slate-600 max-w-md">
+                      We built this free tool to help moms navigate one of the most confusing financial moments of their lives.
+                      Please note this is not legal or financial advice.
+                    </p>
+                  </div>
+                  <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left space-y-4">
+                    <p className="text-sm text-slate-700">
+                      To view your free maternity leave plan, please enter your email and confirm you have read our terms below.
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
+                      <input
+                        type="email"
+                        value={gateEmail}
+                        onChange={(e) => setGateEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                      />
+                    </div>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={gateAgreed}
+                        onChange={(e) => setGateAgreed(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-400"
+                      />
+                      <span className="text-xs text-slate-600 leading-relaxed">
+                        I have read and agree to the{" "}
+                        <a href="/legal" target="_blank" className="text-sky-600 underline hover:text-sky-700">Legal Disclaimer</a>
+                        {", "}
+                        <a href="/terms" target="_blank" className="text-sky-600 underline hover:text-sky-700">Terms and Conditions</a>
+                        {", and "}
+                        <a href="/privacy" target="_blank" className="text-sky-600 underline hover:text-sky-700">Privacy Policy</a>.
+                      </span>
+                    </label>
+                    {gateError && <p className="text-xs text-red-600">{gateError}</p>}
+                    <button
+                      type="button"
+                      onClick={handleGateSubmit}
+                      disabled={!gateEmail.trim() || !gateAgreed || gateLoading}
+                      className="w-full rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      View my free leave plan →
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {step === 5 && gateSubmitted && (displayTimeline ?? timeline) && (
             <div className="print-results-full-width flex w-full flex-col gap-6">
               {/* Condensed assumptions reminder, visible on screen and in PDF */}
               <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
@@ -4419,7 +4515,7 @@ export function PlanPage() {
         )}
 
         {/* AI Chat Assistant */}
-        {step === 5 && (displayTimeline ?? timeline) && (
+        {step === 5 && gateSubmitted && (displayTimeline ?? timeline) && (
           <div className="no-print mt-8">
             <div className="rounded-2xl border border-purple-200 bg-white shadow-sm overflow-hidden">
               {/* Chat header */}
@@ -4550,6 +4646,7 @@ export function PlanPage() {
           </div>
         )}
 
+        {!(step === 5 && !gateSubmitted) && (
         <footer className="no-print mt-6 flex items-center justify-between pb-6">
           <button
             type="button"
@@ -4575,6 +4672,7 @@ export function PlanPage() {
             </button>
           )}
         </footer>
+        )}
       </div>
 
     </main>
