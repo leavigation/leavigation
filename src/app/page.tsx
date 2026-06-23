@@ -362,7 +362,7 @@ function formatGanttWeekLabel(week: WeekInfo, waitingMarker: boolean): string {
 
 /** Summary row: inactive (rose) pre-birth columns only get indigo tint — never override paid/protected fills. */
 function getSummaryCellClassName(week: WeekInfo, isPreBirthColumn: boolean): string {
-  const hasPay = week.payPercent > 0;
+  const hasPay = week.payPercent > 0 || week.streams.includes("Employer leave");
   const isProtected = week.jobProtected;
   let color: string;
   if (hasPay && isProtected) {
