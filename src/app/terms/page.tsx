@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Leavigation | Terms and Conditions",
+};
+
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">

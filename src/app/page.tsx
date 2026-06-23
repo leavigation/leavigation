@@ -1911,6 +1911,20 @@ export function PlanPage() {
     }
   }, [step]);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (scenario === "") {
+      document.title = "Leavigation | Get Started";
+    } else if (step === 5 && !gateSubmitted) {
+      document.title = "Leavigation | Almost There";
+    } else if (step === 5 && gateSubmitted) {
+      document.title = "Leavigation | Your Leave Plan";
+    } else {
+      const stepNames = ["Location", "Birth & Recovery", "Income", "Legal & Employer", "Short-Term Disability"];
+      document.title = `Leavigation | ${stepNames[step] ?? "Intake Form"}`;
+    }
+  }, [scenario, step, gateSubmitted]);
+
   function handleNext() {
     const stepNames = ["Basics", "Birth & Recovery", "Your Income", "Legal & Employer", "Short-term Disability"];
     try {
@@ -4405,7 +4419,7 @@ export function PlanPage() {
         </section>
 
         {/* Feedback floating card */}
-        {step === 5 && feedbackVisible && !feedbackDone && (
+        {step === 5 && gateSubmitted && feedbackVisible && !feedbackDone && (
           <div className="no-print fixed bottom-6 right-6 z-50 w-72 rounded-2xl border border-slate-200 bg-white shadow-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-semibold text-slate-800">Quick feedback</span>

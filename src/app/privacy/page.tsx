@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Leavigation | Privacy Policy",
+};
+
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">

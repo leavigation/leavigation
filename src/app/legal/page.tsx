@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Leavigation | Legal Disclaimer",
+};
+
 export default function LegalPage() {
   const appName = "Leavigation";
   return (
