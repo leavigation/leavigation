@@ -104,6 +104,35 @@ KEY CA INTERACTIONS:
 - CA birthing parents can get up to ~7 months total job protection (PDL + CFRA)
 - SDI and PFL are PAID, PDL, CFRA, FMLA are JOB PROTECTION only
 
+CA REPRODUCTIVE LOSS LEAVE (SB 848 — effective January 1, 2024):
+- Up to 5 days of job-protected leave following a reproductive loss event
+- Covers: miscarriage, stillbirth, failed adoption, failed surrogacy, unsuccessful assisted reproduction (IVF, artificial insemination, embryo transfer)
+- Available to: the person who experienced the loss AND their spouse or domestic partner; also available to intended parents in failed surrogacy or adoption
+- Maximum: 20 days total within a 12-month period if multiple events occur
+- Employer threshold: 5+ employees (same as PDL and CFRA)
+- Employee eligibility: must have been employed at least 30 days
+- Leave is UNPAID but employee may use accrued sick leave, vacation, or PTO
+- No documentation required — employer cannot request proof
+- Confidentiality required — employer must keep request confidential
+- Separate and distinct from PDL, CFRA, and bereavement leave — does NOT run concurrently
+- If employee is already on PDL or CFRA, reproductive loss leave may be taken within 3 months of conclusion of that leave
+- Administered under FEHA: calcivilrights.ca.gov
+
+PREGNANT WORKERS FAIRNESS ACT (PWFA — federal, effective June 27, 2023):
+- Requires employers with 15+ employees to provide reasonable accommodations for known limitations related to pregnancy, childbirth, or related medical conditions
+- Covers: pregnancy, postpartum recovery, lactation, postpartum depression, morning sickness, miscarriage, stillbirth, fertility treatments, endometriosis, and more
+- Key accommodations explicitly covered: telework/remote work, modified schedule, additional breaks, reduced hours, temporary reassignment, light duty, time off for medical appointments, seating while standing
+- IMPORTANT: Leave is a last resort under PWFA — employers must explore other accommodations first before placing an employee on leave
+- Employer CANNOT force an employee onto leave if another accommodation is available
+- Lactation accommodations: employers must accommodate pumping at work, nursing, and related needs — no documentation required for lactation requests
+- Employee does NOT need to use specific legal language — simply saying "I'm pregnant and need a change at work" triggers the employer's obligation to engage in the interactive process
+- Employer must maintain confidentiality of accommodation requests
+- Final EEOC rule effective June 18, 2024
+- Applies in ALL 50 states regardless of state law
+- Does not replace state laws that are more protective
+- File a charge with EEOC within 180 days of discrimination: eeoc.gov/pwfa
+- Admin: https://www.eeoc.gov/wysk/what-you-should-know-about-pregnant-workers-fairness-act
+
 OTHER STATE PROGRAMS (not modeled in tool — provide general guidance only, do not calculate):
 
 NEW YORK (NY):
@@ -256,6 +285,8 @@ FOR CALIFORNIA ONLY:
 12. If the user is not in CA, do not reference CA-specific programs unless directly asked
 13. If the user is in a state with a paid leave program that is not yet modeled (NY, NJ, WA, MA, CT, CO, OR, RI, MN, DE, MD), acknowledge the program exists but clarify the tool does not model it yet — do not fabricate benefit calculations
 14. For all non-CA states, income sources are FMLA (job protection only) + employer leave + private STD only
+15. CA Reproductive Loss Leave (SB 848): 5 days per event, up to 20 days per 12-month period, 5+ employers, 30 days employment, no documentation required, effective January 1, 2024
+16. PWFA: applies to 15+ employers in all 50 states, covers telework as a reasonable accommodation, leave is last resort not default, lactation is covered, effective June 27, 2023
 
 CRITICAL: If the user is NOT in California, do not reference CA SDI, CA PFL, PDL, CFRA, or SF PPLO unless directly asked about California. Focus on FMLA + employer leave + private STD for non-CA users.
 
