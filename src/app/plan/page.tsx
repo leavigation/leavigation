@@ -1523,6 +1523,7 @@ function PlanPage() {
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [planSaved, setPlanSaved] = useState(false);
   const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
+  const [isLoadedPlan, setIsLoadedPlan] = useState(false);
 
   const { isSignedIn, user } = useUser();
   const clerkUser = user;
@@ -1672,6 +1673,7 @@ function PlanPage() {
         // Skip to results
         setStep(5);
         setGateSubmitted(true);
+        setIsLoadedPlan(true);
       } catch (err) {
         console.error("Error loading plan:", err);
       }
@@ -1780,6 +1782,7 @@ function PlanPage() {
     setShowSaveInput(false);
     setPlanSaved(false);
     setSavedPlanId(null);
+    setIsLoadedPlan(false);
   }
 
   async function handleManualSave() {
@@ -3859,32 +3862,36 @@ function PlanPage() {
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap justify-end">
-                  {!planSaved && !showSaveInput && (
-                    <button
-                      type="button"
-                      onClick={() => setShowSaveInput(true)}
-                      className="rounded-xl border border-sky-500 px-4 py-2 text-sm font-semibold text-sky-500 hover:bg-sky-50 transition"
-                    >
-                      Save plan
-                    </button>
-                  )}
-                  {showSaveInput && !planSaved && (
+                  {!isLoadedPlan && (
                     <>
-                      <input
-                        type="text"
-                        value={planName}
-                        onChange={(e) => setPlanName(e.target.value)}
-                        placeholder={autoName}
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 w-56"
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={handleManualSave}
-                        className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
-                      >
-                        Confirm
-                      </button>
+                      {!planSaved && !showSaveInput && (
+                        <button
+                          type="button"
+                          onClick={() => setShowSaveInput(true)}
+                          className="rounded-xl border border-sky-500 px-4 py-2 text-sm font-semibold text-sky-500 hover:bg-sky-50 transition"
+                        >
+                          Save plan
+                        </button>
+                      )}
+                      {showSaveInput && !planSaved && (
+                        <>
+                          <input
+                            type="text"
+                            value={planName}
+                            onChange={(e) => setPlanName(e.target.value)}
+                            placeholder={autoName}
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 w-56"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={handleManualSave}
+                            className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
+                          >
+                            Confirm
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                   {planSaved && (
