@@ -1521,12 +1521,39 @@ function PlanPage() {
   const [gateAgreed, setGateAgreed] = useState(false);
 
   const { isSignedIn, user } = useUser();
+  const clerkUser = user;
 
   useEffect(() => {
-    if (isSignedIn && step === 5 && !gateSubmitted) {
-      setGateSubmitted(true);
+    if (isSignedIn && clerkUser && step === 5 && !gateSubmitted) {
+      const activeClerkUser = clerkUser;
+      async function saveUserAndPlan() {
+        try {
+          await fetch("/api/save-plan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clerkId: activeClerkUser.id,
+              email: activeClerkUser.primaryEmailAddress?.emailAddress ?? "",
+              scenario,
+              state,
+              inputs: {
+                scenario, state, city, birthType, dueDate,
+                salaryAmount, salaryFrequency, employerLeaveOffered,
+                employerLeaveWeeks, employerLeavePayPercent, coordination,
+                employerPreBirth, employerPreBirthWeeks, employerPreBirthPayPercent,
+                stdCoverage, stdWeeks, stdPayPercent, stdPreBirth,
+                caPreBirthWeeks, employmentStartDate, employerLeaveEligibilityStart,
+              }
+            }),
+          });
+        } catch (err) {
+          console.error("Error saving plan:", err);
+        }
+        setGateSubmitted(true);
+      }
+      saveUserAndPlan();
     }
-  }, [isSignedIn, step, gateSubmitted]);
+  }, [isSignedIn, clerkUser, step, gateSubmitted]);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
@@ -3366,7 +3393,7 @@ function PlanPage() {
             </div>
           )}
 
-          {step === 5 && !gateSubmitted && (
+          {step === 5 && !gateSubmitted && !isSignedIn && (
             <div className="flex flex-col items-center text-center gap-6 py-4 max-w-md mx-auto">
               <div className="text-4xl">🎉</div>
               <div>
@@ -3396,7 +3423,16 @@ function PlanPage() {
               {!gateAgreed && (
                 <p className="text-xs text-slate-400">Please agree to the terms above to create your account and view your plan.</p>
               )}
-              {gateAgreed && (
+              {gateAgreed && isSignedIn && (
+                <button
+                  type="button"
+                  onClick={() => setGateAgreed(true)}
+                  className="w-full max-w-md rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600"
+                >
+                  View my leave plan →
+                </button>
+              )}
+              {gateAgreed && !isSignedIn && (
                 <SignUp
                   routing="hash"
                   forceRedirectUrl={typeof window !== "undefined" ? window.location.href : "/plan"}
