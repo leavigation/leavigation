@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import NavBar from "./components/NavBar";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -26,6 +27,7 @@ export default function RootLayout({
   const appName = "Leavigation";
   const year = 2026;
   return (
+    <ClerkProvider>
     <html lang="en">
       <head>
         <link
@@ -78,5 +80,6 @@ export default function RootLayout({
         </div>
       </body>
     </html>
+    </ClerkProvider>
   );
 }
