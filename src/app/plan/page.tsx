@@ -1527,6 +1527,23 @@ function PlanPage() {
     if (isSignedIn && clerkUser && step === 5 && !gateSubmitted) {
       const activeClerkUser = clerkUser;
       async function saveUserAndPlan() {
+        const hasFmla = fmlaEligible === "yes";
+        let fmlaUnlockWeekSave = 0;
+        if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
+          const startDate = new Date(employmentStartDate);
+          const anniversaryDate = new Date(startDate);
+          anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+          const dueDateObj = new Date(dueDate);
+          const leaveStartDate =
+            caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+              ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeks || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+              : dueDateObj;
+          const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+          const weeksUntilAnniversary = Math.ceil((anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek);
+          fmlaUnlockWeekSave = Math.max(0, weeksUntilAnniversary);
+        }
+        const hasFmlaDelayedSave =
+          (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeekSave > 0 && employmentStartDate !== "";
         try {
           await fetch("/api/save-plan", {
             method: "POST",
@@ -1538,11 +1555,27 @@ function PlanPage() {
               state,
               inputs: {
                 scenario, state, city, birthType, dueDate,
-                salaryAmount, salaryFrequency, employerLeaveOffered,
+                salaryAmount, salaryFrequency,
+                employerLeaveOffered,
                 employerLeaveWeeks, employerLeavePayPercent, coordination,
                 employerPreBirth, employerPreBirthWeeks, employerPreBirthPayPercent,
                 stdCoverage, stdWeeks, stdPayPercent, stdPreBirth,
-                caPreBirthWeeks, employmentStartDate, employerLeaveEligibilityStart,
+                stdPreBirthPayPercent, stdCoversWaitingPeriod, stdCoordinatesWithEmployer,
+                caPreBirthLeave, caPreBirthWeeks,
+                employmentStartDate, employerLeaveEligibilityStart,
+                fmlaEligible,
+                hasFmla,
+                hasFmlaDelayed: hasFmlaDelayedSave,
+                fmlaUnlockWeek: fmlaUnlockWeekSave,
+                employerLeaveUnlockWeek: computeEmployerLeaveUnlockWeek(
+                  fmlaUnlockWeekSave,
+                  scenario,
+                  employmentStartDate,
+                  dueDate,
+                  caPreBirthLeave,
+                  caPreBirthWeeks,
+                  employerLeaveEligibilityStart
+                ),
               }
             }),
           });
@@ -1554,6 +1587,77 @@ function PlanPage() {
       saveUserAndPlan();
     }
   }, [isSignedIn, clerkUser, step, gateSubmitted]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const planId = params.get("planId");
+    if (!planId) return;
+
+    async function loadPlan() {
+      try {
+        const res = await fetch(`/api/get-plan?planId=${planId}`);
+        const { plan } = await res.json();
+        if (!plan?.inputs) return;
+
+        const i = plan.inputs;
+        // Load scenario
+        if (i.scenario) setScenario(i.scenario);
+        // Load all form state from inputs
+        if (i.state) setState(i.state);
+        if (i.city) setCity(i.city);
+        if (i.birthType) setBirthType(i.birthType);
+        if (i.dueDate) setDueDate(i.dueDate);
+        if (i.salaryAmount) setSalaryAmount(i.salaryAmount);
+        if (i.salaryFrequency) setSalaryFrequency(i.salaryFrequency);
+        if (i.employerLeaveOffered) setEmployerLeaveOffered(i.employerLeaveOffered);
+        if (i.employerLeaveWeeks) setEmployerLeaveWeeks(i.employerLeaveWeeks);
+        if (i.employerLeavePayPercent) setEmployerLeavePayPercent(i.employerLeavePayPercent);
+        if (i.coordination) setCoordination(i.coordination);
+        if (i.employerPreBirth) setEmployerPreBirth(i.employerPreBirth);
+        if (i.employerPreBirthWeeks) setEmployerPreBirthWeeks(i.employerPreBirthWeeks);
+        if (i.employerPreBirthPayPercent) setEmployerPreBirthPayPercent(i.employerPreBirthPayPercent);
+        if (i.stdCoverage) setStdCoverage(i.stdCoverage);
+        if (i.stdWeeks) setStdWeeks(i.stdWeeks);
+        if (i.stdPayPercent) setStdPayPercent(i.stdPayPercent);
+        if (i.stdPreBirth) setStdPreBirth(i.stdPreBirth);
+        if (i.caPreBirthWeeks) setCaPreBirthWeeks(i.caPreBirthWeeks);
+        if (i.employmentStartDate) setEmploymentStartDate(i.employmentStartDate);
+        if (i.employerLeaveEligibilityStart) setEmployerLeaveEligibilityStart(i.employerLeaveEligibilityStart);
+        const weeks = buildTimeline({
+          stateCode: i.state || "DEFAULT",
+          city: i.city || "",
+          dueDate: i.dueDate || "",
+          birthType: i.birthType || "vaginal",
+          fmlaEligible: i.fmlaEligible ?? "yes",
+          employerLeaveWeeks: i.employerLeaveWeeks || "",
+          employerLeavePayPercent: i.employerLeavePayPercent || "",
+          employerPreBirth: i.employerPreBirth || "no",
+          employerPreBirthWeeks: i.employerPreBirthWeeks || "",
+          employerPreBirthPayPercent: i.employerPreBirthPayPercent || "",
+          stdWeeks: i.stdWeeks || "",
+          stdPayPercent: i.stdPayPercent || "",
+          stdPreBirth: i.stdPreBirth || "no",
+          stdPreBirthPayPercent: i.stdPreBirthPayPercent || "",
+          stdCoversWaitingPeriod: i.stdCoversWaitingPeriod ?? "",
+          stdCoordinatesWithEmployer: i.stdCoordinatesWithEmployer ?? "",
+          stdCoverage: i.stdCoverage || "no",
+          coordination: i.coordination || "concurrent",
+          caPreBirthLeave: i.caPreBirthLeave,
+          caPreBirthWeeks: i.caPreBirthWeeks || "",
+          scenario: i.scenario || "employed_long",
+          employmentStartDate: i.employmentStartDate || "",
+          employerLeaveEligibilityStart: i.employerLeaveEligibilityStart || "",
+        });
+        setTimeline(weeks);
+        // Skip to results
+        setStep(5);
+        setGateSubmitted(true);
+      } catch (err) {
+        console.error("Error loading plan:", err);
+      }
+    }
+    loadPlan();
+  }, []);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
@@ -2376,7 +2480,7 @@ function PlanPage() {
         </header>
 
         {/* Assumptions disclaimer, shown until acknowledged */}
-        {!assumptionsAcknowledged && (
+        {!assumptionsAcknowledged && !gateSubmitted && (
           <section className="no-print mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 text-amber-500 text-lg leading-none">⚠</div>
@@ -3455,7 +3559,7 @@ function PlanPage() {
                 <span className="font-semibold text-amber-900">Results for {ALL_US_STATES.find((s) => s.code === state)?.name ?? state}, based on these assumptions:</span>
                 {state === "CA" ? (
                   <>
-                    <span>Full-time {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} W-2 employee</span>
+                    <span>{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} employee</span>
                     <span className="text-amber-300">·</span>
                     <span>Paid into CA SDI in last 18 months</span>
                     <span className="text-amber-300">·</span>
@@ -3471,9 +3575,19 @@ function PlanPage() {
                   </>
                 ) : (
                   <>
-                    <span>Full-time {ALL_US_STATES.find((s) => s.code === state)?.name ?? state} W-2 employee</span>
+                    <span>{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} employee</span>
                     <span className="text-amber-300">·</span>
-                    <span>FMLA eligible (employer 50+ employees, 12+ months tenure, 1,250+ hours)</span>
+                    <span>
+                      {scenario === "employed_long"
+                        ? "FMLA eligible (employer 50+ employees, 12+ months tenure, 1,250+ hours)"
+                        : scenario === "employed_short"
+                          ? "FMLA eligibility pending — unlocks at 12-month employment anniversary"
+                          : scenario === "new_job"
+                            ? "FMLA eligibility pending — unlocks at 12-month anniversary from job start date"
+                            : scenario === "laid_off"
+                              ? "FMLA not applicable — laid off"
+                              : "FMLA eligible (employer 50+ employees, 12+ months tenure, 1,250+ hours)"}
+                    </span>
                     <span className="text-amber-300">·</span>
                     <span>Birthing parent</span>
                     <span className="text-amber-300">·</span>

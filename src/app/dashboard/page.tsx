@@ -77,7 +77,7 @@ export default async function DashboardPage() {
                     </p>
                   </div>
                   <Link
-                    href="/plan"
+                    href={`/plan?planId=${plan.id}`}
                     className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
                   >
                     View plan →
