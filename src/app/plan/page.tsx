@@ -3372,7 +3372,7 @@ function PlanPage() {
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">Your plan is ready!</h2>
                 <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-                  Our founder built Leavigation after navigating her own maternity leave and realizing how confusing and overwhelming the process is. This tool is free because every parent deserves access to this information. Create your free account to see your personalized plan.
+                  Our founder built Leavigation after navigating her own maternity leave and realizing how confusing and overwhelming the process is. Create a free account to view and save your plan.
                 </p>
               </div>
               <div className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left">
