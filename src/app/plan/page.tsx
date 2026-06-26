@@ -1519,6 +1519,7 @@ function PlanPage() {
 
   const [gateSubmitted, setGateSubmitted] = useState(false);
   const [gateAgreed, setGateAgreed] = useState(false);
+  const [planName, setPlanName] = useState("");
 
   const { isSignedIn, user } = useUser();
   const clerkUser = user;
@@ -1544,6 +1545,19 @@ function PlanPage() {
         }
         const hasFmlaDelayedSave =
           (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeekSave > 0 && employmentStartDate !== "";
+        const autoName = [
+          (() => {
+            const stateObj = ALL_US_STATES.find(s => s.code === state);
+            return stateObj?.name ?? state;
+          })(),
+          dueDate ? `Due ${new Date(dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : "",
+          scenario === "employed_long" ? "Employed 12+ months" :
+          scenario === "employed_short" ? "Employed under 12 months" :
+          scenario === "new_job" ? "Starting a new job" :
+          scenario === "laid_off" ? "Laid off" : "",
+        ].filter(Boolean).join(" · ");
+
+        const nameToSave = planName.trim() || autoName;
         try {
           await fetch("/api/save-plan", {
             method: "POST",
@@ -1553,6 +1567,7 @@ function PlanPage() {
               email: activeClerkUser.primaryEmailAddress?.emailAddress ?? "",
               scenario,
               state,
+              name: nameToSave,
               inputs: {
                 scenario, state, city, birthType, dueDate,
                 salaryAmount, salaryFrequency,
@@ -1756,6 +1771,7 @@ function PlanPage() {
     setMoverBannerResolved(false);
     setGateSubmitted(false);
     setGateAgreed(false);
+    setPlanName("");
   }
 
   function handleShareLink() {
@@ -2465,6 +2481,18 @@ function PlanPage() {
       weeklyFormatted: weeklyGross.toLocaleString("en-US"),
     };
   }, [salaryAmount, salaryFrequency]);
+
+  const autoName = [
+    (() => {
+      const stateObj = ALL_US_STATES.find(s => s.code === state);
+      return stateObj?.name ?? state;
+    })(),
+    dueDate ? `Due ${new Date(dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}` : "",
+    scenario === "employed_long" ? "Employed 12+ months" :
+    scenario === "employed_short" ? "Employed under 12 months" :
+    scenario === "new_job" ? "Starting a new job" :
+    scenario === "laid_off" ? "Laid off" : "",
+  ].filter(Boolean).join(" · ");
 
   return (
     <main className="min-h-screen text-slate-900" style={{ background: "#F8FAFC" }}>
@@ -3826,6 +3854,66 @@ function PlanPage() {
                   </div>
                 </div>
               </div>
+
+              {step === 5 && gateSubmitted && (
+                <div className="flex items-center gap-3 mb-4">
+                  <input
+                    type="text"
+                    value={planName}
+                    onChange={(e) => setPlanName(e.target.value)}
+                    placeholder={autoName}
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!isSignedIn || !user) return;
+                      const hasFmla = fmlaEligible === "yes";
+                      let fmlaUnlockWeek = 0;
+                      if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
+                        const startDate = new Date(employmentStartDate);
+                        const anniversaryDate = new Date(startDate);
+                        anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+                        const dueDateObj = new Date(dueDate);
+                        const leaveStartDate =
+                          caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+                            ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeks || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+                            : dueDateObj;
+                        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+                        const weeksUntilAnniversary = Math.ceil((anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek);
+                        fmlaUnlockWeek = Math.max(0, weeksUntilAnniversary);
+                      }
+                      const hasFmlaDelayed =
+                        (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0 && employmentStartDate !== "";
+                      await fetch("/api/save-plan", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          clerkId: user.id,
+                          email: user.primaryEmailAddress?.emailAddress ?? "",
+                          scenario, state,
+                          name: planName.trim() || autoName,
+                          inputs: {
+                            scenario, state, city, birthType, dueDate,
+                            salaryAmount, salaryFrequency, employerLeaveOffered,
+                            employerLeaveWeeks, employerLeavePayPercent, coordination,
+                            employerPreBirth, employerPreBirthWeeks, employerPreBirthPayPercent,
+                            stdCoverage, stdWeeks, stdPayPercent, stdPreBirth,
+                            stdPreBirthPayPercent, stdCoversWaitingPeriod, stdCoordinatesWithEmployer,
+                            caPreBirthLeave, caPreBirthWeeks,
+                            employmentStartDate, employerLeaveEligibilityStart,
+                            fmlaEligible, hasFmla, hasFmlaDelayed, fmlaUnlockWeek,
+                          }
+                        }),
+                      });
+                      alert("Plan saved!");
+                    }}
+                    className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
+                  >
+                    Save plan
+                  </button>
+                </div>
+              )}
 
               {/* Gantt-style timeline */}
               <div className="w-full space-y-3">

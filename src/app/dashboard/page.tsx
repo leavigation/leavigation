@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 
   const plans = userData ? await supabaseAdmin
     .from("plans")
-    .select("id, scenario, state, inputs, created_at")
+    .select("id, scenario, state, inputs, name, created_at")
     .eq("user_id", userData.id)
     .order("created_at", { ascending: false }) : { data: [] };
 
@@ -64,13 +64,17 @@ export default async function DashboardPage() {
               scenario: string;
               state: string;
               inputs: Record<string, unknown>;
+              name: string | null;
               created_at: string;
             }) => (
               <div key={plan.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-semibold text-slate-900">
-                      {scenarioLabels[plan.scenario] ?? plan.scenario}
+                      {plan.name || [
+                        plan.state,
+                        scenarioLabels[plan.scenario] ?? plan.scenario
+                      ].join(" · ")}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
                       {plan.state} &middot; {new Date(plan.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}

@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { clerkId, email, scenario, state, inputs } = body;
+    const { clerkId, email, scenario, state, inputs, name } = body;
 
     console.log("save-plan called with clerkId:", clerkId, "email:", email);
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (userData) {
       const { error: insertError } = await supabaseAdmin
         .from("plans")
-        .insert({ user_id: userData.id, scenario, state, inputs });
+        .insert({ user_id: userData.id, scenario, state, inputs, name });
 
       if (insertError) {
         console.error("Insert plan error:", insertError);
