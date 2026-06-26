@@ -1486,7 +1486,6 @@ function PlanPage() {
   const [feedbackQ2Text, setFeedbackQ2Text] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackDone, setFeedbackDone] = useState(false);
-  const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -1732,7 +1731,6 @@ function PlanPage() {
   function handleStartOver() {
     setStep(0);
     setScenario("");
-    setAssumptionsAcknowledged(false);
     setState("");
     setCity("");
     setDueDate("");
@@ -2154,6 +2152,11 @@ function PlanPage() {
       alert("Please select your state to continue.");
       return;
     }
+    if (step === 0) {
+      try {
+        gtag("event", "plan_started", { state_code: state || "unknown" });
+      } catch {}
+    }
     const noEmployerLeave = employerLeaveOffered === "no";
     const isPenultimateStep = noEmployerLeave ? step === 4 : step === steps.length - 2;
 
@@ -2572,65 +2575,6 @@ function PlanPage() {
             benefits, and employer policies stack up week by week.
           </p>
         </header>
-
-        {/* Assumptions disclaimer, shown until acknowledged */}
-        {!assumptionsAcknowledged && !gateSubmitted && (
-          <section className="no-print mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 text-amber-500 text-lg leading-none">⚠</div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-amber-900">This tool is currently designed for:</p>
-                <div className="mt-2 space-y-1 text-xs text-amber-800">
-                  {state === "CA" ? (
-                    <>
-                      <p>✓ W-2 employees currently employed full-time in California</p>
-                      <p>✓ Birthing parents (pregnant women)</p>
-                      <p>✓ People who have paid into CA SDI within the last 18 months</p>
-                      <p>✓ Employees who have worked for their current employer for at least 12 months</p>
-                      <p>✓ Employers with 5 or more employees</p>
-                      <p>STD is estimated from the weeks and % you enter on the STD step (policies still vary — confirm with HR).</p>
-                      {scenario !== "laid_off" && (
-                        <p className="mt-2 text-amber-700">If you were recently laid off, work part-time, are self-employed, or are a non-birthing parent — this tool may not fully apply to your situation yet. We&apos;re working on expanding coverage. <a href="https://edd.ca.gov" target="_blank" rel="noopener noreferrer" className="underline font-medium">Visit CA EDD directly</a> for the most complete information.</p>
-                      )}
-                    </>
-                  ) : state === "" ? (
-                    <>
-                      <p>✓ Full-time W-2 employees</p>
-                      <p>✓ Birthing parents (pregnant women)</p>
-                      <p>✓ Employees eligible for FMLA or state job protection</p>
-                      <p>✓ Employer leave and STD estimated from your inputs</p>
-                      <p className="mt-2 text-amber-700">Select your state below to see which programs apply to you.</p>
-                    </>
-                  ) : (
-                    <>
-                      <p>✓ Full-time W-2 employees</p>
-                      <p>✓ Birthing parents (pregnant women)</p>
-                      <p>✓ FMLA eligible employees (employer 50+ employees, 12+ months tenure, 1,250+ hours worked)</p>
-                      <p>✓ Employer leave and STD estimated from your inputs</p>
-                      {US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? (
-                        <p className="mt-2 text-amber-700">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} has a paid leave program, but full support is not yet available in Leavigation. Results show FMLA + employer leave + STD only. <button type="button" onClick={() => { if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) { (window as unknown as Record<string, { open: () => void }>).beehiiv.open(); } }} className="underline font-medium">Get notified when it launches →</button></p>
-                      ) : (
-                        <p className="mt-2 text-amber-700">{ALL_US_STATES.find((s) => s.code === state)?.name ?? state} does not have a state paid leave program. This tool shows FMLA job protection + employer leave + STD only. <a href="https://www.dol.gov/agencies/whd/fmla" target="_blank" rel="noopener noreferrer" className="underline font-medium">Learn about FMLA at DOL.gov →</a></p>
-                      )}
-                    </>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAssumptionsAcknowledged(true);
-                    try {
-                      gtag("event", "plan_started", { state_code: state || "unknown" });
-                    } catch {}
-                  }}
-                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 transition"
-                >
-                  This applies to me, continue →
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
 
         {scenario !== "" && (
         <section className="no-print mb-4">
@@ -3378,6 +3322,11 @@ function PlanPage() {
                   ))}
                 </div>
               </div>
+              {(state === "CA" || US_STATES_PAID_LEAVE_COMING_SOON.includes(state)) && (
+                <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                  ⓘ This tool assumes you pay into your state&apos;s disability insurance program. Check your pay stub for a deduction labeled <span className="font-medium">CA SDI</span> (California) or your state&apos;s equivalent to confirm. If you don&apos;t see it, your employer may be exempt or you may be classified differently — contact your HR team or state agency to verify.
+                </p>
+              )}
               {/* SDI calculation explainer, CA only */}
               {state === "CA" && (
                 <div className="mt-6">
