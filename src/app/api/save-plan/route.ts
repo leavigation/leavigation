@@ -35,9 +35,11 @@ export async function POST(req: NextRequest) {
     console.log("User found:", userData);
 
     if (userData) {
-      const { error: insertError } = await supabaseAdmin
+      const { data: planData, error: insertError } = await supabaseAdmin
         .from("plans")
-        .insert({ user_id: userData.id, scenario, state, inputs, name });
+        .insert({ user_id: userData.id, scenario, state, inputs, name })
+        .select("id")
+        .single();
 
       if (insertError) {
         console.error("Insert plan error:", insertError);
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
       }
 
       console.log("Plan inserted successfully");
+      return NextResponse.json({ success: true, planId: planData?.id });
     }
 
     return NextResponse.json({ success: true });

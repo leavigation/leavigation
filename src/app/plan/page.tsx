@@ -1520,6 +1520,9 @@ function PlanPage() {
   const [gateSubmitted, setGateSubmitted] = useState(false);
   const [gateAgreed, setGateAgreed] = useState(false);
   const [planName, setPlanName] = useState("");
+  const [showSaveInput, setShowSaveInput] = useState(false);
+  const [planSaved, setPlanSaved] = useState(false);
+  const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
 
   const { isSignedIn, user } = useUser();
   const clerkUser = user;
@@ -1559,7 +1562,7 @@ function PlanPage() {
 
         const nameToSave = planName.trim() || autoName;
         try {
-          await fetch("/api/save-plan", {
+          const res = await fetch("/api/save-plan", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1594,6 +1597,8 @@ function PlanPage() {
               }
             }),
           });
+          const data = await res.json();
+          if (data.planId) setSavedPlanId(data.planId);
         } catch (err) {
           console.error("Error saving plan:", err);
         }
@@ -1772,6 +1777,64 @@ function PlanPage() {
     setGateSubmitted(false);
     setGateAgreed(false);
     setPlanName("");
+    setShowSaveInput(false);
+    setPlanSaved(false);
+    setSavedPlanId(null);
+  }
+
+  async function handleManualSave() {
+    if (!isSignedIn || !user) return;
+    const nameToSave = planName.trim() || autoName;
+    if (savedPlanId) {
+      await fetch("/api/update-plan", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: savedPlanId, name: nameToSave }),
+      });
+    } else {
+      const hasFmla = fmlaEligible === "yes";
+      let fmlaUnlockWeek = 0;
+      if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
+        const startDate = new Date(employmentStartDate);
+        const anniversaryDate = new Date(startDate);
+        anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
+        const dueDateObj = new Date(dueDate);
+        const leaveStartDate =
+          caPreBirthLeave !== "no" && caPreBirthLeave !== ""
+            ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeks || "4", 10) * 7 * 24 * 60 * 60 * 1000)
+            : dueDateObj;
+        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+        const weeksUntilAnniversary = Math.ceil((anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek);
+        fmlaUnlockWeek = Math.max(0, weeksUntilAnniversary);
+      }
+      const hasFmlaDelayed =
+        (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0 && employmentStartDate !== "";
+      const res = await fetch("/api/save-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clerkId: user.id,
+          email: user.primaryEmailAddress?.emailAddress ?? "",
+          scenario, state,
+          name: nameToSave,
+          inputs: {
+            scenario, state, city, birthType, dueDate,
+            salaryAmount, salaryFrequency, employerLeaveOffered,
+            employerLeaveWeeks, employerLeavePayPercent, coordination,
+            employerPreBirth, employerPreBirthWeeks, employerPreBirthPayPercent,
+            stdCoverage, stdWeeks, stdPayPercent, stdPreBirth,
+            stdPreBirthPayPercent, stdCoversWaitingPeriod, stdCoordinatesWithEmployer,
+            caPreBirthLeave, caPreBirthWeeks,
+            employmentStartDate, employerLeaveEligibilityStart,
+            fmlaEligible, hasFmla, hasFmlaDelayed, fmlaUnlockWeek,
+          }
+        }),
+      });
+      const data = await res.json();
+      if (data.planId) setSavedPlanId(data.planId);
+    }
+    setShowSaveInput(false);
+    setPlanSaved(true);
   }
 
   function handleShareLink() {
@@ -3795,7 +3858,38 @@ function PlanPage() {
                   })()}
                 </div>
 
-                <div className="no-print mt-2 flex flex-wrap items-center justify-end gap-2 text-xs">
+                <div className="flex items-center gap-3 flex-wrap justify-end">
+                  {!planSaved && !showSaveInput && (
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveInput(true)}
+                      className="rounded-xl border border-sky-500 px-4 py-2 text-sm font-semibold text-sky-500 hover:bg-sky-50 transition"
+                    >
+                      Save plan
+                    </button>
+                  )}
+                  {showSaveInput && !planSaved && (
+                    <>
+                      <input
+                        type="text"
+                        value={planName}
+                        onChange={(e) => setPlanName(e.target.value)}
+                        placeholder={autoName}
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 w-56"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={handleManualSave}
+                        className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
+                      >
+                        Confirm
+                      </button>
+                    </>
+                  )}
+                  {planSaved && (
+                    <span className="text-sm text-green-600 font-medium">✓ Plan saved</span>
+                  )}
                   <button
                     type="button"
                     onClick={handleDownloadPdf}
@@ -3854,66 +3948,6 @@ function PlanPage() {
                   </div>
                 </div>
               </div>
-
-              {step === 5 && gateSubmitted && (
-                <div className="flex items-center gap-3 mb-4">
-                  <input
-                    type="text"
-                    value={planName}
-                    onChange={(e) => setPlanName(e.target.value)}
-                    placeholder={autoName}
-                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!isSignedIn || !user) return;
-                      const hasFmla = fmlaEligible === "yes";
-                      let fmlaUnlockWeek = 0;
-                      if ((scenario === "employed_short" || scenario === "new_job") && employmentStartDate && dueDate) {
-                        const startDate = new Date(employmentStartDate);
-                        const anniversaryDate = new Date(startDate);
-                        anniversaryDate.setFullYear(anniversaryDate.getFullYear() + 1);
-                        const dueDateObj = new Date(dueDate);
-                        const leaveStartDate =
-                          caPreBirthLeave !== "no" && caPreBirthLeave !== ""
-                            ? new Date(dueDateObj.getTime() - parseInt(caPreBirthWeeks || "4", 10) * 7 * 24 * 60 * 60 * 1000)
-                            : dueDateObj;
-                        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-                        const weeksUntilAnniversary = Math.ceil((anniversaryDate.getTime() - leaveStartDate.getTime()) / msPerWeek);
-                        fmlaUnlockWeek = Math.max(0, weeksUntilAnniversary);
-                      }
-                      const hasFmlaDelayed =
-                        (scenario === "employed_short" || scenario === "new_job") && fmlaUnlockWeek > 0 && employmentStartDate !== "";
-                      await fetch("/api/save-plan", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          clerkId: user.id,
-                          email: user.primaryEmailAddress?.emailAddress ?? "",
-                          scenario, state,
-                          name: planName.trim() || autoName,
-                          inputs: {
-                            scenario, state, city, birthType, dueDate,
-                            salaryAmount, salaryFrequency, employerLeaveOffered,
-                            employerLeaveWeeks, employerLeavePayPercent, coordination,
-                            employerPreBirth, employerPreBirthWeeks, employerPreBirthPayPercent,
-                            stdCoverage, stdWeeks, stdPayPercent, stdPreBirth,
-                            stdPreBirthPayPercent, stdCoversWaitingPeriod, stdCoordinatesWithEmployer,
-                            caPreBirthLeave, caPreBirthWeeks,
-                            employmentStartDate, employerLeaveEligibilityStart,
-                            fmlaEligible, hasFmla, hasFmlaDelayed, fmlaUnlockWeek,
-                          }
-                        }),
-                      });
-                      alert("Plan saved!");
-                    }}
-                    className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
-                  >
-                    Save plan
-                  </button>
-                </div>
-              )}
 
               {/* Gantt-style timeline */}
               <div className="w-full space-y-3">
