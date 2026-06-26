@@ -10,9 +10,6 @@ export default async function WelcomePage() {
         <div className="text-5xl mb-4">🎉</div>
         <h1 className="text-2xl font-semibold text-slate-900">Welcome, {firstName}!</h1>
         <p className="mt-3 text-sm text-slate-600">Your Leavigation account is ready. Let&apos;s build your personalized parental leave plan.</p>
-        <p className="mt-3 text-sm text-slate-500 max-w-sm mx-auto">
-          Your first plan is always free. Upgrade anytime to build multiple scenarios and get access to a personalized AI chat, with more leave navigation features coming soon.
-        </p>
         <div className="mt-8 space-y-3">
           <Link href="/plan" className="block w-full rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white hover:bg-sky-600 transition">
             Build my leave plan →
