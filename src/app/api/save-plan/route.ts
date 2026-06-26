@@ -6,8 +6,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { clerkId, email, scenario, state, inputs, name } = body;
 
-    console.log("save-plan called with clerkId:", clerkId, "email:", email);
-
     // Upsert user
     const { error: upsertError } = await supabaseAdmin
       .from("users")
@@ -17,8 +15,6 @@ export async function POST(req: NextRequest) {
       console.error("Upsert user error:", upsertError);
       return NextResponse.json({ success: false, error: upsertError.message }, { status: 500 });
     }
-
-    console.log("User upserted successfully");
 
     // Get user record
     const { data: userData, error: selectError } = await supabaseAdmin
@@ -32,8 +28,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: selectError.message }, { status: 500 });
     }
 
-    console.log("User found:", userData);
-
     if (userData) {
       const { data: planData, error: insertError } = await supabaseAdmin
         .from("plans")
@@ -46,7 +40,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
       }
 
-      console.log("Plan inserted successfully");
       return NextResponse.json({ success: true, planId: planData?.id });
     }
 
