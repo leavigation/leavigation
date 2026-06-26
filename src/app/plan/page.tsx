@@ -3,6 +3,7 @@
 declare function gtag(command: string, action: string, params?: Record<string, unknown>): void;
 
 import Link from "next/link";
+import { SignUp, useUser } from "@clerk/nextjs";
 import { useState, useEffect, useMemo, useRef } from "react";
 import emailjs from "@emailjs/browser";
 import { StateProgramsReference } from "@/components/StateProgramsReference";
@@ -1516,11 +1517,16 @@ function PlanPage() {
   const [stdExplainerOpen, setStdExplainerOpen] = useState(false);
   const [sdiExplainerOpen, setSdiExplainerOpen] = useState(false);
 
-  const [gateEmail, setGateEmail] = useState("");
-  const [gateAgreed, setGateAgreed] = useState(false);
   const [gateSubmitted, setGateSubmitted] = useState(false);
-  const [gateLoading, setGateLoading] = useState(false);
-  const [gateError, setGateError] = useState("");
+  const [gateAgreed, setGateAgreed] = useState(false);
+
+  const { isSignedIn, user } = useUser();
+
+  useEffect(() => {
+    if (isSignedIn && step === 5 && !gateSubmitted) {
+      setGateSubmitted(true);
+    }
+  }, [isSignedIn, step, gateSubmitted]);
 
   const PRE_BIRTH_STATES = ["CA", "NY", "NJ", "RI"];
   const hasPreBirthOption = PRE_BIRTH_STATES.includes(state);
@@ -1617,11 +1623,8 @@ function PlanPage() {
     setMoverPayrollUpdated("");
     setMoverNotifiedEmployer("");
     setMoverBannerResolved(false);
-    setGateEmail("");
-    setGateAgreed(false);
     setGateSubmitted(false);
-    setGateLoading(false);
-    setGateError("");
+    setGateAgreed(false);
   }
 
   function handleShareLink() {
@@ -2038,29 +2041,6 @@ function PlanPage() {
       }
     }
     if (!isFirstStep) setStep((s) => s - 1);
-  }
-
-  async function handleGateSubmit() {
-    if (!gateEmail.trim() || !gateAgreed) return;
-    setGateLoading(true);
-    setGateError("");
-    try {
-      await fetch("https://api.beehiiv.com/v2/publications/pub_403dd5fa-1c13-41b2-af33-927de9e3a5ac/subscriptions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: gateEmail.trim(),
-          reactivate_existing: true,
-          send_welcome_email: false,
-          utm_source: "leavigation_plan_gate",
-        }),
-      });
-    } catch {
-      // Silent fail — don't block the user if Beehiiv is down
-    }
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    setGateLoading(false);
-    setGateSubmitted(true);
   }
 
   function handleSendFeedback() {
@@ -3387,63 +3367,46 @@ function PlanPage() {
           )}
 
           {step === 5 && !gateSubmitted && (
-            <div className="flex flex-col items-center text-center gap-6 py-4">
-              {gateLoading ? (
-                <div className="flex flex-col items-center gap-4 py-8">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500" />
-                  <p className="text-sm text-slate-500">Building your personalized leave plan...</p>
-                </div>
-              ) : (
-                <>
-                  <div className="text-4xl">🎉</div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">Intake form complete!</h2>
-                    <p className="mt-2 text-sm text-slate-600 max-w-md">
-                      We built this free tool to help moms navigate one of the most confusing financial moments of their lives.
-                      Please note this is not legal or financial advice.
-                    </p>
-                  </div>
-                  <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left space-y-4">
-                    <p className="text-sm text-slate-700">
-                      To view your free maternity leave plan, please enter your email and confirm you have read our terms below.
-                    </p>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
-                      <input
-                        type="email"
-                        value={gateEmail}
-                        onChange={(e) => setGateEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                      />
-                    </div>
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={gateAgreed}
-                        onChange={(e) => setGateAgreed(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-400"
-                      />
-                      <span className="text-xs text-slate-600 leading-relaxed">
-                        I have read and agree to the{" "}
-                        <a href="/legal" target="_blank" className="text-sky-600 underline hover:text-sky-700">Legal Disclaimer</a>
-                        {", "}
-                        <a href="/terms" target="_blank" className="text-sky-600 underline hover:text-sky-700">Terms and Conditions</a>
-                        {", and "}
-                        <a href="/privacy" target="_blank" className="text-sky-600 underline hover:text-sky-700">Privacy Policy</a>.
-                      </span>
-                    </label>
-                    {gateError && <p className="text-xs text-red-600">{gateError}</p>}
-                    <button
-                      type="button"
-                      onClick={handleGateSubmit}
-                      disabled={!gateEmail.trim() || !gateAgreed || gateLoading}
-                      className="w-full rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      View my free leave plan →
-                    </button>
-                  </div>
-                </>
+            <div className="flex flex-col items-center text-center gap-6 py-4 max-w-md mx-auto">
+              <div className="text-4xl">🎉</div>
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Your plan is ready!</h2>
+                <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                  Our founder built Leavigation after navigating her own maternity leave and realizing how confusing and overwhelming the process is. This tool is free because every parent deserves access to this information. Create your free account to see your personalized plan.
+                </p>
+              </div>
+              <div className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={gateAgreed}
+                    onChange={(e) => setGateAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-400"
+                  />
+                  <span className="text-xs text-slate-600 leading-relaxed">
+                    I have read and agree to the{" "}
+                    <a href="/legal" target="_blank" className="text-sky-600 underline hover:text-sky-700">Legal Disclaimer</a>
+                    {", "}
+                    <a href="/terms" target="_blank" className="text-sky-600 underline hover:text-sky-700">Terms and Conditions</a>
+                    {", and "}
+                    <a href="/privacy" target="_blank" className="text-sky-600 underline hover:text-sky-700">Privacy Policy</a>.
+                  </span>
+                </label>
+              </div>
+              {!gateAgreed && (
+                <p className="text-xs text-slate-400">Please agree to the terms above to create your account and view your plan.</p>
+              )}
+              {gateAgreed && (
+                <SignUp
+                  routing="hash"
+                  forceRedirectUrl={typeof window !== "undefined" ? window.location.href : "/plan"}
+                  appearance={{
+                    elements: {
+                      rootBox: "w-full max-w-md",
+                      card: "shadow-none border border-slate-200 rounded-2xl",
+                    }
+                  }}
+                />
               )}
             </div>
           )}
