@@ -851,6 +851,7 @@ function buildTimeline(options: {
   scenario?: "employed_long" | "employed_short" | "new_job" | "laid_off" | "";
   employmentStartDate?: string;
   employerLeaveEligibilityStart?: "day1" | "6months" | "12months" | "unsure" | "";
+  parentType?: "birthing" | "non-birthing" | "";
 }): WeekInfo[] {
   const {
     stateCode,
@@ -876,7 +877,10 @@ function buildTimeline(options: {
     scenario = "",
     employmentStartDate = "",
     employerLeaveEligibilityStart = "",
+    parentType = "",
   } = options;
+
+  const isNonBirthing = parentType === "non-birthing";
 
   const code = (stateCode || "DEFAULT").toUpperCase();
   const effectiveStateCode = US_STATES_PAID_LEAVE_COMING_SOON.includes((stateCode || "").toUpperCase())
@@ -885,8 +889,9 @@ function buildTimeline(options: {
   const state = getStateLeave(effectiveStateCode);
   const municipal = getMunicipalLeave(cityInput, code);
 
-  const recoveryWeeks =
-    birthType === "c-section"
+  const recoveryWeeks = isNonBirthing
+    ? 0
+    : birthType === "c-section"
       ? state.sdi.weeksDurationCsection
       : state.sdi.weeksDurationVaginal || getRecoveryWeeks(birthType);
   const employerWeeks = parseWeeks(employerLeaveWeeks);
@@ -928,7 +933,7 @@ function buildTimeline(options: {
     caPreBirthWeeksStr,
     employerLeaveEligibilityStart
   );
-  const disabilityWeeks = state.sdi.available ? recoveryWeeks : 0;
+  const disabilityWeeks = state.sdi.available && !isNonBirthing ? recoveryWeeks : 0;
   const bondingWeeks = state.pfl.available ? state.pfl.weeksDuration || 0 : 0;
 
   const statePreBirthWeeks =
@@ -1008,10 +1013,10 @@ function buildTimeline(options: {
       if (fmlaWeekActive) streams.push("FMLA");
 
       if (weekNumber <= preBirthWeeks) {
-        streams.push("State SDI");
+        if (!isNonBirthing) streams.push("State SDI");
         if (hasStd && stdPreBirth === "yes") streams.push("Short‑term disability");
       } else if (weekNumber <= lastSdiWeek) {
-        streams.push("State SDI");
+        if (!isNonBirthing) streams.push("State SDI");
         if (hasStd && weekNumber <= preBirthWeeks + Math.min(stdWeeksNum, recoveryWeeks)) streams.push("Short‑term disability");
       }
 
@@ -1443,6 +1448,7 @@ function buildTimeline(options: {
 function PlanPage() {
   const [step, setStep] = useState(0);
   const [scenario, setScenario] = useState<"employed_long" | "employed_short" | "new_job" | "laid_off" | "">("");
+  const [parentType, setParentType] = useState<"birthing" | "non-birthing" | "">("");
 
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
@@ -1572,7 +1578,7 @@ function PlanPage() {
               state,
               name: nameToSave,
               inputs: {
-                scenario, state, city, birthType, dueDate,
+                scenario, parentType, state, city, birthType, dueDate,
                 salaryAmount, salaryFrequency,
                 employerLeaveOffered,
                 employerLeaveWeeks, employerLeavePayPercent, coordination,
@@ -1622,6 +1628,7 @@ function PlanPage() {
         const i = plan.inputs;
         // Load scenario
         if (i.scenario) setScenario(i.scenario);
+        if (i.parentType) setParentType(i.parentType);
         // Load all form state from inputs
         if (i.state) setState(i.state);
         if (i.city) setCity(i.city);
@@ -1667,6 +1674,7 @@ function PlanPage() {
           scenario: i.scenario || "employed_long",
           employmentStartDate: i.employmentStartDate || "",
           employerLeaveEligibilityStart: i.employerLeaveEligibilityStart || "",
+          parentType: i.parentType || "birthing",
         });
         setTimeline(weeks);
         // Skip to results
@@ -1706,7 +1714,7 @@ function PlanPage() {
   const isMoverSelfEmployed = moverPayrollUpdated === "self_employed";
 
   const isFirstStep = step === 0;
-  const isBackDisabled = step === 0 && scenario === "";
+  const isBackDisabled = step === 0 && scenario === "" && parentType === "";
   const isLastStep = step === steps.length - 1;
   const progressPercent = ((step + 1) / steps.length) * 100;
 
@@ -1731,6 +1739,7 @@ function PlanPage() {
   function handleStartOver() {
     setStep(0);
     setScenario("");
+    setParentType("");
     setState("");
     setCity("");
     setDueDate("");
@@ -1819,7 +1828,7 @@ function PlanPage() {
           scenario, state,
           name: nameToSave,
           inputs: {
-            scenario, state, city, birthType, dueDate,
+            scenario, parentType, state, city, birthType, dueDate,
             salaryAmount, salaryFrequency, employerLeaveOffered,
             employerLeaveWeeks, employerLeavePayPercent, coordination,
             employerPreBirth, employerPreBirthWeeks, employerPreBirthPayPercent,
@@ -2030,7 +2039,8 @@ function PlanPage() {
     const planContext = tl ? [
       `State: ${stateDisplayName} (${state})`,
       `State paid leave program: ${hasStatePaidLeave ? "Yes, full CA program" : US_STATES_PAID_LEAVE_COMING_SOON.includes(state) ? "Yes but not yet modeled in this tool, showing FMLA + employer + STD only" : "No state program, FMLA + employer + STD only"}`,
-      `Birth type: ${birthType || "not specified"}`,
+      `Parent type: ${parentType === "non-birthing" ? "Non-birthing parent (partner, adoptive, or foster parent taking bonding leave — no pregnancy disability, no SDI, no medical recovery; bonding leave / PFL only, starting from the child's arrival)" : "Birthing parent (pregnant, taking maternity leave including medical recovery and disability)"}`,
+      parentType === "non-birthing" ? "Birth type: not applicable (non-birthing parent)" : `Birth type: ${birthType || "not specified"}`,
       `Pre-birth leave: ${caPreBirthLeave === "yes_standard" ? "Yes, standard (<=4 weeks)" : caPreBirthLeave === "yes_extended" ? `Yes, extended (${caPreBirthWeeks} weeks)` : "None"}`,
       `SF PPLO: ${city === "San Francisco" ? "Yes" : "No"}`,
       `Employer leave: ${employerLeaveOffered === "yes" ? `Yes, ${employerLeaveWeeks} weeks at ${employerLeavePayPercent}%, ${coordination || "coordination not set"}` : employerLeaveOffered === "no" ? "None" : "Unsure"}`,
@@ -2158,7 +2168,12 @@ function PlanPage() {
       } catch {}
     }
     const noEmployerLeave = employerLeaveOffered === "no";
-    const isPenultimateStep = noEmployerLeave ? step === 4 : step === steps.length - 2;
+    const skipStd = parentType === "non-birthing";
+    const isPenultimateStep = skipStd
+      ? step === 3
+      : noEmployerLeave
+        ? step === 4
+        : step === steps.length - 2;
 
     if (isPenultimateStep) {
       const weeks = buildTimeline({
@@ -2185,10 +2200,11 @@ function PlanPage() {
         scenario,
         employmentStartDate,
         employerLeaveEligibilityStart,
+        parentType,
       });
       setTimeline(weeks);
-      // When no employer leave, go straight to Results (step 5)
-      if (noEmployerLeave) {
+      // When no employer leave (or non-birthing parent, who skips the STD step), go straight to Results (step 5)
+      if (noEmployerLeave || skipStd) {
         setStep(5);
         try {
           gtag("event", "plan_completed", {
@@ -2241,8 +2257,17 @@ function PlanPage() {
         state_code: state || "unknown",
       });
     } catch {}
+    if (step === 0 && scenario === "" && parentType !== "") {
+      setParentType("");
+      return;
+    }
     if (step === 0 && scenario !== "") {
       setScenario("");
+      return;
+    }
+    // Non-birthing parents skip the STD step, so Results goes back to the employer step (3)
+    if (parentType === "non-birthing" && step === 5) {
+      setStep(3);
       return;
     }
     const noEmployerLeave = employerLeaveOffered === "no";
@@ -2313,6 +2338,7 @@ function PlanPage() {
       scenario,
       employmentStartDate,
       employerLeaveEligibilityStart,
+      parentType,
     });
     return result;
   }, [
@@ -2324,6 +2350,7 @@ function PlanPage() {
     birthType,
     fmlaEligible,
     scenario,
+    parentType,
     employmentStartDate,
     employerLeaveEligibilityStart,
     employerLeaveWeeks,
@@ -2588,7 +2615,31 @@ function PlanPage() {
         )}
 
         <section className="flex-1 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-          {scenario === "" && (
+          {parentType === "" && (
+            <div className="flex flex-col items-center text-center gap-6 py-4">
+              <h2 className="text-xl font-semibold text-slate-900">Who is taking leave?</h2>
+              <p className="text-sm text-slate-600 max-w-md">This helps us show the right programs and income sources for your situation.</p>
+              <div className="grid grid-cols-1 gap-3 w-full max-w-md">
+                <button
+                  type="button"
+                  onClick={() => setParentType("birthing")}
+                  className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-5 text-left hover:border-sky-400 hover:bg-sky-50 transition"
+                >
+                  <p className="font-semibold text-slate-900">I am the birthing parent</p>
+                  <p className="text-xs text-slate-500 mt-1">Pregnant and planning maternity leave</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setParentType("non-birthing")}
+                  className="rounded-2xl border-2 border-slate-200 bg-white px-6 py-5 text-left hover:border-sky-400 hover:bg-sky-50 transition"
+                >
+                  <p className="font-semibold text-slate-900">I am the non-birthing parent</p>
+                  <p className="text-xs text-slate-500 mt-1">Partner planning bonding leave{/* TODO: adoption/foster - not yet live - , adoptive parent, or foster parent */}</p>
+                </button>
+              </div>
+            </div>
+          )}
+          {scenario === "" && parentType !== "" && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Which best describes your situation?</h2>
               <p className="mt-2 text-sm text-slate-600">We&apos;ll personalize your leave plan based on your employment status.</p>
@@ -2731,7 +2782,7 @@ function PlanPage() {
                   </label>
                 )}
 
-                {state !== "" && hasPreBirthOption && (
+                {state !== "" && hasPreBirthOption && parentType !== "non-birthing" && (
                   <>
                     <div>
                       <div className="text-sm font-medium text-slate-700">
@@ -2916,24 +2967,32 @@ function PlanPage() {
           {step === 1 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">
-                Birth and recovery
+                {parentType === "non-birthing" ? "Your child's arrival" : "Birth and recovery"}
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                These details help estimate how long you&apos;ll need for
-                physical recovery.
+                {parentType === "non-birthing"
+                  ? "This helps us map out your bonding leave timeline."
+                  : "These details help estimate how long you'll need for physical recovery."}
               </p>
 
               <div className="mt-6 space-y-6">
                 <label className="block text-sm font-medium text-slate-700">
-                  Due date / birth date
+                  {parentType === "non-birthing" ? "When will your child arrive?" : "Due date / birth date"}
                   <input
                     type="date"
                     className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-100"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
                   />
+                  {parentType === "non-birthing" && (
+                    <span className="mt-2 block text-xs font-normal text-slate-500">
+                      Enter your child&apos;s expected or actual birth date.
+                      {/* TODO: adoption/foster - not yet live - Enter the expected or actual birth, adoption placement, or foster placement date. */}
+                    </span>
+                  )}
                 </label>
 
+                {parentType !== "non-birthing" && (
                 <div>
                   <div className="text-sm font-medium text-slate-700">
                     Birth type
@@ -2974,6 +3033,7 @@ function PlanPage() {
                     </button>
                   </div>
                 </div>
+                )}
               </div>
             </div>
           )}
@@ -3610,7 +3670,7 @@ function PlanPage() {
                     <span className="text-amber-300">·</span>
                     <span>Employer 5+ employees</span>
                     <span className="text-amber-300">·</span>
-                    <span>Birthing parent</span>
+                    <span>{parentType === "non-birthing" ? "Non-birthing parent" : "Birthing parent"}</span>
                     <span className="text-amber-300">·</span>
                     <span>STD from your inputs when you select coverage</span>
                     <span className="text-amber-300">·</span>
@@ -3632,7 +3692,7 @@ function PlanPage() {
                               : "FMLA eligible (employer 50+ employees, 12+ months tenure, 1,250+ hours)"}
                     </span>
                     <span className="text-amber-300">·</span>
-                    <span>Birthing parent</span>
+                    <span>{parentType === "non-birthing" ? "Non-birthing parent" : "Birthing parent"}</span>
                     <span className="text-amber-300">·</span>
                     <span>STD from your inputs when you select coverage</span>
                     <span className="text-amber-300">·</span>
@@ -4050,7 +4110,7 @@ function PlanPage() {
                         birthType === "c-section"
                           ? (stateLeave.sdi?.weeksDurationCsection ?? 8)
                           : (stateLeave.sdi?.weeksDurationVaginal ?? 6);
-                      const disabilityWeeks = stateLeave.sdi?.available ? recoveryWeeks : 0;
+                      const disabilityWeeks = stateLeave.sdi?.available && parentType !== "non-birthing" ? recoveryWeeks : 0;
                       const preBirthWeeks =
                         (state === "CA" &&
                           (caPreBirthLeave === "yes_standard" || caPreBirthLeave === "yes_extended"))
@@ -4107,8 +4167,11 @@ function PlanPage() {
                           );
                         }
 
+                        const isNonBirthing = parentType === "non-birthing";
+
                         if (isCA && scenario !== "laid_off") {
-                          rows.push("PDL");
+                          // Non-birthing parents have no pregnancy disability, so no PDL row
+                          if (!isNonBirthing) rows.push("PDL");
                           rows.push("CFRA");
                         } else if (scenario !== "laid_off" && stateLeave.stateProtection?.available && stateLeave.hasProtectionBeyondFMLA) {
                           rows.push("CFRA");
@@ -4116,7 +4179,9 @@ function PlanPage() {
                           excludedRows.push("No state protection beyond FMLA");
                         }
 
-                        if (stateLeave.sdi?.available) {
+                        if (isNonBirthing) {
+                          // Non-birthing parents don't have a state disability (SDI) period
+                        } else if (stateLeave.sdi?.available) {
                           rows.push("State SDI");
                         } else {
                           excludedRows.push("State SDI (no state program)");
@@ -4135,7 +4200,9 @@ function PlanPage() {
                           excludedRows.push("Employer leave (none provided)");
                         }
 
-                        if (hasStdCoverage) {
+                        if (isNonBirthing) {
+                          // Non-birthing parents skip short-term disability (bonding leave only)
+                        } else if (hasStdCoverage) {
                           rows.push("Short‑term disability");
                         } else {
                           excludedRows.push("Short-term disability (not selected)");
@@ -4393,6 +4460,18 @@ function PlanPage() {
               </div>
               </div>
               </div>
+
+              {parentType === "non-birthing" && (
+                <p className="text-xs text-slate-500 leading-relaxed px-1">
+                  CA PFL bonding leave must be used within 1 year of your child&apos;s arrival date.
+                </p>
+              )}
+
+              {parentType === "non-birthing" && state === "CA" && (
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                  <span className="font-semibold">Same employer as your partner?</span> If your partner also works at the same employer, your combined California Family Rights Act (CFRA) bonding leave may be limited to 12 weeks total between both of you. Contact your HR team to confirm.
+                </div>
+              )}
 
               {/* Estimated Leave Income card, always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
               <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -4866,7 +4945,7 @@ function PlanPage() {
             Back
           </button>
 
-          {step < 5 && (
+          {step < 5 && parentType !== "" && (
             <button
               type="button"
               onClick={handleNext}
