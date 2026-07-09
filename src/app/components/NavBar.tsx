@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { label: "Home", href: "/" },
   { label: "Build My Plan", href: "/plan" },
+  { label: "Pricing", href: "/pricing" },
   { label: "How Leave Works", href: "/leave-guide" },
   { label: "Why Leavigation", href: "/why-leavigation" },
   { label: "About", href: "/about" },

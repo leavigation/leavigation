@@ -1445,6 +1445,47 @@ function buildTimeline(options: {
   return weeks;
 }
 
+function PlannerTierGate({
+  active,
+  title,
+  tooltip,
+  onUpgrade,
+  children,
+}: {
+  active: boolean;
+  title: React.ReactNode;
+  tooltip: string;
+  onUpgrade: () => void;
+  children: React.ReactNode;
+}) {
+  if (!active) return <>{children}</>;
+  return (
+    <div className="relative">
+      <div className="pointer-events-none select-none" style={{ filter: "blur(2px)" }}>
+        {children}
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/70 px-6 py-8 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          <span className="group relative">
+            <span className="inline-flex h-5 w-5 cursor-help items-center justify-center rounded-full bg-slate-200 text-xs font-medium text-slate-600">?</span>
+            <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-64 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-left text-xs font-normal text-white shadow-lg group-hover:block">
+              {tooltip}
+            </span>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onUpgrade}
+          className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
+        >
+          Upgrade to Planner for $30/year
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PlanPage() {
   const [step, setStep] = useState(0);
   const [scenario, setScenario] = useState<"employed_long" | "employed_short" | "new_job" | "laid_off" | "">("");
@@ -1529,9 +1570,29 @@ function PlanPage() {
   const [planSaved, setPlanSaved] = useState(false);
   const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
   const [isLoadedPlan, setIsLoadedPlan] = useState(false);
+  const [userTier, setUserTier] = useState<"free" | "planner">("free");
 
   const { isSignedIn, user } = useUser();
   const clerkUser = user;
+
+  useEffect(() => {
+    if (!isSignedIn || !user) {
+      setUserTier("free");
+      return;
+    }
+    async function fetchTier() {
+      const activeUser = user;
+      if (!activeUser) return;
+      try {
+        const res = await fetch(`/api/get-user-tier?clerkId=${activeUser.id}`);
+        const data = await res.json();
+        setUserTier(data.tier === "planner" ? "planner" : "free");
+      } catch {
+        setUserTier("free");
+      }
+    }
+    fetchTier();
+  }, [isSignedIn, user]);
 
   useEffect(() => {
     if (isSignedIn && clerkUser && step === 5 && !gateSubmitted) {
@@ -1845,6 +1906,20 @@ function PlanPage() {
     }
     setShowSaveInput(false);
     setPlanSaved(true);
+  }
+
+  async function handleUpgrade() {
+    if (!user) return;
+    const res = await fetch("/api/create-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clerkId: user.id,
+        email: user.primaryEmailAddress?.emailAddress ?? "",
+      }),
+    });
+    const { url } = await res.json();
+    if (url) window.location.href = url;
   }
 
   function handleShareLink() {
@@ -4473,9 +4548,15 @@ function PlanPage() {
                 </div>
               )}
 
-              {/* Estimated Leave Income card, always render both prompt and breakdown in DOM; show one via visibility for reliable print */}
+              {/* Weekly income estimate by funding source */}
+              <PlannerTierGate
+                active={userTier === "free"}
+                title="Weekly income estimate by funding source"
+                tooltip="See your income broken down week by week by source — SDI, PFL, employer leave, and more — with a shortfall analysis vs. your normal pay."
+                onUpgrade={handleUpgrade}
+              >
               <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <h3 className="text-lg font-semibold text-slate-900">Estimated Leave Income</h3>
+                  <h3 className="text-lg font-semibold text-slate-900">Weekly income estimate by funding source</h3>
                   <div className={weeklySalaryNum != null && weeklySalaryNum > 0 ? "hidden" : ""}>
                     <p className="mt-2 text-sm text-slate-600">
                       Add your income in Step 4 to see your estimated leave pay breakdown.
@@ -4681,6 +4762,7 @@ function PlanPage() {
                     )}
                   </div>
                 </div>
+              </PlannerTierGate>
 
             </div>
           )}
@@ -4798,8 +4880,18 @@ function PlanPage() {
           </div>
         )}
 
-        {/* AI Chat Assistant */}
+        {/* AI chat assistant customized to your plan */}
         {step === 5 && gateSubmitted && (displayTimeline ?? timeline) && (
+          <PlannerTierGate
+            active={userTier === "free"}
+            title={
+              <>
+                AI chat assistant customized to your plan <sup style={{ fontSize: "9px" }}>BETA</sup>
+              </>
+            }
+            tooltip="Ask anything about your specific leave plan — when to file, what to say to HR, how your programs interact — and get verified answers anchored to your plan data."
+            onUpgrade={handleUpgrade}
+          >
           <div className="no-print mt-8">
             <div className="rounded-2xl border border-purple-200 bg-white shadow-sm overflow-hidden">
               {/* Chat header */}
@@ -4811,7 +4903,9 @@ function PlanPage() {
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">AI</div>
                   <div className="text-left">
-                    <div className="text-sm font-semibold text-slate-900">Ask Leavigation AI</div>
+                    <div className="text-sm font-semibold text-slate-900">
+                      AI chat assistant customized to your plan <sup style={{ fontSize: "9px" }}>BETA</sup>
+                    </div>
                     <div className="text-xs text-slate-500">Get instant answers about your leave plan, powered by AI, verified for accuracy</div>
                   </div>
                 </div>
@@ -4916,6 +5010,7 @@ function PlanPage() {
               )}
             </div>
           </div>
+          </PlannerTierGate>
         )}
 
         {step === 5 && (
