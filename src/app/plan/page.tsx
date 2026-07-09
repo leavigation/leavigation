@@ -1449,18 +1449,20 @@ function PlannerTierGate({
   title,
   tooltip,
   onUpgrade,
+  blurPx = 2,
   children,
 }: {
   active: boolean;
   title: React.ReactNode;
   tooltip: string;
   onUpgrade: () => void;
+  blurPx?: number;
   children: React.ReactNode;
 }) {
   if (!active) return <>{children}</>;
   return (
     <div className="relative">
-      <div className="pointer-events-none select-none" style={{ filter: "blur(2px)" }}>
+      <div className="pointer-events-none select-none" style={{ filter: `blur(${blurPx}px)` }}>
         {children}
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/70 px-6 py-8 text-center">
@@ -4571,6 +4573,7 @@ function PlanPage() {
                 title="Weekly income estimate by funding source"
                 tooltip="See your income broken down week by week by source — SDI, PFL, employer leave, and more — with a shortfall analysis vs. your normal pay."
                 onUpgrade={handleUpgrade}
+                blurPx={4}
               >
               <div className="income-estimator-print-section rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <h3 className="text-lg font-semibold text-slate-900">Weekly income estimate by funding source</h3>
