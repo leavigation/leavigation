@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import { useUser, UserButton } from "@clerk/nextjs";
 
 const links = [
   { label: "Home", href: "/" },
@@ -12,6 +13,7 @@ const links = [
 
 export default function NavBar() {
   const pathname = usePathname();
+  const { isSignedIn } = useUser();
   return (
     <header className="no-print sticky top-0 z-50 border-b border-pink-100 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
@@ -37,12 +39,16 @@ export default function NavBar() {
             );
           })}
         </nav>
-        <a
-          href="/plan"
-          className="md:hidden inline-flex items-center justify-center rounded-full bg-pink-400 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500"
-        >
-          Build my plan →
-        </a>
+        {isSignedIn ? (
+          <div className="flex items-center gap-3">
+            <a href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">My dashboard</a>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        ) : (
+          <a href="/plan" className="inline-flex items-center justify-center rounded-full bg-pink-400 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500">
+            Build my plan →
+          </a>
+        )}
       </div>
       {/* Mobile nav */}
       <div className="md:hidden border-t border-pink-50 bg-white px-4 py-2 flex gap-1 overflow-x-auto">
@@ -62,6 +68,18 @@ export default function NavBar() {
             </a>
           );
         })}
+        {isSignedIn && (
+          <a
+            href="/dashboard"
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+              pathname === "/dashboard" || pathname.startsWith("/dashboard/")
+                ? "bg-pink-400 text-white"
+                : "text-slate-600 hover:bg-pink-50"
+            }`}
+          >
+            My dashboard
+          </a>
+        )}
       </div>
     </header>
   );
