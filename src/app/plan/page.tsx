@@ -126,11 +126,10 @@ function parsePercent(value: string): number {
 
 function addOneYear(dateStr: string): Date {
   const d = new Date(dateStr);
-  d.setFullYear(d.getFullYear() + 1);
-  // Correct for month-end edge case (e.g. Dec 1 → Nov 30 due to setFullYear)
   const original = new Date(dateStr);
-  if (d.getDate() !== original.getDate()) {
-    d.setDate(original.getDate());
+  d.setFullYear(d.getFullYear() + 1);
+  if (d.getMonth() !== original.getMonth()) {
+    d.setDate(0);
   }
   return d;
 }
@@ -4055,7 +4054,7 @@ function PlanPage() {
                         <>
                     <div className="gantt-header-row gantt-grid grid grid-flow-col gap-1 text-[10px] text-slate-500" style={gridStyle}>
                       <div className="gantt-label-col min-w-[8rem] max-w-[8rem] w-32 shrink-0 pr-2 text-right text-[11px] font-medium text-slate-600 flex items-center overflow-hidden min-h-12 sticky left-0 bg-white z-10">
-                        Type
+                        <span className="sr-only">Type</span>
                       </div>
                       {showBirthDivider ? (
                         <>
@@ -4429,8 +4428,26 @@ function PlanPage() {
                         <>
                           {streamRows.flatMap((stream, index) => {
                             const elements: React.ReactNode[] = [];
-                            if (index === 0) elements.push(<CategoryHeader key="job-protection" label="JOB PROTECTION" printLabel="JOB PROT." />);
-                            if (stream === "State SDI") elements.push(<CategoryHeader key="paid-leave" label="PAID LEAVE" />);
+                            const jobProtectionStreams: (WeekStream | "PDL" | "CFRA")[] = ["FMLA", "PDL", "CFRA"];
+                            const paidLeaveStreams: (WeekStream | "PDL" | "CFRA")[] = [
+                              "State SDI",
+                              "State PFL",
+                              "SF PPLO",
+                              "Employer leave",
+                              "Short‑term disability",
+                            ];
+                            if (
+                              jobProtectionStreams.includes(stream) &&
+                              !streamRows.slice(0, index).some((s) => jobProtectionStreams.includes(s))
+                            ) {
+                              elements.push(<CategoryHeader key="job-protection" label="JOB PROTECTION" printLabel="JOB PROT." />);
+                            }
+                            if (
+                              paidLeaveStreams.includes(stream) &&
+                              !streamRows.slice(0, index).some((s) => paidLeaveStreams.includes(s))
+                            ) {
+                              elements.push(<CategoryHeader key="paid-leave" label="PAID LEAVE" />);
+                            }
                             if (stream === "CFRA") {
                               elements.push(
                                 <div key="CFRA" className="mt-1 gantt-grid grid grid-flow-col gap-1 text-[10px]" style={gridStyle}>
