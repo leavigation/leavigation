@@ -42,7 +42,7 @@ export default function NavBar() {
         {isSignedIn ? (
           <div className="flex items-center gap-3">
             <a href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition">My dashboard</a>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           </div>
         ) : (
           <a href="/plan" className="inline-flex items-center justify-center rounded-full bg-pink-400 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500">
