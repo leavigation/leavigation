@@ -7,15 +7,15 @@ import { useEffect, useState } from "react";
 import LeavigationLogo from "./LeavigationLogo";
 
 const centerLinks = [
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "How Leave Works", href: "/leave-guide" },
+  { label: "How Leavigation Works", href: "/#how-leavigation-works" },
+  { label: "Parental Leave 101", href: "/parental-leave-101" },
   { label: "Pricing", href: "/pricing" },
   { label: "Blog", href: "/blog" },
   { label: "What's available today", href: "/product" },
 ];
 
 function isLinkActive(pathname: string, href: string) {
-  if (href === "/#how-it-works") {
+  if (href === "/#how-leavigation-works") {
     return pathname === "/";
   }
   const path = href.split("#")[0];

@@ -140,14 +140,14 @@ export default function LeaveGuideClient({
   const checkingAccess = !accessChecked && !initialAccess.hasExplorerAccess && (initialAccess.isSignedIn || isSignedIn);
 
   const slug = useMemo(() => {
-    if (pathname === "/leave-guide" || pathname === "/leave-guide/") return "";
-    const m = pathname.match(/^\/leave-guide\/([^/]+)/);
+    if (pathname === "/parental-leave-101" || pathname === "/parental-leave-101/") return "";
+    const m = pathname.match(/^\/parental-leave-101\/([^/]+)/);
     return m?.[1] ?? initialSlug;
   }, [pathname, initialSlug]);
 
   useEffect(() => {
     if (!accessChecked || effectiveAccess || !slug) return;
-    router.replace("/leave-guide", { scroll: false });
+    router.replace("/parental-leave-101", { scroll: false });
   }, [accessChecked, effectiveAccess, slug, router]);
 
   const state = slug && effectiveAccess ? getLeaveGuideStateBySlug(slug) : undefined;
@@ -259,10 +259,10 @@ export default function LeaveGuideClient({
                   onChange={(e) => {
                     const next = e.target.value;
                     if (!next) {
-                      router.replace("/leave-guide", { scroll: false });
+                      router.replace("/parental-leave-101", { scroll: false });
                       return;
                     }
-                    router.replace(`/leave-guide/${next}`, { scroll: false });
+                    router.replace(`/parental-leave-101/${next}`, { scroll: false });
                   }}
                   className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
@@ -290,7 +290,7 @@ export default function LeaveGuideClient({
                   </select>
                   {isAuthenticated ? (
                     <Link
-                      href="/sign-up?redirect=/leave-guide"
+                      href="/sign-up?redirect=/parental-leave-101"
                       className="block w-full rounded-full py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:opacity-90"
                       style={{ backgroundColor: "#F2B8CB" }}
                     >
@@ -298,7 +298,7 @@ export default function LeaveGuideClient({
                     </Link>
                   ) : (
                     <Link
-                      href="/sign-up?reason=leave-education&redirect=/leave-guide"
+                      href="/sign-up?reason=leave-education&redirect=/parental-leave-101"
                       className="block w-full rounded-full py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:opacity-90"
                       style={{ backgroundColor: "#F2B8CB" }}
                     >

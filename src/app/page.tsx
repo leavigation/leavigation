@@ -125,10 +125,10 @@ export default function HomePage() {
               Create my free plan — no credit card needed
             </Link>
             <a
-              href="#how-it-works"
+              href="#how-leavigation-works"
               className="inline-flex w-full items-center justify-center rounded-full border-2 border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
             >
-              See how it works
+              See how Leavigation works
             </a>
           </div>
           <p className="mt-6 text-sm text-slate-500">
@@ -227,14 +227,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section 3 — How It Works */}
-      <section id="how-it-works" className="w-full scroll-mt-24 bg-white px-6 py-16 sm:py-20">
+      {/* Section 3 — How Leavigation Works */}
+      <section id="how-leavigation-works" className="w-full scroll-mt-24 bg-white px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <h2
             className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
             style={{ color: "#2C3E50" }}
           >
-            What Leavigation does for you.
+            How Leavigation Works
           </h2>
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8">
             {howItWorks.map((item) => (
@@ -321,7 +321,7 @@ export default function HomePage() {
             programs rolling out through 2026.
           </p>
           <Link
-            href="/leave-guide"
+            href="/parental-leave-101"
             className="mt-6 inline-block text-sm font-semibold text-sky-600 hover:text-sky-700"
           >
             See what&apos;s available in your state →

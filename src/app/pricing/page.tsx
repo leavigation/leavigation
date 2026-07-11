@@ -11,7 +11,6 @@ const explorerFeatures = [
   "High level leave education library for all 50 states",
   "One free personalized leave plan (visual leave timeline)",
   "Save and export plan as PDF to share with HR",
-  "HR email templates",
   "General leave planning checklist",
 ];
 
@@ -43,10 +42,6 @@ const comparisonRows: { feature: string; tiers: Record<TierKey, boolean> }[] = [
   },
   {
     feature: "Save and export plan as PDF to share with HR",
-    tiers: { explorer: true, planner: true, navigator: true },
-  },
-  {
-    feature: "HR email templates",
     tiers: { explorer: true, planner: true, navigator: true },
   },
   {
@@ -86,7 +81,7 @@ const comparisonRows: { feature: string; tiers: Record<TierKey, boolean> }[] = [
 const faqs = [
   {
     q: "Is the free plan really free?",
-    a: "Yes. Explorer is free. You will always have access to one leave plan timeline, HR templates, and a planning checklist with no credit card required. Simply make a free Explorer account to access these resources.",
+    a: "Yes. Explorer is free. You will always have access to one leave plan timeline and a planning checklist with no credit card required. Simply make a free Explorer account to access these resources.",
   },
   {
     q: "What is the difference between Explorer and Planner?",

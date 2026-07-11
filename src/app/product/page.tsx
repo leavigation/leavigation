@@ -108,9 +108,9 @@ export default function ProductPage() {
             </div>
           </section>
 
-          {/* How it works */}
+          {/* How Leavigation Works */}
           <section className="mb-12">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">How it works</h2>
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">How Leavigation Works</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {[
                 { step: "1", title: "Answer a few questions", desc: "Tell us your state, due date, birth type, salary, and employer leave policy. The tool covers all 50 states plus DC. Takes 5 minutes." },
