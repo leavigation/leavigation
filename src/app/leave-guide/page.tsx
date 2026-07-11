@@ -1,5 +1,7 @@
+import { getExplorerAccess } from "@/lib/explorerAccess";
 import LeaveGuideClient from "./LeaveGuideClient";
 
-export default function LeaveGuideIndexPage() {
-  return <LeaveGuideClient />;
+export default async function LeaveGuideIndexPage() {
+  const access = await getExplorerAccess();
+  return <LeaveGuideClient initialAccess={access} />;
 }

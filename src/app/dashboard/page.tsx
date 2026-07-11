@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
-import Link from "next/link";
+import { getUserPlanCount } from "@/lib/planLimits";
 import DashboardUpgradeButton from "./DashboardUpgradeButton";
 import UpgradeSuccessBanner from "./UpgradeSuccessBanner";
 import NavigatorComingSoonBanner from "./NavigatorComingSoonBanner";
+import BuildNewPlanButton from "./BuildNewPlanButton";
 
 export default async function DashboardPage({
   searchParams,
@@ -24,6 +26,8 @@ export default async function DashboardPage({
     .single();
 
   const isPlanner = userData?.stripe_subscription_status === "active";
+  const plansCount = userData ? await getUserPlanCount(userData.id) : 0;
+  const canCreatePlan = isPlanner || plansCount < 1;
 
   const plans = userData
     ? await supabaseAdmin
@@ -66,12 +70,12 @@ export default async function DashboardPage({
               </div>
             )}
           </div>
-          <Link
-            href="/plan"
+          <BuildNewPlanButton
+            canCreatePlan={canCreatePlan}
             className="rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 transition"
           >
             Build new plan +
-          </Link>
+          </BuildNewPlanButton>
         </header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -80,12 +84,12 @@ export default async function DashboardPage({
             {planList.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
                 <p className="text-sm text-slate-500">You don&apos;t have any saved plans yet.</p>
-                <Link
-                  href="/plan"
+                <BuildNewPlanButton
+                  canCreatePlan={canCreatePlan}
                   className="mt-4 inline-block rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-600 transition"
                 >
                   Build my first plan →
-                </Link>
+                </BuildNewPlanButton>
               </div>
             ) : (
               <div className="space-y-4">

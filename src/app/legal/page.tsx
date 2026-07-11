@@ -17,8 +17,8 @@ export default function LegalPage() {
         </header>
 
         <div className="space-y-6 text-sm leading-relaxed text-slate-800">
-          <section>
-            <h2 className="text-base font-semibold text-slate-900">1. General disclaimer</h2>
+          <section id="terms">
+            <h2 className="text-base font-semibold text-slate-900">1. Terms of Service</h2>
             <p className="mt-2">
               {appName} is an informational tool designed to help individuals understand how parental leave
               programs may apply to their situation. The information provided by this tool does not constitute
@@ -107,8 +107,8 @@ export default function LegalPage() {
             </p>
           </section>
 
-          <section>
-            <h2 className="text-base font-semibold text-slate-900">6. Data and privacy</h2>
+          <section id="privacy">
+            <h2 className="text-base font-semibold text-slate-900">6. Privacy Policy</h2>
             <p className="mt-2">
               This tool does not store your personal information. The information you enter, including your
               state, due date, employer details, and salary, is used only to generate your personalized

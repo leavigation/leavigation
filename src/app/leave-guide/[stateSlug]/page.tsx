@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getExplorerAccess } from "@/lib/explorerAccess";
 import { getLeaveGuideStateBySlug, LEAVE_GUIDE_STATES } from "@/lib/leaveGuideStateModel";
 import LeaveGuideClient from "../LeaveGuideClient";
 
@@ -25,5 +26,6 @@ export default async function LeaveGuideStatePage({ params }: Props) {
   const { stateSlug } = await params;
   const s = getLeaveGuideStateBySlug(stateSlug);
   if (!s) notFound();
-  return <LeaveGuideClient initialSlug={stateSlug} />;
+  const access = await getExplorerAccess();
+  return <LeaveGuideClient initialSlug={stateSlug} initialAccess={access} />;
 }

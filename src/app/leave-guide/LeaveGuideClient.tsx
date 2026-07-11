@@ -1,7 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { pageBackgrounds } from "@/lib/pageBackgrounds";
+import type { ExplorerAccessState } from "@/lib/explorerAccess";
 import { TIER1_PROGRAM_ROWS, type LeaveGuideProgramRow } from "@/lib/leaveGuidePrograms";
 import {
   getLeaveGuideStateBySlug,
@@ -90,9 +94,50 @@ function CtaBlock() {
   );
 }
 
-export default function LeaveGuideClient({ initialSlug = "" }: { initialSlug?: string }) {
+export default function LeaveGuideClient({
+  initialSlug = "",
+  initialAccess = { isSignedIn: false, hasExplorerAccess: false },
+}: {
+  initialSlug?: string;
+  initialAccess?: ExplorerAccessState;
+}) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const [hasExplorerAccess, setHasExplorerAccess] = useState(initialAccess.hasExplorerAccess);
+  const [isAuthenticated, setIsAuthenticated] = useState(initialAccess.isSignedIn);
+  const [accessChecked, setAccessChecked] = useState(initialAccess.hasExplorerAccess);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const clerkId = user?.id;
+    if (!isSignedIn || !clerkId) {
+      setIsAuthenticated(false);
+      setHasExplorerAccess(false);
+      setAccessChecked(true);
+      return;
+    }
+
+    setIsAuthenticated(true);
+
+    async function checkAccess() {
+      try {
+        const res = await fetch(`/api/get-user-tier?clerkId=${clerkId}`);
+        const data = await res.json();
+        setHasExplorerAccess(data.tier === "explorer" || data.tier === "planner");
+      } catch {
+        setHasExplorerAccess(initialAccess.hasExplorerAccess);
+      } finally {
+        setAccessChecked(true);
+      }
+    }
+
+    checkAccess();
+  }, [isLoaded, isSignedIn, user?.id, initialAccess.hasExplorerAccess]);
+
+  const effectiveAccess = accessChecked ? hasExplorerAccess : initialAccess.hasExplorerAccess;
+  const checkingAccess = !accessChecked && !initialAccess.hasExplorerAccess && (initialAccess.isSignedIn || isSignedIn);
 
   const slug = useMemo(() => {
     if (pathname === "/leave-guide" || pathname === "/leave-guide/") return "";
@@ -100,7 +145,12 @@ export default function LeaveGuideClient({ initialSlug = "" }: { initialSlug?: s
     return m?.[1] ?? initialSlug;
   }, [pathname, initialSlug]);
 
-  const state = slug ? getLeaveGuideStateBySlug(slug) : undefined;
+  useEffect(() => {
+    if (!accessChecked || effectiveAccess || !slug) return;
+    router.replace("/leave-guide", { scroll: false });
+  }, [accessChecked, effectiveAccess, slug, router]);
+
+  const state = slug && effectiveAccess ? getLeaveGuideStateBySlug(slug) : undefined;
 
   const tier2 = state ? TIER_2_NOTICES[state.code] : undefined;
   const tier1Rows = state ? TIER1_PROGRAM_ROWS[state.code] : undefined;
@@ -113,10 +163,10 @@ export default function LeaveGuideClient({ initialSlug = "" }: { initialSlug?: s
     ? `${state.name} does not have a state paid leave program. Your baseline protection is FMLA: 12 weeks of unpaid, job protected leave if your employer has 50+ employees.\n\nBut unpaid does not have to mean unplanned. Many employers offer parental leave policies and short term disability coverage that can turn those 12 weeks into partially or fully paid leave. Leavigation combines your federal protections with your employer benefits to show you a complete picture, week by week, dollar by dollar.`
     : "";
 
-  if (slug && !state) return null;
+  if (slug && effectiveAccess && !state) return null;
 
   return (
-    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)" }}>
+    <main className="min-h-screen" style={{ backgroundColor: pageBackgrounds.lightPurple }}>
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="mb-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-200">
@@ -198,29 +248,68 @@ export default function LeaveGuideClient({ initialSlug = "" }: { initialSlug?: s
               <label htmlFor="leave-guide-state" className="sr-only">
                 State
               </label>
-              <select
-                id="leave-guide-state"
-                value={slug}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  if (!next) {
-                    router.replace("/leave-guide", { scroll: false });
-                    return;
-                  }
-                  router.replace(`/leave-guide/${next}`, { scroll: false });
-                }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="">Select your state</option>
-                {LEAVE_GUIDE_STATES.map((s) => (
-                  <option key={s.code} value={s.slug}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              {checkingAccess ? (
+                <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm text-slate-500">
+                  Loading your account…
+                </div>
+              ) : effectiveAccess ? (
+                <select
+                  id="leave-guide-state"
+                  value={slug}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (!next) {
+                      router.replace("/leave-guide", { scroll: false });
+                      return;
+                    }
+                    router.replace(`/leave-guide/${next}`, { scroll: false });
+                  }}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">Select your state</option>
+                  {LEAVE_GUIDE_STATES.map((s) => (
+                    <option key={s.code} value={s.slug}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="space-y-4">
+                  <select
+                    id="leave-guide-state"
+                    disabled
+                    aria-disabled="true"
+                    className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-base font-medium text-slate-400 shadow-sm opacity-60"
+                  >
+                    <option value="">Select your state</option>
+                    {LEAVE_GUIDE_STATES.map((s) => (
+                      <option key={s.code} value={s.slug}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  {isAuthenticated ? (
+                    <Link
+                      href="/sign-up?redirect=/leave-guide"
+                      className="block w-full rounded-full py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:opacity-90"
+                      style={{ backgroundColor: "#F2B8CB" }}
+                    >
+                      Accept terms to view leave resources in your state
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/sign-up?reason=leave-education&redirect=/leave-guide"
+                      className="block w-full rounded-full py-3 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:opacity-90"
+                      style={{ backgroundColor: "#F2B8CB" }}
+                    >
+                      Create a free account to learn about leave resources in your state
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
 
-            {slug && state && (
+            {slug && state && effectiveAccess && (
               <div className="mt-8">
                 {state.tier === 1 && tier1Rows && (
                   <>

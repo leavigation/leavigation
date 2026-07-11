@@ -20,5 +20,14 @@ export async function POST(req: NextRequest) {
     const sub = event.data.object as { customer: string };
     await supabaseAdmin.from("users").update({ stripe_subscription_status: "free" }).eq("stripe_customer_id", sub.customer);
   }
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as { customer: string | null; mode: string; payment_status: string };
+    if (session.mode === "payment" && session.payment_status === "paid" && session.customer) {
+      await supabaseAdmin
+        .from("users")
+        .update({ stripe_subscription_status: "active" })
+        .eq("stripe_customer_id", session.customer);
+    }
+  }
   return NextResponse.json({ received: true });
 }

@@ -1,215 +1,364 @@
-export default function LandingPage() {
+import Image from "next/image";
+import Link from "next/link";
+import { pageBackgrounds } from "@/lib/pageBackgrounds";
+import WaitlistButton from "@/app/components/WaitlistButton";
+
+type TimelineNode = {
+  icon: string | null;
+  logo?: boolean;
+  label: string;
+  badge: { label: string; style: "explorer" | "planner" | "navigator" };
+  subheading: string;
+  description: string;
+  cta: { label: string; href?: string; variant: "primary" | "outline" | "waitlist" };
+};
+
+const timelineNodes: TimelineNode[] = [
+  {
+    icon: "🌱",
+    label: "First Trimester",
+    badge: { label: "Explorer — Free", style: "explorer" },
+    subheading: "Start with the basics",
+    description:
+      "Create your free Explorer account and learn exactly how maternity leave works in your state. Understand your rights, explore state and federal programs, and get a first look at your leave timeline — before you ever talk to HR.",
+    cta: { label: "Start free", href: "/sign-up", variant: "primary" },
+  },
+  {
+    icon: "🌸",
+    label: "Second Trimester",
+    badge: { label: "Planner — $30/year", style: "planner" },
+    subheading: "Build your plan",
+    description:
+      "Upgrade to Planner and get your full financial picture. See a week-by-week income breakdown by funding source, model different leave scenarios, and use AI chat to get answers about your specific plan — so you walk into your HR conversation knowing exactly what you're entitled to.",
+    cta: { label: "See Planner", href: "/pricing", variant: "outline" },
+  },
+  {
+    icon: null,
+    logo: true,
+    label: "Third Trimester and Beyond",
+    badge: { label: "Navigator — Coming soon", style: "navigator" },
+    subheading: "Navigate your leave",
+    description:
+      "Navigator goes with you all the way through. Lock in your plan, file on time with automatic deadline reminders, share the full picture with your partner, and adjust as life changes — disability extended, return date shifted, or anything in between.",
+    cta: { label: "Join the waitlist", variant: "waitlist" },
+  },
+];
+
+const howItWorks = [
+  {
+    icon: "📋",
+    heading: "Understand your leave",
+    body: "Answer a few questions about your state, employer, and due date. Leavigation maps every program you qualify for — FMLA, state benefits, employer leave, and short term disability — all in one place.",
+  },
+  {
+    icon: "💰",
+    heading: "Know your paycheck",
+    body: "See a week-by-week income breakdown showing exactly what you'll be paid, by which program, for every week of your leave. No more guessing.",
+  },
+  {
+    icon: "📁",
+    heading: "Plan with confidence",
+    body: "Save your plan, export it as a PDF, and walk into your HR conversation prepared. Know what to ask, what to negotiate, and what you're entitled to.",
+  },
+  {
+    icon: "🤖",
+    heading: "Ask anything, anytime",
+    body: "The AI chat answers questions about your specific plan — not generic advice. Whether it's 2pm or 2am, you've got support.",
+  },
+];
+
+const stats = [
+  {
+    value: "330,000+",
+    label: "People reached when we shared what moms are entitled to on leave",
+  },
+  {
+    value: "All 50 states",
+    label: "FMLA, employer leave, and short term disability covered nationwide",
+  },
+  {
+    value: "Free",
+    label: "One complete leave plan, always free, no credit card required",
+  },
+];
+
+const tiers = [
+  {
+    name: "Explorer",
+    price: "Free",
+    description: "Your first leave plan, state education, and HR checklists.",
+  },
+  {
+    name: "Planner",
+    price: "$30/year",
+    description: "Unlimited plans, income estimates, and AI chat for your plan.",
+  },
+  {
+    name: "Navigator",
+    price: "Coming soon",
+    description: "Hands-on guidance for complex leave situations.",
+  },
+];
+
+export default function HomePage() {
   return (
-    <main className="min-h-screen text-slate-900" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)", minHeight: "100vh" }}>
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
-        <header className="mb-10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold">
-              L
-            </div>
-            <span className="text-lg font-semibold tracking-tight text-slate-900">
-              Leavigation
-            </span>
-          </div>
-          <a
-            href="/plan"
-            className="text-sm font-semibold text-pink-600 hover:text-pink-900"
+    <main className="min-h-screen text-slate-900">
+      {/* Section 1 — Hero */}
+      <section className="w-full bg-white px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-4xl text-center">
+          <h1
+            className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
+            style={{ color: "#2C3E50" }}
           >
-            Build my plan
-          </a>
-        </header>
+            Your parental leave, mapped
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+            Create your free personalized leave plan — see exactly how long you&apos;re protected
+            and what you&apos;ll get paid, week by week.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <Link
+              href="/sign-up"
+              className="inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:opacity-90 sm:w-auto"
+              style={{ backgroundColor: "#F2B8CB" }}
+            >
+              Create my free plan — no credit card needed
+            </Link>
+            <a
+              href="#how-it-works"
+              className="inline-flex w-full items-center justify-center rounded-full border-2 border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+            >
+              See how it works
+            </a>
+          </div>
+          <p className="mt-6 text-sm text-slate-500">
+            Free forever. Used by moms in all 50 states.
+          </p>
+        </div>
+      </section>
 
-        <main className="flex-1">
-          {/* Hero */}
-          <section className="mb-12">
-            <div className="rounded-3xl bg-white/70 px-6 py-8 shadow-sm ring-1 ring-pink-100">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-                Parental leave is two things.{" "}
-                <span className="text-pink-600">Most people only know about one.</span>
-              </h1>
-              <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-700">
-                Understanding how job protection and paid leave work, and how they
-                interact, is the key to planning a leave that actually works for you.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a
-                  href="/plan"
-                  className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500"
-                >
-                  Build my leave plan →
-                </a>
-                <p className="text-xs text-slate-500">
-                  Takes about 5 to 10 minutes. No login required.
-                </p>
-              </div>
-            </div>
-          </section>
+      {/* Section 2 — Pregnancy Journey Timeline */}
+      <section className="w-full px-6 py-16 sm:py-20" style={{ backgroundColor: pageBackgrounds.paleYellow }}>
+        <div className="mx-auto max-w-7xl">
+          <h2
+            className="mx-auto max-w-3xl text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#2C3E50" }}
+          >
+            The right plan for every stage of your pregnancy.
+          </h2>
 
-          {/* Benefits section */}
-          <section className="mb-12">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Everything you need to plan your leave, in one place</h2>
-            <div className="grid gap-5 sm:grid-cols-3">
-              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-purple-100">
-                <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center text-xl mb-4">🤖</div>
-                <h3 className="text-base font-semibold text-slate-900 mb-2">AI assistant that knows your plan</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">Ask any question about your specific leave, how FMLA interacts with CFRA, when to file your SDI claim, what your rights are. Get instant, verified answers with cited sources.</p>
-              </div>
-              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-pink-100">
-                <div className="h-10 w-10 rounded-xl bg-pink-100 flex items-center justify-center text-xl mb-4">📅</div>
-                <h3 className="text-base font-semibold text-slate-900 mb-2">Your full timeline in 5 minutes</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">Get a personalized week-by-week Gantt chart showing exactly which programs cover you each week. FMLA, state paid leave, employer leave, and short-term disability, all stacked correctly for your state and situation.</p>
-              </div>
-              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
-                <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl mb-4">💵</div>
-                <h3 className="text-base font-semibold text-slate-900 mb-2">Forecasted income during leave</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">See exactly how much money you&apos;ll receive each week, broken down by source. Know your shortfall in advance so you can plan, save, and negotiate with confidence.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Social proof / trust */}
-          <section className="mb-12">
-            <div className="rounded-2xl bg-white/70 px-6 py-5 shadow-sm ring-1 ring-slate-200">
-              <div className="flex flex-wrap items-center justify-center gap-6 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-pink-500">Free</div>
-                  <div className="text-xs text-slate-500 mt-1">No login required</div>
-                </div>
-                <div className="hidden sm:block h-8 w-px bg-slate-200" />
-                <div>
-                  <div className="text-2xl font-bold text-purple-500">5 min</div>
-                  <div className="text-xs text-slate-500 mt-1">To your full plan</div>
-                </div>
-                <div className="hidden sm:block h-8 w-px bg-slate-200" />
-                <div>
-                  <div className="text-2xl font-bold text-blue-500">All 50 states</div>
-                  <div className="text-xs text-slate-500 mt-1">FMLA + employer + state programs</div>
-                </div>
-                <div className="hidden sm:block h-8 w-px bg-slate-200" />
-                <div>
-                  <div className="text-2xl font-bold text-yellow-500">AI</div>
-                  <div className="text-xs text-slate-500 mt-1">Verified answers</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* How it works */}
-          <section className="mb-12">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">How it works</h2>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {[
-                { step: "1", title: "Answer a few questions", desc: "Tell us your state, due date, birth type, salary, and employer leave policy. The tool covers all 50 states plus DC. Takes 5 minutes." },
-                { step: "2", title: "Get your personalized plan", desc: "See your week-by-week Gantt chart, income forecast, and key filing deadlines, all specific to your situation." },
-                { step: "3", title: "Ask the AI anything", desc: "Use the built-in AI assistant to ask follow-up questions about your plan. Verified answers with cited sources." },
-              ].map((item) => (
-                <div key={item.step} className="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-slate-200">
-                  <div className="h-8 w-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold mb-3">{item.step}</div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-1">{item.title}</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+          <div className="mt-12 md:overflow-x-auto md:pb-4">
+            <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-center md:gap-0">
+              {timelineNodes.map((node, index) => (
+                <div key={node.label} className="flex flex-col md:flex-row md:items-start">
+                  <div className="flex w-full flex-col items-center text-center md:w-64 md:shrink-0 md:px-3 lg:w-72">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-2xl shadow-sm ring-1 ring-slate-200/60">
+                      {node.logo ? (
+                        <Image
+                          src="/logo.png"
+                          alt="Leavigation logo"
+                          width={36}
+                          height={36}
+                          className="h-9 w-9 object-contain"
+                        />
+                      ) : (
+                        <span role="img" aria-hidden="true">
+                          {node.icon}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="mt-4 text-sm font-semibold text-slate-900">{node.label}</h3>
+                    <span
+                      className={`mt-2 inline-flex rounded-full px-3 py-0.5 text-[11px] font-semibold ${
+                        node.badge.style === "navigator"
+                          ? "bg-slate-200 text-slate-500"
+                          : "text-slate-900"
+                      }`}
+                      style={
+                        node.badge.style === "explorer"
+                          ? { backgroundColor: "#F2B8CB" }
+                          : node.badge.style === "planner"
+                            ? { backgroundColor: "#A8CCDF" }
+                            : undefined
+                      }
+                    >
+                      {node.badge.label}
+                    </span>
+                    <p className="mt-2 text-xs font-medium text-slate-700">{node.subheading}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-600">{node.description}</p>
+                    {node.cta.variant === "waitlist" ? (
+                      <WaitlistButton className="mt-4 inline-flex rounded-full border-2 border-slate-300 bg-white px-4 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-slate-400">
+                        {node.cta.label}
+                      </WaitlistButton>
+                    ) : (
+                      <Link
+                        href={node.cta.href ?? "#"}
+                        className={`mt-4 inline-flex rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                          node.cta.variant === "primary"
+                            ? "text-slate-900 hover:opacity-90"
+                            : "border-2 border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                        }`}
+                        style={
+                          node.cta.variant === "primary"
+                            ? { backgroundColor: "#F2B8CB" }
+                            : undefined
+                        }
+                      >
+                        {node.cta.label}
+                      </Link>
+                    )}
+                  </div>
+                  {index < timelineNodes.length - 1 && (
+                    <div
+                      className="mx-auto my-2 h-8 w-0.5 border-l-2 border-solid md:mx-0 md:my-0 md:mt-10 md:h-0.5 md:w-8 md:border-l-0 md:border-t-2"
+                      style={{ borderColor: "#F2B8CB" }}
+                      aria-hidden="true"
+                    />
+                  )}
                 </div>
               ))}
+              <div
+                className="mx-auto mt-2 h-8 w-0.5 border-l-2 border-dotted md:mx-0 md:mt-10 md:h-0.5 md:w-20 md:border-l-0 md:border-t-2"
+                style={{ borderColor: "#F2B8CB" }}
+                aria-hidden="true"
+              />
             </div>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Here is what you will get</h2>
-            <div className="grid gap-5 lg:grid-cols-2">
-              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-pink-100">
-                <p className="text-xs font-semibold uppercase tracking-wide text-pink-600">Week-by-week leave timeline</p>
-                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                  A Gantt chart showing every program active each week, color-coded by whether you are protected, paid, both, or neither. Covers FMLA, state programs, employer leave, and STD.
-                </p>
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-lg bg-slate-50 px-2 py-3 ring-1 ring-slate-200">
-                    <div className="text-lg font-bold text-slate-800">18</div>
-                    <div className="text-[10px] text-slate-500 mt-1">Total leave weeks</div>
-                  </div>
-                  <div className="rounded-lg bg-emerald-50 px-2 py-3 ring-1 ring-emerald-200">
-                    <div className="text-lg font-bold text-emerald-700">10</div>
-                    <div className="text-[10px] text-emerald-700 mt-1">Fully paid weeks</div>
-                  </div>
-                  <div className="rounded-lg bg-amber-50 px-2 py-3 ring-1 ring-amber-200">
-                    <div className="text-lg font-bold text-amber-700">4</div>
-                    <div className="text-[10px] text-amber-700 mt-1">Reduced or no pay</div>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-blue-100">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Estimated leave income</p>
-                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                  A full income breakdown by source, week by week. See exactly how much comes from each program, your total estimated leave income, and your projected shortfall so you can plan ahead.
-                </p>
-                <table className="mt-4 w-full text-xs">
-                  <tbody className="divide-y divide-slate-100">
-                    <tr><td className="py-1.5 text-slate-600">State disability</td><td className="py-1.5 text-right font-medium text-slate-800">$12,400</td></tr>
-                    <tr><td className="py-1.5 text-slate-600">State paid leave</td><td className="py-1.5 text-right font-medium text-slate-800">$9,800</td></tr>
-                    <tr><td className="py-1.5 text-slate-600">Employer leave</td><td className="py-1.5 text-right font-medium text-slate-800">$18,000</td></tr>
-                    <tr><td className="py-1.5 text-slate-600">Short-term disability</td><td className="py-1.5 text-right font-medium text-slate-800">$4,200</td></tr>
-                    <tr className="border-t border-slate-200"><td className="py-2 font-semibold text-slate-800">Total</td><td className="py-2 text-right font-semibold text-emerald-700">$44,400</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6 text-center">Coverage by state</h2>
-            <div className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-slate-200">
-              <svg width="100%" viewBox="0 0 680 420" role="img" aria-label="Leavigation coverage by state: inverted trapezoid showing three tiers">
-                <polygon points="40,30 640,30 584,155 96,155" fill="#E6F1FB" stroke="none"/>
-                <polygon points="96,158 584,158 529,280 151,280" fill="#EAF3DE" stroke="none"/>
-                <polygon points="151,283 529,283 480,390 200,390" fill="#FCEBEB" stroke="none"/>
-                <polygon points="40,30 640,30 480,390 200,390" fill="none" stroke="#B4B2A9" strokeWidth="1"/>
-                <line x1="96" y1="156" x2="584" y2="156" stroke="#B4B2A9" strokeWidth="0.75"/>
-                <line x1="151" y1="281" x2="529" y2="281" stroke="#B4B2A9" strokeWidth="0.75"/>
-                <rect x="270" y="37" width="140" height="20" rx="10" fill="#E6F1FB" stroke="#378ADD" strokeWidth="0.5"/>
-                <text fontSize="12" fontFamily="inherit" x="340" y="51" textAnchor="middle" fill="#185FA5">Available now</text>
-                <text fontSize="14" fontWeight="500" fontFamily="inherit" x="340" y="85" textAnchor="middle" fill="#0C447C">All 50 states + DC</text>
-                <text fontSize="12" fontFamily="inherit" x="340" y="107" textAnchor="middle" fill="#185FA5">FMLA + employer leave + short-term disability</text>
-                <text fontSize="12" fontFamily="inherit" x="340" y="127" textAnchor="middle" fill="#185FA5">No state paid program? We still show you what you have.</text>
-                <rect x="264" y="164" width="152" height="20" rx="10" fill="#EAF3DE" stroke="#97C459" strokeWidth="0.5"/>
-                <text fontSize="12" fontFamily="inherit" x="340" y="178" textAnchor="middle" fill="#27500A">Live now, fully built</text>
-                <text fontSize="14" fontWeight="500" fontFamily="inherit" x="340" y="210" textAnchor="middle" fill="#27500A">California</text>
-                <text fontSize="12" fontFamily="inherit" x="340" y="230" textAnchor="middle" fill="#3B6D11">All state and municipal programs built in</text>
-                <text fontSize="12" fontFamily="inherit" x="340" y="250" textAnchor="middle" fill="#3B6D11">SDI, PFL, PDL, CFRA, FMLA, SF PPLO</text>
-                <rect x="244" y="290" width="192" height="20" rx="10" fill="#FCEBEB" stroke="#F09595" strokeWidth="0.5"/>
-                <text fontSize="12" fontFamily="inherit" x="340" y="304" textAnchor="middle" fill="#791F1F">Being built into Leavigation</text>
-                <text fontSize="14" fontWeight="500" fontFamily="inherit" x="340" y="333" textAnchor="middle" fill="#791F1F">State PFL programs being added</text>
-                <text fontSize="12" fontFamily="inherit" x="340" y="353" textAnchor="middle" fill="#A32D2D">CO, CT, DE, DC, HI, ME, MA, MN, NJ, NY, OR, RI, VT, WA</text>
-                <text fontSize="12" fontFamily="inherit" x="340" y="373" textAnchor="middle" fill="#A32D2D">MD and VA programs launching in 2028</text>
-              </svg>
-            </div>
-          </section>
-
-        {/* Bottom CTA */}
-        <section className="mb-6 rounded-2xl bg-white px-5 py-6 shadow-sm ring-1 ring-slate-200">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Ready to map out your leave?
-          </h2>
-          <p className="mt-2 text-sm text-slate-700">
-            Answer a few questions and get a week-by-week breakdown of your job
-            protection and pay, specific to your state, employer, and situation.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <a
-              href="/plan"
-              className="inline-flex items-center justify-center rounded-full bg-pink-400 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pink-500"
-            >
-              Build my leave plan →
-            </a>
-            <p className="text-xs text-slate-500">
-              You can tweak your answers and re-run the plan anytime.
-            </p>
           </div>
-          <p className="mt-4 text-[11px] leading-snug text-slate-500">
-            This tool is informational only and not legal or tax advice. Talk to your
-            HR team, a lawyer, or a qualified professional before making decisions
-            about your leave.
+        </div>
+      </section>
+
+      {/* Section 3 — How It Works */}
+      <section id="how-it-works" className="w-full scroll-mt-24 bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl">
+          <h2
+            className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#2C3E50" }}
+          >
+            What Leavigation does for you.
+          </h2>
+          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8">
+            {howItWorks.map((item) => (
+              <div
+                key={item.heading}
+                className="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 sm:p-8"
+              >
+                <div className="text-3xl" role="img" aria-hidden="true">
+                  {item.icon}
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-slate-900">{item.heading}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 4 — Social proof */}
+      <section className="w-full px-6 py-16 sm:py-20" style={{ backgroundColor: "rgba(242, 184, 203, 0.2)" }}>
+        <div className="mx-auto max-w-5xl">
+          <h2
+            className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#2C3E50" }}
+          >
+            Parents who plan ahead walk out prepared
+          </h2>
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
+            {stats.map((stat) => (
+              <div key={stat.value} className="text-center">
+                <div className="text-3xl font-bold text-slate-900 sm:text-4xl">{stat.value}</div>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 5 — Tier preview */}
+      <section className="w-full bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl text-center">
+          <h2
+            className="text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#2C3E50" }}
+          >
+            Start free. Upgrade when you&apos;re ready.
+          </h2>
+          <p className="mt-3 text-sm text-slate-600 sm:text-base">
+            No pressure, no credit card. Just your plan.
           </p>
-        </section>
-        </main>
-      </div>
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+            {tiers.map((tier) => (
+              <div
+                key={tier.name}
+                className="rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm"
+              >
+                <h3 className="text-lg font-semibold text-slate-900">{tier.name}</h3>
+                <p className="mt-1 text-xl font-bold text-slate-900">{tier.price}</p>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">{tier.description}</p>
+              </div>
+            ))}
+          </div>
+          <Link
+            href="/pricing"
+            className="mt-8 inline-block text-sm font-semibold text-sky-600 hover:text-sky-700"
+          >
+            See full pricing and features →
+          </Link>
+        </div>
+      </section>
+
+      {/* Section 6 — State coverage */}
+      <section className="w-full bg-slate-50 px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2
+            className="text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#2C3E50" }}
+          >
+            Available everywhere you are.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">
+            Leavigation covers FMLA, employer leave, and short term disability for all 50 states.
+            California and San Francisco municipal programs are fully built out. Additional state
+            programs rolling out through 2026.
+          </p>
+          <Link
+            href="/leave-guide"
+            className="mt-6 inline-block text-sm font-semibold text-sky-600 hover:text-sky-700"
+          >
+            See what&apos;s available in your state →
+          </Link>
+        </div>
+      </section>
+
+      {/* Section 7 — Bottom CTA */}
+      <section className="w-full px-6 py-16 sm:py-24" style={{ backgroundColor: pageBackgrounds.paleYellow }}>
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Leavigation logo"
+              width={64}
+              height={64}
+              className="h-16 w-16 object-contain"
+            />
+          </div>
+          <h2
+            className="mt-6 text-2xl font-bold tracking-tight sm:text-3xl"
+            style={{ color: "#2C3E50" }}
+          >
+            Your leave plan is waiting.
+          </h2>
+          <p className="mt-3 text-sm text-slate-600 sm:text-base">
+            Free to start. Takes 2 minutes. No credit card required.
+          </p>
+          <Link
+            href="/sign-up"
+            className="mt-8 inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: "#F2B8CB" }}
+          >
+            Create my free Explorer account
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }
