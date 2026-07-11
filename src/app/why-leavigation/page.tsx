@@ -1,3 +1,5 @@
+import { pageBackgrounds } from "@/lib/pageBackgrounds";
+
 export default function WhyLeavigationPage() {
   const rows = [
     {
@@ -87,7 +89,7 @@ export default function WhyLeavigationPage() {
   ];
 
   return (
-    <main className="min-h-screen" style={{ background: "linear-gradient(135deg, #E0F0FF 0%, #EDE8FD 40%, #FEF6D0 100%)" }}>
+    <main className="min-h-screen" style={{ backgroundColor: pageBackgrounds.paleYellow }}>
       <div className="mx-auto max-w-5xl px-6 py-16">
 
         {/* Header */}
