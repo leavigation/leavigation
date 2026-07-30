@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, useMemo, useRef } from "react";
 import emailjs from "@emailjs/browser";
 import PlanLimitModal from "@/app/components/PlanLimitModal";
+import { openBeehiivWaitlist } from "@/lib/beehiiv";
 import { StateProgramsReference } from "@/components/StateProgramsReference";
 import {
   getChatPlaceholder,
@@ -2838,7 +2839,7 @@ export default function PlanPageClient() {
                   {state !== "" && state !== "CA" && (
                     <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
                       {US_STATES_PAID_LEAVE_COMING_SOON.includes(state)
-                        ? <>✨ We&apos;re building full {ALL_US_STATES.find((s) => s.code === state)?.name} support now. In the meantime, your plan includes FMLA job protection, employer leave, and any private STD coverage you have. <button type="button" onClick={() => { if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) { (window as unknown as Record<string, { open: () => void }>).beehiiv.open(); } }} className="underline font-medium hover:text-blue-900">Get notified when it launches →</button></>
+                        ? <>✨ We&apos;re building full {ALL_US_STATES.find((s) => s.code === state)?.name} support now. In the meantime, your plan includes FMLA job protection, employer leave, and any private STD coverage you have. <button type="button" onClick={openBeehiivWaitlist} className="underline font-medium hover:text-blue-900">Get notified when it launches →</button></>
                         : scenario === "laid_off"
                           ? <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program. Since you were laid off, FMLA job protection does not apply. Your income during leave depends on any private STD coverage you hold.</>
                           : <>{ALL_US_STATES.find((s) => s.code === state)?.name} doesn&apos;t have a state paid leave program — your plan is built around FMLA job protection, employer leave, and any private STD coverage you have. That&apos;s still a complete picture of your leave.</>
@@ -3836,11 +3837,7 @@ export default function PlanPageClient() {
                           <span className="text-purple-600">Your actual leave income will likely be higher than shown below once {stateName} state programs are built into Leavigation.</span>
                           <button
                             type="button"
-                            onClick={() => {
-                              if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) {
-                                (window as unknown as Record<string, { open: () => void }>).beehiiv.open();
-                              }
-                            }}
+                            onClick={openBeehiivWaitlist}
                             className="shrink-0 rounded-full bg-purple-500 px-3 py-1.5 text-white font-medium hover:bg-purple-600 transition"
                           >
                             Get notified →

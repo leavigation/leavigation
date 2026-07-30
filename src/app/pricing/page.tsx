@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { pageBackgrounds } from "@/lib/pageBackgrounds";
+import { openBeehiivWaitlist } from "@/lib/beehiiv";
 
 const PLANNER_PRICE_ID = "price_1Tr3EsPI7TYvz6kGfZTqAIoW";
 
@@ -186,11 +187,7 @@ export default function PricingPage() {
     }
   }
 
-  function openWaitlist() {
-    if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) {
-      (window as unknown as Record<string, { open: () => void }>).beehiiv.open();
-    }
-  }
+  const openWaitlist = openBeehiivWaitlist;
 
   return (
     <main className="min-h-screen text-slate-900" style={{ color: "#2C3E50", backgroundColor: pageBackgrounds.lightBlue }}>

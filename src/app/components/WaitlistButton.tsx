@@ -1,22 +1,19 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { openBeehiivWaitlist } from "@/lib/beehiiv";
 
 export default function WaitlistButton({
   className,
+  style,
   children,
 }: {
   className?: string;
+  style?: CSSProperties;
   children: ReactNode;
 }) {
-  function openWaitlist() {
-    if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).beehiiv) {
-      (window as unknown as Record<string, { open: () => void }>).beehiiv.open();
-    }
-  }
-
   return (
-    <button type="button" onClick={openWaitlist} className={className}>
+    <button type="button" onClick={openBeehiivWaitlist} className={className} style={style}>
       {children}
     </button>
   );
