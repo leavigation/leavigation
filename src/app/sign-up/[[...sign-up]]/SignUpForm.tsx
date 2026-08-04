@@ -41,13 +41,25 @@ function LegalCheckbox({
         />
         <span className="text-xs text-slate-600 leading-relaxed">
           I agree to the{" "}
-          <Link href="/legal#terms" className="text-sky-600 underline hover:text-sky-700">
-            Terms of Service
-          </Link>{" "}
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-600 underline hover:text-sky-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Terms of Use
+          </a>{" "}
           and{" "}
-          <Link href="/legal#privacy" className="text-sky-600 underline hover:text-sky-700">
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-600 underline hover:text-sky-700"
+            onClick={(e) => e.stopPropagation()}
+          >
             Privacy Policy
-          </Link>{" "}
+          </a>{" "}
           and understand that Leavigation provides general leave planning information only and is not legal or financial advice.
         </span>
       </label>
